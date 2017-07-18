@@ -1,0 +1,27 @@
+$VerbosePreference = "continue"
+$uninstalls = @("Search App by Ask", "Shopping App by Ask", "Avery Toolbar", "Google Toolbar for Internet Explorer", "Avery Teoma Search App", "Ask Toolbar", "eiPower Saver Agent")
+$computer = Read-Host -Prompt 'Input computer name'
+$list = (Get-ADComputer -Filter {Name -like $computer}).Name
+Write-Verbose  -Message "Trying to query $($list.count) computers found in AD"
+$ErrorActionPreference = "SilentlyContinue"
+
+foreach ($computername in $list)  
+{  
+    Enter-PSSession -ComputerName $computername
+        foreach ($element in $uninstalls)
+        {
+	        (Get-WmiObject -Class win32_product | where {$_.name -like $element}).uninstall()
+        
+        
+            if ($? -eq $true)
+            {
+                Write-Verbose -Message "Uninstalled $element on $computername"
+            }
+
+            else
+            {
+                Write-Verbose -Message "Had an issue with $computername. $element wasnt found."
+            }
+        }
+    Exit-PSSession
+}
