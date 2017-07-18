@@ -1,35 +1,46 @@
-$ErrorActionPreference = "SilentlyContinue"
+workflow UninstallPrograms
+{
+
+#$ErrorActionPreference = "SilentlyContinue"
 $VerbosePreference = "continue"
 
 #   List of programs to uninstall
 $uninstalls = @("Search App by Ask", "Shopping App by Ask", "Avery Toolbar", "Google Toolbar for Internet Explorer", "Avery Teoma Search App", "Ask Toolbar", "eiPower Saver Agent")
 
 #    Ask user for computer name. Can use wild cards. EX: EC-E513*
-$computer = Read-Host -Prompt 'Input computer name'
+#$computer = Read-Host -Prompt 'Input computer name'
 
 #   Get the computer(s) and display how many it found in AD
-$list = (Get-ADComputer -Filter {Name -like $computer}).Name
+$list = (Get-ADComputer -Filter {Name -like "ec-e513*C"}).Name
 Write-Verbose  -Message "Trying to query $($list.count) computers found in AD"
 
-#   For each computer found in the list...
-foreach ($computername in $list)  
-{
-    
-    #   For each element in the uninstall list...
-    foreach ($element in $uninstalls)
-    {
-        #   Uninstall the current program
-        (Get-WmiObject -ComputerName $computername -Class win32_product | where {$_.name -like $element}).uninstall()
-            
-            #    Crap error handling. Would like better here
-            if ($? -eq $true)
-            {
-                Write-Verbose -Message "Uninstalled $element on $computername"
-            }
 
-            else
+    #   For each computer found in the list...
+    foreach -parallel ($computername in $list)  
+    {
+    
+        #   For each element in the uninstall list...
+        foreach -parallel ($element in $uninstalls)
+        {
+            #   Uninstall the current program
+            inlinescript
             {
-                Write-Verbose -Message "Had an issue with $computername. $element wasnt found."
+                $program = Get-WmiObject -ComputerName $Using:computername -Class win32_product | where {$_.name -like $Using:element}
+                if($program -ne $null)
+                {
+                    #   If found, uninstall the current program
+                    $program.uninstall()
+                    Write-Verbose -Message "Uninstalled $Using:element on $Using:computername"
+                }
+
+                else
+                {
+                    Write-Verbose -Message "$Using:element wasnt found on $Using:computername"
+                }
             }
+               
+        }
     }
 }
+
+UninstallPrograms
