@@ -1,0 +1,34 @@
+$ErrorActionPreference = "Continue"
+workflow Get-ImageData
+{
+
+    $TempPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath "ImageData"
+    New-Item -Path $TempPath -ItemType Directory 
+    $computerArray = (Get-ADComputer -Filter {Name -like "nw*c"}).Name
+    foreach -parallel ($singleComputer in $computerArray)
+    {
+        $TempFileName = [System.Guid]::NewGuid().Guid + ".csv" #GUID.txt will ensure randomness
+        $FullTempFilePath = Join-Path -Path $TempPath -ChildPath $TempFileName
+        if(Test-Connection -ComputerName $singleComputer -Count 1 -ErrorAction SilentlyContinue)
+        {
+            $imageDate = ([WMI]'').ConvertToDateTime((Get-WmiObject -ComputerName $singleComputer win32_operatingsystem).installdate)
+            
+
+            "$singleComputer : $imageDate" | tee-object -filePath $FullTempFilePath #Write out to the random file
+        }
+
+        else
+        {
+            "$singleComputer : Unknown" | tee-object -filePath $FullTempFilePath #Write out to the random file
+        }
+    }
+
+    $TempFiles = Get-ChildItem -Path $TempPath
+    foreach ($TempFile in $TempFiles) {
+        Get-Content -Path $TempFile.FullName | Out-File C:\users\wadmin_wrcrabtree\Desktop\temp.csv -Append #concatenate all the files
+    }
+
+    Remove-Item -Path $TempPath -Force -Recurse #clean up
+}
+cls
+Get-ImageData
