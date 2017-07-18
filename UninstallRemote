@@ -1,14 +1,11 @@
 workflow UninstallPrograms
 {
 
-#$ErrorActionPreference = "SilentlyContinue"
+$ErrorActionPreference = "SilentlyContinue"
 $VerbosePreference = "continue"
 
 #   List of programs to uninstall
 $uninstalls = @("Search App by Ask", "Shopping App by Ask", "Avery Toolbar", "Google Toolbar for Internet Explorer", "Avery Teoma Search App", "Ask Toolbar", "eiPower Saver Agent")
-
-#    Ask user for computer name. Can use wild cards. EX: EC-E513*
-#$computer = Read-Host -Prompt 'Input computer name'
 
 #   Get the computer(s) and display how many it found in AD
 $list = (Get-ADComputer -Filter {Name -like "ec-e513*C"}).Name
