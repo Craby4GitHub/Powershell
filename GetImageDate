@@ -1,6 +1,8 @@
 $ErrorActionPreference = "Continue"
 workflow Get-ImageData
 {
+#   its a parameter. Yup.
+param([string]$computer)
 
     #   Get the temp path of the user runnin this script
     $TempPath = Join-Path -Path $([System.IO.Path]::GetTempPath()) -ChildPath "ImageData"
@@ -9,7 +11,7 @@ workflow Get-ImageData
     New-Item -Path $TempPath -ItemType Directory 
     
     #   Get list of computers based on filter query and get thier names
-    $computerArray = (Get-ADComputer -Filter {Name -like "nw*c"}).Name
+    $computerArray = (Get-ADComputer -Filter {Name -like "$computer"}).Name
     
     #    For each single computer in the computer list... parallel
     foreach -parallel ($singleComputer in $computerArray)
@@ -48,4 +50,7 @@ workflow Get-ImageData
     Remove-Item -Path $TempPath -Force -Recurse #clean up
 }
 cls
+#   Ask usesr for computer name.
+$userInput = Read-Host "Enter computer name. Wild card * is accepted. EX: EC-E513*C"
+UninstallPrograms -computer $userInput
 Get-ImageData
