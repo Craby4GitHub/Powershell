@@ -57,10 +57,10 @@ netsh winhttp reset proxy
 
 
 Write-Host "^=^> Configuring service startup types..." -back Black -fore Green
-foreach ($moreService in $moreServices)
+foreach ($Service in $Services)
 {
-    Set-Service -Name $moreService -StartupType Automatic
-    Write-Host "$moreService set to Automatic Startup" -back Black -fore Yellow
+    Set-Service -Name $Service -StartupType Automatic
+    Write-Host "$Service set to Automatic Startup" -back Black -fore Yellow
 }
 
 
