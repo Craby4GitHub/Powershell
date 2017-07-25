@@ -52,5 +52,5 @@ param([string]$computer)
 cls
 #   Ask usesr for computer name.
 $userInput = Read-Host "Enter computer name. Wild card * is accepted. EX: EC-E513*C"
-UninstallPrograms -computer $userInput
-Get-ImageData
+Get-ImageData -computer $userInput
+
