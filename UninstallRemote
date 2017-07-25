@@ -1,7 +1,11 @@
 workflow UninstallPrograms
 {
 #   its a parameter. Yup.
-param([string]$computer)
+param
+(
+[Parameter (Mandatory = $true)]
+[string]$computer
+)
 
 #   Disable this if you wna see errors. I have bad error handling so... I would leave it.
 $ErrorActionPreference = "SilentlyContinue"
@@ -43,6 +47,5 @@ Write-Verbose  -Message "Trying to query $($list.count) computers found in AD"
     }
 }
 
-#   Ask usesr for computer name.
-$userInput = Read-Host "Enter computer name. Wild card * is accepted. EX: EC-E513*C"
-UninstallPrograms -computer $userInput
+#   Ask user for computer name.
+UninstallPrograms -computer (Read-Host "Enter computer name. Wild card * is accepted. EX: EC-E513*C")
