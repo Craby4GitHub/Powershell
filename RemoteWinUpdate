@@ -1,7 +1,7 @@
 
 
 $ErrorActionPreference = "Continue"
-workflow Get-ImageData
+workflow Add-WindowsUpdateRemote
 {
   #   its a parameter. Yup.
   param([string]$computer)
@@ -33,7 +33,7 @@ workflow Get-ImageData
   }
 }
 
-
+Add-WindowsUpdateRemote -computer (Read-Host "Enter computer name. Wild card * is accepted. EX: EC-E513*C")
 
 
 
