@@ -1,10 +1,10 @@
 $ErrorActionPreference = "SilentlyContinue"
-    #$computer = (Read-Host "Enter Computername")
+    $computer = (Read-Host "Enter Computername")
     $status = 'Enable'
 
     #   Get list of computers based on filter query and get thier names
-    #$computerArray = (Get-ADComputer -Filter ('Name -like "*' + $computer + '"')).Name
-    $computerArray = Get-Content C:\totalNotConnected.txt
+    $computerArray = (Get-ADComputer -Filter ('Name -like "*' + $computer + '"')).Name
+    #$computerArray = Get-Content C:\totalNotConnected.txt
 
      foreach ($singleComputer in $computerArray){
         if (Test-Connection -ComputerName $singleComputer -Count 1){
