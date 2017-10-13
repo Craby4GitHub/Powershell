@@ -13,17 +13,18 @@ $ErrorActionPreference = "SilentlyContinue"
 
             $biosSettings = Get-WmiObject -computername $singleComputer -Class HP_BIOSSettingInterface -Namespace root/hp/instrumentedBIOS
 
-            $biosSettings.SetBIOSSetting('Num Lock State at Power-On','On') | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('After Power Loss','On') | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Fast Boot',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Legacy Support',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Monday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Tuesday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Wednesday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Thursday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Friday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Saturday',$status) | Select-Object return | write-host
-            $biosSettings.SetBIOSSetting('Sunday',$status) | Select-Object return | write-host
+            $biosSettings.SetBIOSSetting('Num Lock State at Power-On','On')
+            $biosSettings.SetBIOSSetting('After Power Loss','On')
+            $biosSettings.SetBIOSSetting('Fast Boot',$status)
+            $biosSettings.SetBIOSSetting('Legacy Support',$status)
+            $biosSettings.SetBIOSSetting('Monday',$status)
+            $biosSettings.SetBIOSSetting('Tuesday',$status)
+            $biosSettings.SetBIOSSetting('Wednesday',$status)
+            $biosSettings.SetBIOSSetting('Thursday',$status)
+            $biosSettings.SetBIOSSetting('Friday',$status)
+            $biosSettings.SetBIOSSetting('Saturday',$status)
+            $biosSettings.SetBIOSSetting('Sunday',$status) 
+            #| Select-Object return | write-host
 
         }else{
             Write-Host $singleComputer -ForeGround DarkGray 
