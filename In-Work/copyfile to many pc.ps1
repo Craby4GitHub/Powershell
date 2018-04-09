@@ -1,5 +1,5 @@
 ﻿$VerbosePreference = "continue"
-$list = (Get-ADComputer -Filter {Name -like "WC-H306139972CC"}).name
+$list = (Get-ADComputer -Filter {Name -like "nope"}).name
 Write-Verbose  -Message "Found $($list.count) computers"
 $ErrorActionPreference = "SilentlyContinue"
 
