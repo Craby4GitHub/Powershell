@@ -1,76 +1,8 @@
-Add-Type -AssemblyName System.Windows.Forms
-[System.Windows.Forms.Application]::EnableVisualStyles()
-
-#region Begin GUI{
-$Form                            = New-Object system.Windows.Forms.Form
-$Form.ClientSize                 = '370,309'
-$Form.text                       = "PCC-IT: AD and ITAMS compare"
-$Form.TopMost                    = $false
-
-$startButton                     = New-Object system.Windows.Forms.Button
-$startButton.text                = "Start"
-$startButton.width               = 66
-$startButton.height              = 30
-$startButton.location            = New-Object System.Drawing.Point(9,102)
-$startButton.Font                = 'Microsoft Sans Serif,10'
-
-$loadFileButton                  = New-Object system.Windows.Forms.Button
-$loadFileButton.text             = "Load File"
-$loadFileButton.width            = 69
-$loadFileButton.height           = 30
-$loadFileButton.location         = New-Object System.Drawing.Point(7,24)
-$loadFileButton.Font             = 'Microsoft Sans Serif,10'
-
-$loadFileTextBox                 = New-Object system.Windows.Forms.TextBox
-$loadFileTextBox.multiline       = $false
-$loadFileTextBox.width           = 239
-$loadFileTextBox.height          = 20
-$loadFileTextBox.location        = New-Object System.Drawing.Point(96,28)
-$loadFileTextBox.Font            = 'Microsoft Sans Serif,10'
-
-$loadFileBox                     = New-Object system.Windows.Forms.Groupbox
-$loadFileBox.height              = 66
-$loadFileBox.width               = 347
-$loadFileBox.text                = "Load File"
-$loadFileBox.location            = New-Object System.Drawing.Point(9,24)
-
-$WinForm1                        = New-Object system.Windows.Forms.Form
-$WinForm1.ClientSize             = '546,206'
-$WinForm1.text                   = "PCC-IT: AD and ITAMS compare"
-$WinForm1.TopMost                = $false
-
-$ProgressBar1                    = New-Object system.Windows.Forms.ProgressBar
-$ProgressBar1.width              = 290
-$ProgressBar1.height             = 60
-$ProgressBar1.location           = New-Object System.Drawing.Point(24,60)
-
-$progressBarLabel                = New-Object system.Windows.Forms.Label
-$progressBarLabel.text           = "Progress:"
-$progressBarLabel.AutoSize       = $true
-$progressBarLabel.width          = 25
-$progressBarLabel.height         = 10
-$progressBarLabel.location       = New-Object System.Drawing.Point(23,29)
-$progressBarLabel.Font           = 'Microsoft Sans Serif,10'
-
-$Groupbox1                       = New-Object system.Windows.Forms.Groupbox
-$Groupbox1.height                = 137
-$Groupbox1.width                 = 348
-$Groupbox1.text                  = "Current Work, I dunno..."
-$Groupbox1.location              = New-Object System.Drawing.Point(9,161)
-
-$Form.controls.AddRange(@($startButton,$loadFileBox,$Groupbox1))
-$loadFileBox.controls.AddRange(@($loadFileButton,$loadFileTextBox))
-$Groupbox1.controls.AddRange(@($ProgressBar1,$progressBarLabel))
-
-#region gui events {
-$loadFileButton.Add_MouseUp({ Get-FileName })
-$startButton.Add_MouseUp({ Start-Code })
-#endregion events }
-
-#endregion GUI }
 
 import-module activedirectory
 #Requires -Modules activedirectory
+
+
 
 #region Regex
 # 15 Characters
@@ -103,66 +35,67 @@ Function Get-FileName($initialDirectory){
     $loadFileTextBox.text = $OpenFileDialog.FileName
 }
 
-Function Regex-Compare {
-    param([array]$Array)
-
-    foreach ($singleComputer in $Array){
-        Switch -regex ($singleComputer){
-            !$15Characters {
-                $Global:notmatchRegEx += ,@($singleComputer)
-                break
-            }
-            $NormalCampus {
-                $Global:matchesRegex += ,@($singleComputer)
-                break
-            }
-            $WestCampus {
-                $Global:matchesRegex += ,@($singleComputer)
-                break
-            }
-            $DownTownCampus {
-                $Global:matchesRegex += ,@($singleComputer)
-                break
-            }
-            $VDI {
-                break
-            }
-            $VM {
-                break
-            }
-            default {
-                $Global:notmatchRegEx += ,@($singleComputer)
-            }
-        }
+Function Create-Object(){   
+	param([string]$PCCNumber, [string]$Room,[string]$Campus)
+    return [pscustomobject] @{     
+        'PCC Number' = $PCCNumber
+        'Room' = $Room
+        'Campus' = $Campus
     }
 }
 
-Function Start-Code(){
-    $matchesRegex = @()
+
+	$matchesRegex = @()
     $notmatchRegEx = @()
     $PCCNumberArray = @()
     $AssetHash = @{}
+	$ErrorComputer = @()
 
-    $Assets = Import-Csv -path $loadFileTextBox.Text
-    $progressBarLabel.text = 'Converting file to array...'
-    $ProgressBar1.value = 0
 
+
+
+    
+
+	$filePath = Get-FileName $PSScriptroot
+
+	$correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
+        
+	if($correctFile -eq 'Y' -and $filePath -ne $null){
+		return $inputFile = Import-Csv $filePath           
+	}
+	else{
+		write-host "Your selection is empty or does not exist"
+	}
+    until(
+		$correctFile -eq 'Y' -and $inputFile -ne $null
+	)
+
+	$Assets = Import-Csv -path $filePath
+
+
+	$i=0
     #region Parse ITAM list to array
     ForEach($object in $Assets){
-    #For($i=0;$i -le $Assets.Count;$i++){
-    if(($object.'Asset Type' -eq 'CPU') -or
-       ($object.'Asset Type' -eq 'Laptop') -or
-      (($object.'Asset Type' -eq 'Tablet') -and ($object.'Manufacturer' -eq 'Microsoft'))){
-        $AssetHash.Add($object.'Barcode #', $object.'Room')
-        }
-    $ProgressBar1.value = 100
+		$i++
+		[int]$pct = ($i/$Assets.count)*100
+		$progressbar1.Value = $pct
+		if(($object.'Asset Type' -eq 'CPU') -or
+		   ($object.'Asset Type' -eq 'Laptop') -or
+		  (($object.'Asset Type' -eq 'Tablet') -and ($object.'Manufacturer' -eq 'Microsoft'))){
+			try{
+				$AssetHash.Add($object.'Barcode #', $object.'Room')
+			}
+			  Catch{
+					Write-output "$($object.'IT #'), $($object.'Location')" | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\Error.csv' -Append
+				}
+			}	
 }
 #endregion
 
     #region Import from AD
 
     $progressBarLabel.text = 'Pulling computers from PCC Domain...'
-    $ProgressBar1.value = 0
+    
 
     #start-sleep -seconds 1
     $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server PCC-Domain.pima.edu).Name
@@ -177,6 +110,41 @@ Function Start-Code(){
 
     $progressBarLabel.text = 'Checking AD Objects to see if they match standards...'
     $ProgressBar1.value = 0
+
+	Function Regex-Compare {
+    param([array]$Array)
+
+    foreach ($singleComputer in $Array){
+        Switch -regex ($singleComputer){
+			!$15Characters {
+                $Script:notmatchRegEx += ,@($singleComputer)
+                break
+            }
+			$NormalCampus {
+                $Script:matchesRegex += ,@($singleComputer)
+                break
+            }
+            $WestCampus {
+                $Script:matchesRegex += ,@($singleComputer)
+                break
+            }
+            $DownTownCampus {
+                $Script:matchesRegex += ,@($singleComputer)
+                break
+            }
+            $VDI {
+                break
+            }
+            $VM {
+                break
+            }
+            default {
+                $Script:notmatchRegEx += ,@($singleComputer)
+				}
+			}
+		}
+	}
+
     Regex-Compare -Array $EDUArray
 
     Regex-Compare -Array $PCCArray
@@ -194,11 +162,7 @@ Function Start-Code(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-                $PCCNumberArray += New-Object PsObject -Property @{
-                    'PCC Number' = $PCCNumber
-                    'Room' = $Room
-                    'Campus' = $Campus
-                }
+                
 
                 break
             }
@@ -211,11 +175,7 @@ Function Start-Code(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-                $PCCNumberArray += New-Object PsObject -Property @{
-                    'PCC Number' = $PCCNumber
-                    'Room' = $Room
-                    'Campus' = $Campus
-                }
+				$PCCNumberArray += Create-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
                 break
             }
@@ -228,11 +188,7 @@ Function Start-Code(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-                $PCCNumberArray += New-Object PsObject -Property @{
-                    'PCC Number' = $PCCNumber
-                    'Room' = $Room
-                    'Campus' = $Campus
-                }
+				$PCCNumberArray += Create-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
                 break
             }
@@ -245,16 +201,16 @@ Function Start-Code(){
     $progressBarLabel.text = 'Finally, comparing ITAMS and AD PCC Number to the room number on hand...'
     $ProgressBar1.value = 0
 
-    #ForEach($PCCValue in $PCCNumberArray){
+    
     For($i = 0; $i -le ($PCCNumberArray.count - 1); $i++){
         $ProgressBar1.value = $i/$PCCNumberArray.count
         $progressBarLabel.text = 'test...'
+		Write-Host "I got here"
         if($AssetHash[$PCCNumberArray[$i].'PCC Number'] -notmatch $PCCNumberArray[$i].'Room'){
-            Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room')" | Sort-Object | Out-File -FilePath 'C:\Inconsistent.csv' -Append
+            Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room')" | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\Inconsistent.csv' -Append
         }
     }
 
-    $notmatchRegEx | Sort-Object | Out-File -FilePath 'C:\NotMatchRegEx.csv'
-}
-
-[void]$Form.ShowDialog()
+    $notmatchRegEx | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\NotMatchRegEx.csv'
+		Write-Host "I got here"
+	$progressBarLabel.text = 'Done'
