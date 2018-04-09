@@ -1,8 +1,7 @@
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-#region Begin GUI{ 
-
+#region Begin GUI{
 $Form                            = New-Object system.Windows.Forms.Form
 $Form.ClientSize                 = '370,309'
 $Form.text                       = "PCC-IT: AD and ITAMS compare"
@@ -70,12 +69,8 @@ $startButton.Add_MouseUp({ Start-Code })
 
 #endregion GUI }
 
-
-
 import-module activedirectory
 #Requires -Modules activedirectory
-
-
 
 #region Regex
 # 15 Characters
@@ -97,11 +92,9 @@ $VDI = [regex]"^(VDI-)\w{0,}$"
 $VM = [regex]"[vV]\d{0,}$"
 #endregion
 
-
-
 Function Get-FileName($initialDirectory){
     [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
-    
+
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
     $OpenFileDialog.initialDirectory = $initialDirectory
     $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
@@ -145,7 +138,6 @@ Function Regex-Compare {
 }
 
 Function Start-Code(){
-
     $matchesRegex = @()
     $notmatchRegEx = @()
     $PCCNumberArray = @()
@@ -158,33 +150,31 @@ Function Start-Code(){
     #region Parse ITAM list to array
     ForEach($object in $Assets){
     #For($i=0;$i -le $Assets.Count;$i++){
-    if(($object.'Asset Type' -eq 'CPU') -or 
-       ($object.'Asset Type' -eq 'Laptop') -or 
+    if(($object.'Asset Type' -eq 'CPU') -or
+       ($object.'Asset Type' -eq 'Laptop') -or
       (($object.'Asset Type' -eq 'Tablet') -and ($object.'Manufacturer' -eq 'Microsoft'))){
-        
         $AssetHash.Add($object.'Barcode #', $object.'Room')
-
         }
     $ProgressBar1.value = 100
 }
 #endregion
-    
+
     #region Import from AD
 
     $progressBarLabel.text = 'Pulling computers from PCC Domain...'
     $ProgressBar1.value = 0
-    
+
     #start-sleep -seconds 1
     $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server PCC-Domain.pima.edu).Name
-    
+
     $progressBarLabel.text = 'Pulling computers from EDU Domain...'
     $ProgressBar1.value = 50
-   
+
     #start-sleep -seconds 1
     $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server EDU-Domain.pima.edu).Name
     $ProgressBar1.value = 100
     #endregion
-    
+
     $progressBarLabel.text = 'Checking AD Objects to see if they match standards...'
     $ProgressBar1.value = 0
     Regex-Compare -Array $EDUArray
@@ -218,7 +208,7 @@ Function Start-Code(){
 
                 $secondPass = $singleComputer -creplace "^[a-zA-Z]{2}-"
                 $Room = $secondPass -creplace "\d{6}[a-zA-Z]{2}$"
-                
+
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
                 $PCCNumberArray += New-Object PsObject -Property @{
@@ -226,7 +216,7 @@ Function Start-Code(){
                     'Room' = $Room
                     'Campus' = $Campus
                 }
-                
+
                 break
             }
             $DownTownCampus {
@@ -235,7 +225,7 @@ Function Start-Code(){
 
                 $secondPass = $singleComputer -creplace "^[a-zA-Z]{2}"
                 $Room = $secondPass -creplace "\d{6}[a-zA-Z]{2}$"
-                
+
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
                 $PCCNumberArray += New-Object PsObject -Property @{
@@ -243,7 +233,7 @@ Function Start-Code(){
                     'Room' = $Room
                     'Campus' = $Campus
                 }
-                
+
                 break
             }
             default {
@@ -256,7 +246,6 @@ Function Start-Code(){
     $ProgressBar1.value = 0
 
     #ForEach($PCCValue in $PCCNumberArray){
-
     For($i = 0; $i -le ($PCCNumberArray.count - 1); $i++){
         $ProgressBar1.value = $i/$PCCNumberArray.count
         $progressBarLabel.text = 'test...'
