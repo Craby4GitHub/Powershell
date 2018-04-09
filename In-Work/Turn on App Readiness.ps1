@@ -1,0 +1,1 @@
+﻿Set-Service -Name AppReadiness -Status Running -StartupType Automatic

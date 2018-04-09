@@ -1,0 +1,1 @@
+﻿$aBank = Get-ADComputer -filter "Name -like "EC-L142*LC" -and "Description -like 'A*'" -properties description | Select -ExpandProperty Description"

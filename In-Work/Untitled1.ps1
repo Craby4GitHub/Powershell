@@ -1,0 +1,1 @@
+﻿Get-ADComputer -Filter * -SearchBase "OU=Upper CC,OU=Commons,OU=Computers,OU=East,OU=_EDU,DC=edu-domain,DC=pima,DC=edu" | foreach-object {Get-ScheduledTask -taskname *adobe*}
