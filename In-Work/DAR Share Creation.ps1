@@ -1,4 +1,4 @@
-clear
+Clear-Host
 
 # Import Active Directory module
 import-module activedirectory
@@ -15,7 +15,7 @@ Function Main{
 	$sudentsList = @()
 
     #region File to Array
-    ForEach($object in Load-File){
+    ForEach($object in Get-File){
         $courseID = $object.'CODE'
         $courseCRN = $object.SFRSTCR_CRN
         $courseName = "$courseID-$courseCRN"
@@ -41,7 +41,7 @@ Function Main{
     Write-Host 'Creating course folders and removing inheritance...'  -ForegroundColor Green
     Write-Host '------------------------------------------'
     ForEach($course in $courseList){
-        Create-Folders -SingleCourse $course
+        New-Folder -SingleCourse $course
     }
     Write-Host '*********************************************'
     #endregion 
@@ -125,7 +125,7 @@ Function Main{
         }
 
 
-        $testStudent = Get-ADGroupMember -Identity $student[0] | where -Property SamAccountName -eq $student[1]
+        $testStudent = Get-ADGroupMember -Identity $student[0] | Where-Object -Property SamAccountName -eq $student[1]
         if($testStudent -eq $null){
             Write-Host 'Adding' $student[1] 'to' $student[0] -ForegroundColor Yellow
             # Add current user to security group for that course
@@ -153,7 +153,7 @@ Function Main{
     #endregion
 }
 #region Functions
-Function Create-Folders{
+Function New-Folder{
     param([string]$SingleCourse)
 
     $courseFolder = $networkPath + $SingleCourse
@@ -219,7 +219,7 @@ Function Set-Permission{
     (Get-Item $Folder).SetAccessControl($acl)
 }
 
-Function Load-File{
+Function Get-File{
     Do{
         Write-Host '1: Press "1" for Automatic File Load' -ForegroundColor Cyan
         Write-Host '2: Press "2" for Direct Path' -ForegroundColor Cyan

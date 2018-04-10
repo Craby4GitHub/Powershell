@@ -1,6 +1,4 @@
-﻿#$param ([string[]]$printer = $null)
-
-$Printer = Read-Host "Please list printers seperated by a comma"
+﻿$Printer = Read-Host "Please list printers seperated by a comma"
 
 ##Map Printer
 foreach($Printer in $Printers){
