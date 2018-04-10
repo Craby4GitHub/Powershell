@@ -1,4 +1,4 @@
-
+Clear-Host
 import-module activedirectory
 #Requires -Modules activedirectory
 
@@ -24,18 +24,8 @@ $VDI = [regex]"^(VDI-)\w{0,}$"
 $VM = [regex]"[vV]\d{0,}$"
 #endregion
 
-Function Get-FileName($initialDirectory){
-    [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
 
-    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-    $OpenFileDialog.initialDirectory = $initialDirectory
-    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    [void]$OpenFileDialog.ShowDialog()
-    $OpenFileDialog.FileName
-    $loadFileTextBox.text = $OpenFileDialog.FileName
-}
-
-Function Create-Object(){   
+Function New-Object(){   
 	param([string]$PCCNumber, [string]$Room,[string]$Campus)
     return [pscustomobject] @{     
         'PCC Number' = $PCCNumber
@@ -45,40 +35,72 @@ Function Create-Object(){
 }
 
 
+Function Get-FileName($initialDirectory){
+    [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
+
+    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $OpenFileDialog.initialDirectory = $initialDirectory
+    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+    [void]$OpenFileDialog.ShowDialog()
+    $OpenFileDialog.FileName
+}
+Function Get-File{
+    Do{
+        Write-Host '1: Press "1" for Automatic File Load' -ForegroundColor Cyan
+        Write-Host '2: Press "2" for Direct Path' -ForegroundColor Cyan
+        Write-Host 'Q: Press "Q" to quit' -ForegroundColor Cyan
+        $userInput = Read-Host 'Please make a selection'
+        
+        switch($userInput){
+            1 {
+                Write-Host '---------- CRN Selection ----------' -ForegroundColor Gray
+                Write-Host '1: Press "1" for ART' -ForegroundColor Cyan
+                Write-Host '2: Press "2" for DAR' -ForegroundColor Cyan
+                Write-Host '2: Press "2" for JRN' -ForegroundColor Cyan
+                Write-Host 'Q: Press "Q" to quit.' -ForegroundColor Cyan
+                $userInput = Read-Host 'Please make a selection'
+
+                switch($userInput){
+                    1 {$userSelection = 'ART';break}
+                    2 {$userSelection = 'DAR';break}
+                    3 {$userSelection = 'JRN';break}
+                    'Q' {"Quiting...";exit}
+                    default {"Bad input, quiting...";exit}
+                } 
+
+                # Auto Find the newest file written to in the specified path
+               $filePath = (Get-ChildItem -Path $PSScriptroot\$userSelection -Filter "*.csv" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName  
+            ;break}
+
+            # Direct Path
+            2 {$filePath = Get-FileName $PSScriptroot;break}
+            'Q' {"Quiting...";exit}
+            default {'Bad input, quiting...';exit}
+        } 
+
+        $correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
+        
+        if($correctFile -eq 'Y' -and $filePath -ne $null){
+            return $inputFile = Import-Csv $filePath           
+        }else{
+            write-host "Your selection is empty or does not exist"
+        }
+    }until($correctFile -eq 'Y' -and $inputFile -ne $null)
+   
+}
+
+
 	$matchesRegex = @()
     $notmatchRegEx = @()
     $PCCNumberArray = @()
     $AssetHash = @{}
-	$ErrorComputer = @()
-
-
-
-
-    
-
-	$filePath = Get-FileName $PSScriptroot
-
-	$correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
-        
-	if($correctFile -eq 'Y' -and $filePath -ne $null){
-		return $inputFile = Import-Csv $filePath           
-	}
-	else{
-		write-host "Your selection is empty or does not exist"
-	}
-    until(
-		$correctFile -eq 'Y' -and $inputFile -ne $null
-	)
-
-	$Assets = Import-Csv -path $filePath
-
 
 	$i=0
     #region Parse ITAM list to array
-    ForEach($object in $Assets){
+    ForEach($object in Get-File){
 		$i++
 		[int]$pct = ($i/$Assets.count)*100
-		$progressbar1.Value = $pct
+		Write-progress -Activity 'Working...' -percentcomplete $pct -currentoperation "$pct% Complete" -status 'Please Wait'
 		if(($object.'Asset Type' -eq 'CPU') -or
 		   ($object.'Asset Type' -eq 'Laptop') -or
 		  (($object.'Asset Type' -eq 'Tablet') -and ($object.'Manufacturer' -eq 'Microsoft'))){
@@ -94,24 +116,13 @@ Function Create-Object(){
 
     #region Import from AD
 
-    $progressBarLabel.text = 'Pulling computers from PCC Domain...'
-    
-
-    #start-sleep -seconds 1
     $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server PCC-Domain.pima.edu).Name
-
-    $progressBarLabel.text = 'Pulling computers from EDU Domain...'
-    $ProgressBar1.value = 50
-
-    #start-sleep -seconds 1
+  
     $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server EDU-Domain.pima.edu).Name
-    $ProgressBar1.value = 100
+
     #endregion
 
-    $progressBarLabel.text = 'Checking AD Objects to see if they match standards...'
-    $ProgressBar1.value = 0
-
-	Function Regex-Compare {
+	Function Compare-Regex {
     param([array]$Array)
 
     foreach ($singleComputer in $Array){
@@ -145,10 +156,10 @@ Function Create-Object(){
 		}
 	}
 
-    Regex-Compare -Array $EDUArray
+    Compare-Regex -Array $EDUArray
 
-    Regex-Compare -Array $PCCArray
-    $ProgressBar1.value = 100
+    Compare-Regex -Array $PCCArray
+
 
     #region Pull PCC Number and Room Number
     foreach ($singleComputer in $matchesRegex){
@@ -162,7 +173,7 @@ Function Create-Object(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-                
+                $PCCNumberArray += New-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
                 break
             }
@@ -175,7 +186,7 @@ Function Create-Object(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-				$PCCNumberArray += Create-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
+				$PCCNumberArray += New-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
                 break
             }
@@ -188,7 +199,7 @@ Function Create-Object(){
 
                 $Campus = $singleComputer -creplace "-\w{12}$"
 
-				$PCCNumberArray += Create-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
+				$PCCNumberArray += New-Object -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
                 break
             }
@@ -198,19 +209,14 @@ Function Create-Object(){
     }
 #endregion
 
-    $progressBarLabel.text = 'Finally, comparing ITAMS and AD PCC Number to the room number on hand...'
-    $ProgressBar1.value = 0
-
+    'Finally, comparing ITAMS and AD PCC Number to the room number on hand...'
+    
     
     For($i = 0; $i -le ($PCCNumberArray.count - 1); $i++){
-        $ProgressBar1.value = $i/$PCCNumberArray.count
-        $progressBarLabel.text = 'test...'
-		Write-Host "I got here"
         if($AssetHash[$PCCNumberArray[$i].'PCC Number'] -notmatch $PCCNumberArray[$i].'Room'){
             Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room')" | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\Inconsistent.csv' -Append
         }
     }
 
     $notmatchRegEx | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\NotMatchRegEx.csv'
-		Write-Host "I got here"
-	$progressBarLabel.text = 'Done'
+
