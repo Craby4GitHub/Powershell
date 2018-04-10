@@ -46,37 +46,7 @@ Function Get-FileName($initialDirectory){
 }
 Function Get-File{
     Do{
-        Write-Host '1: Press "1" for Automatic File Load' -ForegroundColor Cyan
-        Write-Host '2: Press "2" for Direct Path' -ForegroundColor Cyan
-        Write-Host 'Q: Press "Q" to quit' -ForegroundColor Cyan
-        $userInput = Read-Host 'Please make a selection'
-        
-        switch($userInput){
-            1 {
-                Write-Host '---------- CRN Selection ----------' -ForegroundColor Gray
-                Write-Host '1: Press "1" for ART' -ForegroundColor Cyan
-                Write-Host '2: Press "2" for DAR' -ForegroundColor Cyan
-                Write-Host '2: Press "2" for JRN' -ForegroundColor Cyan
-                Write-Host 'Q: Press "Q" to quit.' -ForegroundColor Cyan
-                $userInput = Read-Host 'Please make a selection'
-
-                switch($userInput){
-                    1 {$userSelection = 'ART';break}
-                    2 {$userSelection = 'DAR';break}
-                    3 {$userSelection = 'JRN';break}
-                    'Q' {"Quiting...";exit}
-                    default {"Bad input, quiting...";exit}
-                } 
-
-                # Auto Find the newest file written to in the specified path
-               $filePath = (Get-ChildItem -Path $PSScriptroot\$userSelection -Filter "*.csv" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName  
-            ;break}
-
-            # Direct Path
-            2 {$filePath = Get-FileName $PSScriptroot;break}
-            'Q' {"Quiting...";exit}
-            default {'Bad input, quiting...';exit}
-        } 
+        $filePath = Get-FileName $PSScriptroot
 
         $correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
         
