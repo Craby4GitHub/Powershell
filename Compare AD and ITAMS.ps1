@@ -1,3 +1,26 @@
+<#
+Will Crabtree
+Version: I dunno how to version things. :D
+
+Compares ITAMs to Active Directry to find computers with incorrect names.
+
+Download the ITAMs CSV from here: https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:1
+    Login -> Assets -> Actions -> Download -> CSV
+
+When ran, this will save 'Error.csv', 'NonStandard Name.csv' and 'Inconsistent.csv' to the users desktop.
+
+'Error.csv' will contain mainly computers that have no PCC number.
+
+'NonStandard Name.csv' will contain computer names that are not following the PCC Naming Convention
+
+'Inconsistent.csv' will contain the computer found to be inconsistent between ITAMs and AD
+    Headers:
+        PCC Number: Its the PCC number. Yup
+        AD Room: The room that is set in AD
+        ITAMs Room: The room that is set in ITAMs
+        Campus: The campus set in AD
+#>
+
 Clear-Host
 
 #Requires -Modules activedirectory
@@ -39,6 +62,7 @@ Function Get-FileName($initialDirectory) {
 $matchesRegex = @()
 $notmatchRegEx = @()
 $PCCNumberArray = @()
+$InconsistentArray = @()
 $AssetHash = @{}
 
 'Loading selected file into an array'
@@ -52,7 +76,7 @@ ForEach ($object in Get-File) {
             $AssetHash.Add($object.'Barcode #', $object.'Room')
         }
         Catch {
-            Write-output "$($object.'IT #'), $($object.'Location'), $($_.Exception.Message)" | Sort-Object | Out-File -FilePath ($PSScriptroot + '\Error.csv') -Append
+            Write-output "$($object.'IT #'), $($object.'Location'), $($_.Exception.Message)" | Sort-Object | Out-File -FilePath "$($env:USERPROFILE)\desktop\Error.csv" -Append -Encoding ASCII
         }
     }	
 }
@@ -76,6 +100,7 @@ $NormalCampus = [regex]"^([a-zA-Z]{4}|([a-zA-Z]{2}-([a-zA-Z]|[a-zA-Z]{2})))(\d{8
 
 # 2 letter campus code 2 Building letter 9 numbers(3 for room and 6 for PCC) 2 letter computer type
 $DownTownCampus = [regex]"^[a-zA-Z]{4}\d{9}[a-zA-Z]{2}$"
+
 # VDI
 $VDI = [regex]"^(VDI-)\w{0,}$"
 
@@ -95,10 +120,6 @@ foreach ($singleComputer in ($EDUArray + $PCCArray)) {
             break
         }
         $NormalCampus {
-            $matchesRegex += , @($singleComputer)
-            break
-        }
-        $DownTownCampus {
             $matchesRegex += , @($singleComputer)
             break
         }
@@ -160,8 +181,10 @@ For ($i = 0; $i -le ($PCCNumberArray.count - 1); $i++) {
     Write-progress -Activity 'Working...' -percentcomplete $pct -currentoperation "$pct% Complete" -status 'Comparing ITAM items to AD items'
     
     if ($AssetHash[$PCCNumberArray[$i].'PCC Number'] -notmatch $PCCNumberArray[$i].'Room') {
-        Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room'), $($PCCNumberArray[$i].'Campus')" | Sort-Object | Out-File -FilePath ($PSScriptroot + '\Inconsistent.csv')-Append
+        $InconsistentArray += "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room'), $($AssetHash[$PCCNumberArray[$i].'PCC Number']), $($PCCNumberArray[$i].'Campus')"
     }
 }
 #endregion
-$notmatchRegEx | Sort-Object | Out-File -FilePath ($PSScriptroot + '\NonStandard Name.csv') -Force
+New-Item -Path "$($env:USERPROFILE)\desktop\Inconsistent.csv" -value "PCC Number,AD Room Number,ITAMs Room Number,Campus`n" -Force | Out-Null
+$InconsistentArray | Out-File -FilePath "$($env:USERPROFILE)\desktop\Inconsistent.csv" -Append -Encoding ASCII
+$notmatchRegEx | Sort-Object | Out-File -FilePath "$($env:USERPROFILE)\desktop\NonStandard Name.csv" -Force
