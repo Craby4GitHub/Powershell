@@ -52,7 +52,7 @@ ForEach ($object in Get-File) {
             $AssetHash.Add($object.'Barcode #', $object.'Room')
         }
         Catch {
-            Write-output "$($object.'IT #'), $($object.'Location'), $($_.Exception.Message)" | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\Error.csv' -Append
+            Write-output "$($object.'IT #'), $($object.'Location'), $($_.Exception.Message)" | Sort-Object | Out-File -FilePath ($PSScriptroot + '\Error.csv') -Append
         }
     }	
 }
@@ -74,6 +74,8 @@ $15Characters = [regex]"\w{15}"
 # 2 letter campus code - 1 or 2 Building letter 8-9 numbers(2-3 for room and 6 for PCC) 2 letter computer type
 $NormalCampus = [regex]"^([a-zA-Z]{4}|([a-zA-Z]{2}-([a-zA-Z]|[a-zA-Z]{2})))(\d{8}|\d{9})[a-zA-Z]{2}$"
 
+# 2 letter campus code 2 Building letter 9 numbers(3 for room and 6 for PCC) 2 letter computer type
+$DownTownCampus = [regex]"^[a-zA-Z]{4}\d{9}[a-zA-Z]{2}$"
 # VDI
 $VDI = [regex]"^(VDI-)\w{0,}$"
 
@@ -93,6 +95,10 @@ foreach ($singleComputer in ($EDUArray + $PCCArray)) {
             break
         }
         $NormalCampus {
+            $matchesRegex += , @($singleComputer)
+            break
+        }
+        $DownTownCampus {
             $matchesRegex += , @($singleComputer)
             break
         }
@@ -127,6 +133,17 @@ foreach ($singleComputer in $matchesRegex) {
             $PCCNumberArray += New-InventoryObject -PCCNumber $PCCNumber -Room $Room -Campus $Campus
 
             break
+        }        
+        $DownTownCampus {
+            $Campus = $singlecomputer.substring(0,2)
+
+            $Room = $singlecomputer.substring(2,4)
+
+            $PCCNumber = $singlecomputer.substring(7,6)
+
+            $PCCNumberArray += New-InventoryObject -PCCNumber $PCCNumber -Room $Room -Campus $Campus
+
+            break
         }
         default {
         }
@@ -143,8 +160,8 @@ For ($i = 0; $i -le ($PCCNumberArray.count - 1); $i++) {
     Write-progress -Activity 'Working...' -percentcomplete $pct -currentoperation "$pct% Complete" -status 'Comparing ITAM items to AD items'
     
     if ($AssetHash[$PCCNumberArray[$i].'PCC Number'] -notmatch $PCCNumberArray[$i].'Room') {
-        Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room'), $($PCCNumberArray[$i].'Campus')" | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\Inconsistent.csv' -Append
+        Write-output "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room'), $($PCCNumberArray[$i].'Campus')" | Sort-Object | Out-File -FilePath ($PSScriptroot + '\Inconsistent.csv')-Append
     }
 }
 #endregion
-$notmatchRegEx | Sort-Object | Out-File -FilePath 'C:\users\wrcrabtree\downloads\NotMatchRegEx.csv' -Force
+$notmatchRegEx | Sort-Object | Out-File -FilePath ($PSScriptroot + '\NonStandard Name.csv') -Force
