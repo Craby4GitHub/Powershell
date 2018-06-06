@@ -174,6 +174,8 @@ Function New-Folder{
     Remove-DomainUsers -folder $courseFolder -Domain 'EDU'
     Remove-DomainUsers -folder $courseFolder -Domain 'PCC'
 
+    Remove-DomainUsers -folder $courseFolderDropbox -Domain 'EDU'
+    Remove-DomainUsers -folder $courseFolderDropbox -Domain 'PCC'
 }
 
 Function Remove-Inheritance {
@@ -181,7 +183,7 @@ Function Remove-Inheritance {
 
     Write-Host 'Removing inheritance for' $folder 'folder...' -ForegroundColor Cyan
     $acl = Get-ACL -Path $folder
-    $acl.SetAccessRuleProtection($True, $True)
+    $acl.SetAccessRuleProtection($True, $False)
     (Get-Item $Folder).SetAccessControl($acl)
 }
 
