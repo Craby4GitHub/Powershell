@@ -171,8 +171,8 @@ Function New-Folder{
     Remove-Inheritance -folder $courseFolder
     Remove-Inheritance -folder $courseFolderDropbox 
 
-    Remove-DomainUsers -folder $courseFolder -Domain 'EDU'
-    Remove-DomainUsers -folder $courseFolder -Domain 'PCC'
+    #Remove-DomainUsers -folder $courseFolder -Domain 'EDU'
+    #Remove-DomainUsers -folder $courseFolder -Domain 'PCC'
 
     Remove-DomainUsers -folder $courseFolderDropbox -Domain 'EDU'
     Remove-DomainUsers -folder $courseFolderDropbox -Domain 'PCC'
