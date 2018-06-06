@@ -7,27 +7,26 @@ import-module activedirectory
 $networkPath = "\\WC-STORAGENAS\classes\"
 #$networkPath = "\\Wc-storagenas\Aztec_Press\"
 $ITSecurityGroup = "WC-IT-DAR_RW"
+$darOULocation = 'OU=DAR_Classroom_Users,OU=West Campus,OU=EDU_Groups,DC=edu-domain,DC=pima,DC=edu'
 
 Function Main{
 	
 	$courseList = @()
 	$instructorsList = @()
-	$sudentsList = @()
-
+	$sudentList = @()
+    
     #region File to Array
     ForEach($object in Get-File){
-        $courseID = $object.'CODE'
-        $courseCRN = $object.SFRSTCR_CRN
-        $courseName = "$courseID-$courseCRN"
-        $personRole = $object.CLASS_ROLE
-        $personUserName = ($object.EMAIL).Split("@")
+        $courseName = $object.CRSEDESC + '-' + $object.SFRSTCR_CRN
+        $Role = $object.CLASS_ROLE
+        $UserName = ($object.EMAIL).Split("@")
 
-        if($personRole -eq 'instructor'){
-            $instructorsList += ,@($courseName, $personUserName[0])
+        if($Role -eq 'instructor'){
+            $instructorsList += ,@($courseName, $UserName[0])
         }   
 
-        if($personRole -eq 'student'){
-            $sudentsList += ,@($courseName, $personUserName[0])
+        if($Role -eq 'student'){
+            $sudentList += ,@($courseName, $UserName[0])
         }  
 
         if($courseList -notcontains $courseName){
@@ -41,17 +40,16 @@ Function Main{
     Write-Host 'Creating course folders and removing inheritance...'  -ForegroundColor Green
     Write-Host '------------------------------------------'
     ForEach($course in $courseList){
-        New-Folder -SingleCourse $course
+        New-Folder -Course $course
     }
     Write-Host '*********************************************'
-    #endregion 
+    #endregion
 
     #region Add security group and instructor to the course folders
 
     Write-Host 'Adding Security group and instructor to the course folders...'  -ForegroundColor Green
     Write-Host '------------------------------------------'
     ForEach($course in $instructorsList){
-        #Add-SecurityGroups -Course $course[0] -Instructor $course[1]
         
         $courseFolder = $networkPath + $course[0]
         $courseFolderDropbox = $networkPath + $course[0] + "\dropbox"
@@ -84,11 +82,10 @@ Function Main{
                
             Write-Host $course 'security group doesnt exist...creating it now' -Foregroundcolor Yellow
 
-            $path = 'OU=DAR_Classroom_Users,OU=Users,OU=_Students,OU=West,OU=_EDU,DC=edu-domain,DC=pima,DC=edu'
             #$path = 'OU=Aztec_Press_Classes,OU=_Security Groups,OU=IT_Services,OU=West,OU=_EDU,DC=edu-domain,DC=pima,DC=edu'
             $desc = 'This is for students of ' + $courseToString
 
-            New-ADGroup -Name $courseToString -SamAccountName $courseToString -GroupCategory Security -GroupScope Global -DisplayName $courseToString -Path $path -Description $desc | Out-Null
+            New-ADGroup -Name $courseToString -SamAccountName $courseToString -GroupCategory Security -GroupScope Global -DisplayName $courseToString -Path $darOULocation -Description $desc | Out-Null
          
             Write-Host "Pausing script to allow AD to sync new group" -ForegroundColor Yellow
             Start-Sleep -s 90      
@@ -112,18 +109,13 @@ Function Main{
 
     Write-Host 'Adding students to security groups...' -ForegroundColor Green
     Write-Host '------------------------------------------'
-    ForEach($student in $sudentsList){
-
-        $courseFolder = "$PSScriptRoot\" + $student[0]
-        $courseFolderDropbox = "$PSScriptRoot\" + $student[0] + "\dropbox"
-      
+    ForEach($student in $sudentList){
         Try{
             Get-AdGroup -Identity $student[0] | Out-Null
         }
         Catch [Microsoft.ActiveDirectory.Management.ADIdentityNotFoundException]{
             Write-host 'Warning, course group ' $student[0] 'doesnt exist in AD.' -ForegroundColor Red
         }
-
 
         $testStudent = Get-ADGroupMember -Identity $student[0] | Where-Object -Property SamAccountName -eq $student[1]
         if($testStudent -eq $null){
@@ -142,22 +134,19 @@ Function Main{
     #endregion
 
     #region Add all DAR groups to single group
-    $AllDARGroups = Get-ADGroup -SearchBase 'OU=DAR_Classroom_Users,OU=Users,OU=_Students,OU=West,OU=_EDU,DC=edu-domain,DC=pima,DC=edu' -filter {GroupCategory -eq "Security"}
+    $AllDARGroups = Get-ADGroup -SearchBase $darOULocation -filter {GroupCategory -eq "Security" -and Name -ne "WC-AllDar"}
     foreach($Group in $AllDARGroups){
-        Write-Host "Adding $Group to WC-AllDar"
+        Write-Host 'Adding' $Group.name 'to WC-AllDar'
         Add-ADGroupMember 'WC-AllDAR' $Group
     }
-
-
-
     #endregion
 }
 #region Functions
 Function New-Folder{
-    param([string]$SingleCourse)
+    param([string]$Course)
 
-    $courseFolder = $networkPath + $SingleCourse
-    $courseFolderDropbox = $networkPath + $SingleCourse + "\dropbox"
+    $courseFolder = $networkPath + $Course
+    $courseFolderDropbox = $networkPath + $Course + "\dropbox"
      
     Write-Host $course':' -ForegroundColor Gray
 
@@ -202,7 +191,7 @@ Function Remove-DomainUsers {
     Write-Host 'Removing Domain Users from' $Folder 'folder...' -ForegroundColor Cyan
     if(Test-Path $Folder){
         $acl = (Get-Item $Folder).GetAccessControl('Access')
-        $removeAccounts = $acl.Access | ?{ $_.IsInherited -eq $false -and $_.IdentityReference -eq $Domain + '-domain\Domain Users' }
+        $removeAccounts = $acl.Access | Where-Object{ $_.IsInherited -eq $false -and $_.IdentityReference -eq $Domain + '-domain\Domain Users' }
         $acl.RemoveAccessRuleAll($removeAccounts)
         (Get-Item $Folder).SetAccessControl($acl)
     }else{
@@ -221,37 +210,7 @@ Function Set-Permission{
 
 Function Get-File{
     Do{
-        Write-Host '1: Press "1" for Automatic File Load' -ForegroundColor Cyan
-        Write-Host '2: Press "2" for Direct Path' -ForegroundColor Cyan
-        Write-Host 'Q: Press "Q" to quit' -ForegroundColor Cyan
-        $userInput = Read-Host 'Please make a selection'
-        
-        switch($userInput){
-            1 {
-                Write-Host '---------- CRN Selection ----------' -ForegroundColor Gray
-                Write-Host '1: Press "1" for ART' -ForegroundColor Cyan
-                Write-Host '2: Press "2" for DAR' -ForegroundColor Cyan
-                Write-Host '2: Press "2" for JRN' -ForegroundColor Cyan
-                Write-Host 'Q: Press "Q" to quit.' -ForegroundColor Cyan
-                $userInput = Read-Host 'Please make a selection'
-
-                switch($userInput){
-                    1 {$userSelection = 'ART';break}
-                    2 {$userSelection = 'DAR';break}
-                    3 {$userSelection = 'JRN';break}
-                    'Q' {"Quiting...";exit}
-                    default {"Bad input, quiting...";exit}
-                } 
-
-                # Auto Find the newest file written to in the specified path
-               $filePath = (Get-ChildItem -Path $PSScriptroot\$userSelection -Filter "*.csv" | Sort-Object LastWriteTime -Descending | Select-Object -First 1).FullName  
-            ;break}
-
-            # Direct Path
-            2 {$filePath = Get-FileName $PSScriptroot;break}
-            'Q' {"Quiting...";exit}
-            default {'Bad input, quiting...';exit}
-        } 
+        $filePath = Find-File $PSScriptroot
 
         $correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
         
@@ -264,7 +223,7 @@ Function Get-File{
    
 }
 
-Function Get-FileName($initialDirectory){
+Function Find-File($initialDirectory){
     [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
     
     $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
