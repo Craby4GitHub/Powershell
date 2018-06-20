@@ -26,39 +26,7 @@ Clear-Host
 #Requires -Modules activedirectory
 import-module activedirectory
 
-Function New-InventoryObject() {   
-    param([string]$PCCNumber, [string]$Room, [string]$Campus)
-    return [pscustomobject] @{     
-        'PCC Number' = $PCCNumber
-        'Room'       = $Room
-        'Campus'     = $Campus
-    }
-}
-
-Function Get-File {
-    Do {
-        $filePath = Get-FileName $PSScriptroot
-
-        $correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
-        if ($correctFile -eq 'Y' -and $filePath -ne $null) {
-            return $inputFile = Import-Csv $filePath           
-        }
-        else {
-            write-host "Your selection is empty or does not exist"
-        }
-    }until($correctFile -eq 'Y' -and $inputFile -ne $null)
-}
-
-Function Get-FileName($initialDirectory) {
-    [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
-    
-    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
-    $OpenFileDialog.initialDirectory = $initialDirectory
-    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
-    [void]$OpenFileDialog.ShowDialog()
-    $OpenFileDialog.FileName
-}
-
+Function Main {
 $matchesRegex = @()
 $notmatchRegEx = @()
 $PCCNumberArray = @()
@@ -188,3 +156,40 @@ For ($i = 0; $i -le ($PCCNumberArray.count - 1); $i++) {
 New-Item -Path "$($env:USERPROFILE)\desktop\Inconsistent.csv" -value "PCC Number,AD Room Number,ITAMs Room Number,Campus`n" -Force | Out-Null
 $InconsistentArray | Out-File -FilePath "$($env:USERPROFILE)\desktop\Inconsistent.csv" -Append -Encoding ASCII
 $notmatchRegEx | Sort-Object | Out-File -FilePath "$($env:USERPROFILE)\desktop\NonStandard Name.csv" -Force
+}
+
+
+Function New-InventoryObject() {   
+    param([string]$PCCNumber, [string]$Room, [string]$Campus)
+    return [pscustomobject] @{     
+        'PCC Number' = $PCCNumber
+        'Room'       = $Room
+        'Campus'     = $Campus
+    }
+}
+
+Function Get-File {
+    Do {
+        $filePath = Get-FileName $PSScriptroot
+
+        $correctFile = read-host 'Is' $filePath "the correct file? (Y/N)"
+        if ($correctFile -eq 'Y' -and $filePath -ne $null) {
+            return $inputFile = Import-Csv $filePath           
+        }
+        else {
+            write-host "Your selection is empty or does not exist"
+        }
+    }until($correctFile -eq 'Y' -and $inputFile -ne $null)
+}
+
+Function Get-FileName($initialDirectory) {
+    [void][System.Reflection.Assembly]::LoadWithPartialName("System.windows.forms")
+    
+    $OpenFileDialog = New-Object System.Windows.Forms.OpenFileDialog
+    $OpenFileDialog.initialDirectory = $initialDirectory
+    $OpenFileDialog.filter = "CSV (*.csv)| *.csv"
+    [void]$OpenFileDialog.ShowDialog()
+    $OpenFileDialog.FileName
+}
+
+main
