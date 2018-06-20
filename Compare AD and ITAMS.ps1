@@ -36,7 +36,7 @@ $AssetHash = @{}
 'Loading selected file into an array'
 #region Parse ITAM list to array
 ForEach ($object in Get-File) {
-    Write-progress -Activity 'Working...' -currentoperation 'Loading selected file into an array...'
+    Write-progress -Activity 'Loading selected file into an array...'
     if (($object.'Asset Type' -eq 'CPU') -or
         ($object.'Asset Type' -eq 'Laptop') -or
        (($object.'Asset Type' -eq 'Tablet') -and ($object.'Manufacturer' -eq 'Microsoft'))) {
@@ -52,7 +52,7 @@ ForEach ($object in Get-File) {
 
 'Loading AD Computers'
 #region Import from AD
-Write-progress -Activity 'Working...' -status 'Getting computers from EDU and PCC Domain...'
+Write-progress -Activity 'Getting computers from EDU and PCC Domain...'
 $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server PCC-Domain.pima.edu).Name
   
 $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server EDU-Domain.pima.edu).Name
@@ -81,7 +81,9 @@ $VM = [regex]"[vV]\d{0,}$"
 $i = 0
 foreach ($singleComputer in ($EDUArray + $PCCArray)) {
     [int]$pct = ($i/($EDUArray + $PCCArray).count)*100
-    Write-progress -Activity 'Working...' -PercentComplete $pct -currentoperation "$pct% Complete" -status 'Loading selected file into an array'
+    # Naming convention
+    # https://docs.google.com/spreadsheets/d/1gLkgjxNlxwbNizH_EsQY_-ARmaStVOYra1pwcxIQvgM/edit#gid=0
+    Write-progress -Activity 'Comparing computer names to PCC naming convention...' -PercentComplete $pct -status "$pct% Complete"
     Switch -regex ($singleComputer) {
         !$15Characters {
             $notmatchRegEx += , @($singleComputer)
@@ -110,7 +112,7 @@ foreach ($singleComputer in ($EDUArray + $PCCArray)) {
 $i = 0
 foreach ($singleComputer in $matchesRegex) {
     [int]$pct = ($i/($matchesRegex).count)*100
-    Write-progress -Activity 'Working...' -PercentComplete $pct -currentoperation "$pct% Complete" -status 'Pulling Campus, Room number and PCC number from AD computer name'
+    Write-progress -Activity 'Extracting Campus, Room number and PCC number from the AD computer names...' -PercentComplete $pct -status "$pct% Complete"
     Switch -regex ($singleComputer) {
         $NormalCampus {
             $Campus = $singlecomputer.substring(0,2)
@@ -146,7 +148,7 @@ foreach ($singleComputer in $matchesRegex) {
 For ($i = 0; $i -le ($PCCNumberArray.count - 1); $i++) {
 
     [int]$pct = ($i/$PCCNumberArray.count)*100
-    Write-progress -Activity 'Working...' -percentcomplete $pct -currentoperation "$pct% Complete" -status 'Comparing ITAM items to AD items'
+    Write-progress -Activity 'Comparing AD computer Room and PCC number to corresponding PCC number in ITAMS...' -percentcomplete $pct -status "$pct% Complete"
     
     if ($AssetHash[$PCCNumberArray[$i].'PCC Number'] -notmatch $PCCNumberArray[$i].'Room') {
         $InconsistentArray += "$($PCCNumberArray[$i].'PCC Number'), $($PCCNumberArray[$i].'Room'), $($AssetHash[$PCCNumberArray[$i].'PCC Number']), $($PCCNumberArray[$i].'Campus')"
