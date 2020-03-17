@@ -16,53 +16,92 @@
     [Console.Window]::ShowWindow($consolePtr, 0) # hide
 
 
-$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
+
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 #todo
-#remove varible location
-#equpoiment field
-#auto load op
-
+#Equipment field - link to csv, clear
+#add pk
+    #ticket history
 
 
 $Form                            = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle            = "FixedDialog"
-$Form.ClientSize                 = "350,350"
+$Form.ClientSize                 = "400,350"
 $Form.text                       = "Equipment Repair Form"
 $Form.TopMost                    = $true
 $Form.StartPosition              = 'CenterScreen'
 
+<#
 $Stu_Num_Label                   = New-Object system.Windows.Forms.Label
 $Stu_Num_Label.text              = "Student Number"
 $Stu_Num_Label.AutoSize          = $true
 $Stu_Num_Label.width             = 25
 $Stu_Num_Label.height            = 10
-$Stu_Num_Label.location          = New-Object System.Drawing.Point(15,10)
+$Stu_Num_Label.location          = New-Object System.Drawing.Point(25,10)
 $Stu_Num_Label.Font              = 'Microsoft Sans Serif,10'
+#>
+
+$Stu_Num_Group                   = New-Object system.Windows.Forms.Groupbox
+$Stu_Num_Group.height            = 50
+$Stu_Num_Group.width             = 110
+$Stu_Num_Group.text              = "Student Number"
+$Stu_Num_Group.location          = New-Object System.Drawing.Point(25,10)
+
 
 $Stu_Num_Text                    = New-Object system.Windows.Forms.TextBox
 $Stu_Num_Text.multiline          = $false
 $Stu_Num_Text.width              = 100
 $Stu_Num_Text.height             = 20
-$Stu_Num_Text.location           = New-Object System.Drawing.Point($(($Form.ClientSize.Width-$Stu_Num_Text.width)/5),30)
+$Stu_Num_Text.location           = New-Object System.Drawing.Point(5,17)
 $Stu_Num_Text.Font               = 'Microsoft Sans Serif,10'
+$Stu_Num_Text.text               = 'A01070484'
 
-$Loc_Label                       = New-Object system.Windows.Forms.Label
-$Loc_Label.text                  = "Location/Op/Area"
-$Loc_Label.AutoSize              = $true
-$Loc_Label.width                 = 25
-$Loc_Label.height                = 10
-$Loc_Label.location              = New-Object System.Drawing.Point(150,10)
-$Loc_Label.Font                  = 'Microsoft Sans Serif,10'
+<#
+$OP_Label                       = New-Object system.Windows.Forms.Label
+$OP_Label.text                  = "Operatory"
+$OP_Label.AutoSize              = $true
+$OP_Label.width                 = 25
+$OP_Label.height                = 10
+$OP_Label.location              = New-Object System.Drawing.Point(150,10)
+$OP_Label.Font                  = 'Microsoft Sans Serif,10'
+#>
 
-$Loc_text                        = New-Object system.Windows.Forms.TextBox
-$Loc_text.multiline              = $false
-$Loc_text.width                  = 100
-$Loc_text.height                 = 20
-$Loc_text.location               = New-Object System.Drawing.Point($(($Form.ClientSize.Width-$Loc_text.width)/1.25),30)
-$Loc_text.Font                   = 'Microsoft Sans Serif,10'
+$OP_Group                        = New-Object system.Windows.Forms.Groupbox
+$OP_Group.height                 = 50
+$OP_Group.width                  = 110
+$OP_Group.text                   = "Operatory"
+$OP_Group.location               = New-Object System.Drawing.Point(140,10)
+
+$OP_Text                        = New-Object system.Windows.Forms.TextBox
+$OP_Text.multiline              = $false
+$OP_Text.width                  = 100
+$OP_Text.height                 = 20
+$OP_Text.location               = New-Object System.Drawing.Point(5,17)
+$OP_Text.Font                   = 'Microsoft Sans Serif,10'
+$OP_Text.Text                   = (Get-WmiObject -Class Win32_OperatingSystem).description
+
+$Equipment_Group                 = New-Object system.Windows.Forms.Groupbox
+$Equipment_Group.height          = 50
+$Equipment_Group.width           = 110
+$Equipment_Group.text            = "Equipment"
+$Equipment_Group.location        = New-Object System.Drawing.Point(260,10)
+<#
+$Equipment_Label                       = New-Object system.Windows.Forms.Label
+$Equipment_Label.text                  = "Equipment"
+$Equipment_Label.AutoSize              = $true
+$Equipment_Label.width                 = 25
+$Equipment_Label.height                = 10
+$Equipment_Label.location              = New-Object System.Drawing.Point(275,10)
+$Equipment_Label.Font                  = 'Microsoft Sans Serif,10'
+#>
+$Equipment_Text                  = New-Object system.Windows.Forms.TextBox
+$Equipment_Text.multiline        = $false
+$Equipment_Text.width            = 100
+$Equipment_Text.height           = 20
+$Equipment_Text.location         = New-Object System.Drawing.Point(5,17)
+$Equipment_Text.Font             = 'Microsoft Sans Serif,10'
 
 $Desc_Label                      = New-Object system.Windows.Forms.Label
 $Desc_Label.text                 = "Description of Problem"
@@ -74,10 +113,25 @@ $Desc_Label.Font                 = 'Microsoft Sans Serif,10'
 
 $Desc_Text                       = New-Object system.Windows.Forms.TextBox
 $Desc_Text.multiline             = $true
-$Desc_Text.width                 = 250
-$Desc_Text.height                = 200
-$Desc_Text.location              = New-Object System.Drawing.Point($(($Form.ClientSize.Width-$Desc_Text.width)/2),100)
+$Desc_Text.width                 = 300
+$Desc_Text.height                = 70
+$Desc_Text.location              = New-Object System.Drawing.Point(50,100)
 $Desc_Text.Font                  = 'Microsoft Sans Serif,10'
+
+$Issue_History_Label                  = New-Object system.Windows.Forms.Label
+$Issue_History_Label.text                 = "Current Issues"
+$Issue_History_Label.AutoSize             = $true
+$Issue_History_Label.width                = 25
+$Issue_History_Label.height               = 10
+$Issue_History_Label.location          = New-Object System.Drawing.Point(140,180)
+$Issue_History_Label.Font                 = 'Microsoft Sans Serif,10'
+
+$Issue_History                   = New-Object system.Windows.Forms.DataGridView
+$Issue_History.width             = 300
+$Issue_History.height            = 70
+$Issue_History.location          = New-Object System.Drawing.Point(50,200)
+$Issue_History.ScrollBars        = "Vertical"
+$Issue_History.AutoGenerateColumns = $true
 
 $Submit_Button                   = New-Object system.Windows.Forms.Button
 $Submit_Button.text              = "Submit"
@@ -85,6 +139,9 @@ $Submit_Button.width             = 60
 $Submit_Button.height            = 30
 $Submit_Button.location          = New-Object System.Drawing.Point(30,310)
 $Submit_Button.Font              = 'Microsoft Sans Serif,10'
+
+#work on
+$Form.AcceptButton               = $Submit_Button  
 
 $Sumbit_Status                   = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize          = $true
@@ -97,23 +154,47 @@ $Clear_Button                    = New-Object system.Windows.Forms.Button
 $Clear_Button.text               = "Clear"
 $Clear_Button.width              = 60
 $Clear_Button.height             = 30
-$Clear_Button.location           = New-Object System.Drawing.Point($(($Form.ClientSize.Width-$Clear_Button.width)/1.35),310)
+$Clear_Button.location           = New-Object System.Drawing.Point(300,310)
 $Clear_Button.Font               = 'Microsoft Sans Serif,10'
 
-$Form.controls.AddRange(@($Stu_Num_Text,$Loc_text,$Desc_Text,$Stu_Num_Label,$Desc_Label,$Loc_Label,$Submit_Button,$Sumbit_Status,$Clear_Button))
+$Form.controls.AddRange(@($Stu_Num_Group,$OP_Group,$Equipment_Group,$Desc_Label,$Desc_Text,$Submit_Button,$Sumbit_Status,$Clear_Button,$Issue_History,$Issue_History_Label))
+$Equipment_Group.controls.AddRange(@($Equipment_Text))
+$Stu_Num_Group.controls.AddRange(@($Stu_Num_Text))
+$OP_Group.controls.AddRange(@($OP_Text))
+
+$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
+
+$Issue_History.Rows.Clear()
+ 
+
+$issues = Import-Csv -Path $filePath
+
+$Issue_History.ColumnCount = 2
+$Issue_History.Columns[0].Name = 'Equipment'
+$Issue_History.Columns[1].Name = 'Issue'
+
+
+foreach ($_ in $issues){
+    [void]$Issue_History.Rows.Add($($_.'Equipment'), $($_.'Issue Description'))
+}
 
 function Find-Control($ControlType) {
     $FormControls = @()
-    ForEach ($control in $Form.Controls) {
-        if ($control.GetType().Name -eq $ControlType) {
-            $FormControls += $control
+    ForEach ($groups in $Form.Controls) {
+        if ($groups.ToString().StartsWith("System.Windows.Forms.GroupBox")){
+        foreach ($control in $groups.controls) {
+            if ($control.GetType().Name -eq $ControlType) {
+                $FormControls += $control
+            }
         }
     }
+}
     return $FormControls
 }
 
-function Clear-TextFields{
+function Clear-TextFields($Fields){
     foreach ($control in Find-Control -ControlType 'TextBox') {
+
         $control.Clear()
     }
 }
@@ -141,25 +222,29 @@ function Confirm-UserInput($Regex,$CurrentField,$ErrorMSG){
 
 $Submission = [pscustomobject]@{
     'Student Number'    = ''
-    'Location'          = ''
+    'Operatory'         = ''
+    'Equipment'         = ''
     'Issue Description' = ''
     TimeStamp           = ''
+    'Status'            = ''
+    'Note'            = ''
 }
 
 function Update-Submission{
     $Submission.'Issue Description' = $Desc_Text.Text
-    $Submission.'Location'          = $Loc_text.Text
+    $Submission.'Operatory'          = $OP_Text.Text
+    $Submission.'Equipment'          = $Equipment_Text.Text
     $Submission.'Student Number'    = $Stu_Num_Text.Text
     $Submission.TimeStamp           = Get-Date
     return $Submission
 }
 
 $Submit_Button.Add_MouseUp({Confirm-UserInput -regex "^[Aa]{0,1}\d{8}$" -CurrentField $Stu_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER: A12345678'})
-$Submit_Button.Add_MouseUp({Confirm-UserInput -regex "." -CurrentField $Loc_text -ErrorMSG 'INVALID LOCATION'})
+$Submit_Button.Add_MouseUp({Confirm-UserInput -regex "." -CurrentField $OP_Text -ErrorMSG 'INVALID LOCATION'})
 $Submit_Button.Add_MouseUp({Confirm-UserInput -regex "." -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION'})
 
-$filePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
-#$filePath = '\\wc-vm-prtsvr\c$\usmt\tester.csv'
+#$filePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
+$filePath = '\\wc-vm-prtsvr\c$\usmt\tester.csv'
 
 $Submit_Button.Add_MouseUp({
     if (Confirm-NoTextError) {
@@ -174,7 +259,7 @@ $Submit_Button.Add_MouseUp({
     if (!$error) {
         $Sumbit_Status.Text = 'Submitted'
     }
-    Start-Sleep -Seconds 5
+    Start-Sleep -Seconds 2
 })
 
 [void]$Form.ShowDialog()
