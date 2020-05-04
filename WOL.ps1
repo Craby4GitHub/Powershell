@@ -1,4 +1,4 @@
-. "$PSScriptRoot\Write-Log.ps1.ps1"
+. "$PSScriptRoot\Write-Log.ps1"
 function Send-WOL
 {
 <# 
@@ -22,7 +22,7 @@ $ip="255.255.255.255",
 $broadcast = [Net.IPAddress]::Parse($ip)
  
 $mac=(($mac.replace(":","")).replace("-","")).replace(".","")
-$target=0,2,4,6,8,10 | % {[convert]::ToByte($mac.substring($_,2),16)}
+$target=0,2,4,6,8,10 | ForEach-Object {[convert]::ToByte($mac.substring($_,2),16)}
 $packet = (,[byte]255 * 6) + ($target * 16)
  
 $UDPclient = new-Object System.Net.Sockets.UdpClient
@@ -30,17 +30,19 @@ $UDPclient.Connect($broadcast,$port)
 [void]$UDPclient.Send($packet, 102) 
 
 }
-$Computer = Read-Host "Enter computer name. Wildcards * are accepted. EX: EC-E513*C"
+$Computer = Read-Host "Enter computer name:"
 
 $SiteCode = 'PCC'
 $SiteServer = 'do-sccm.pcc-domain.pima.edu'
 write-host "Looking for $Computer"
-$computerDetails=(Get-WmiObject -Class SMS_R_SYSTEM -Namespace "root\sms\site_$SiteCode" -computerName $SiteServer | where {$_.Name -eq "$Computer"})
-
+$computerDetails=(Get-WmiObject -Class SMS_R_SYSTEM -Namespace "root\sms\site_$SiteCode" -computerName $SiteServer | Where-Object {$_.Name -eq "$Computer"})
+if ($null -eq $computerDetails) {
+    write-host "$Computer not found in SCCM"
+    exit
+}
 
 $MAC = $computerDetails.MACAddresses[0]# | Out-String
 $IP = $computerDetails.IPADDRESSES[0]
-Write-Log -Level INFO -Message $mac -logfile "$PSScriptRoot\log.csv"
 write-host 'MAC:' $MAC
 write-host 'IP:' $IP
 
@@ -48,12 +50,15 @@ $i = 1
 do {
     Write-host "Sending Ping number $i to $Computer"
     Send-WOL -mac $mac -ip $IP
-    Start-Sleep -Seconds 5
-    Test-Connection -ComputerName $Computer -Count 1
-    if ($?) {
-      Write-Log -Level INFO -Message $mac -logfile "$PSScriptRoot\log.csv"
+    
+    if (Test-Connection -ComputerName $Computer -Count 3 -quiet) {
+      Write-Log -status $true -Message "$Computer,$MAC,$IP" -logfile "$PSScriptRoot\log.csv"
       write-host "im awake"
       $i = 41
+    }else{
+        Write-Log -status $false -Message "$Computer,$MAC,$IP" -logfile "$PSScriptRoot\log.csv"
+        write-host 'nope'
     }
+    Start-Sleep -Seconds 30
   $i++
 } until ($i -gt 4)

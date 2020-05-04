@@ -6,6 +6,10 @@ Function Write-Log {
     [String]
     $Level = "INFO",
 
+    [Parameter(Mandatory=$False)]
+    [bool]
+    $Status = $False,
+
     [Parameter(Mandatory=$True)]
     [string]
     $Message,
@@ -16,7 +20,7 @@ Function Write-Log {
     )
 
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $Line = "$Stamp $Level $Message"
+    $Line = "$Stamp,$Level,$Status,$Message"
     If($logfile) {
         Add-Content $logfile -Value $Line
     }
