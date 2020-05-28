@@ -45,9 +45,9 @@ $Stu_Num_Label.Font              = 'Microsoft Sans Serif,10'
 
 $Stu_Num_Group = New-Object system.Windows.Forms.Groupbox
 $Stu_Num_Group.height = 50
-$Stu_Num_Group.width = 110
+$Stu_Num_Group.width = 120
 $Stu_Num_Group.text = "Student Number"
-$Stu_Num_Group.location = New-Object System.Drawing.Point(25, 10)
+$Stu_Num_Group.location = New-Object System.Drawing.Point(10, 10)
 
 
 $Stu_Num_Text = New-Object system.Windows.Forms.TextBox
@@ -70,7 +70,7 @@ $OP_Label.Font                  = 'Microsoft Sans Serif,10'
 
 $OP_Group = New-Object system.Windows.Forms.Groupbox
 $OP_Group.height = 50
-$OP_Group.width = 110
+$OP_Group.width = 120
 $OP_Group.text = "Operatory"
 $OP_Group.location = New-Object System.Drawing.Point(140, 10)
 
@@ -84,9 +84,9 @@ $OP_Text.Text = (Get-WmiObject -Class Win32_OperatingSystem).description
 
 $Equipment_Group = New-Object system.Windows.Forms.Groupbox
 $Equipment_Group.height = 50
-$Equipment_Group.width = 110
+$Equipment_Group.width = 120
 $Equipment_Group.text = "Equipment"
-$Equipment_Group.location = New-Object System.Drawing.Point(260, 10)
+$Equipment_Group.location = New-Object System.Drawing.Point(270, 10)
 <#
 $Equipment_Label                       = New-Object system.Windows.Forms.Label
 $Equipment_Label.text                  = "Equipment"
@@ -168,17 +168,30 @@ $Stu_Num_Group.controls.AddRange(@($Stu_Num_Text))
 $OP_Group.controls.AddRange(@($OP_Text))
 
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-
+$IssuePath = '\\wc-vm-prtsvr\c$\usmt\tester.csv'
+function Load-Issue {
+    #$filePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
+    
+    try {
+        $issues = Import-Csv -Path $IssuePath
+    }
+    catch {
+        #Export-Csv -InputObject $Submission -Path $filePath
+        [System.Windows.Forms.MessageBox]::Show("Please contact Dawn. Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
+        exit
+    }
+    return $issues
+}
 function Update-CurrentIssues {
     $Issue_History.Rows.Clear()
-    #$filePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
-    $filePath = '\\wc-vm-prtsvr\c$\usmt\tester.csv'
-    $issues = Import-Csv -Path $filePath
-    foreach ($issue in $issues) {
+    foreach ($issue in Load-Issue) {
         if (($OP_Text.Text -eq $issue.Operatory) -and ($issue.status -eq '')) {
-            [void]$Issue_History.Rows.Add($($issue.'Equipment'), $($issue.'Issue Description'),$($issue.TimeStamp))
+            [void]$Issue_History.Rows.Add($($issue.'Equipment'), 
+                                          $($issue.'Issue Description'),
+                                          $($issue.TimeStamp))
         }  
     }
+    # Sort the issues by most recent
     $Issue_History.Sort($Issue_History.Columns[2],[System.ComponentModel.ListSortDirection]::Descending)
 }
 Update-CurrentIssues
@@ -202,23 +215,25 @@ function Find-Control($ControlType) {
 
 function Clear-TextFields($Fields) {
     foreach ($control in Find-Control -ControlType 'TextBox') {
-
         $control.Clear()
         $OP_Text.Text = (Get-WmiObject -Class Win32_OperatingSystem).description
     }
 }
 
 $Clear_Button.Add_MouseUp( { Clear-TextFields })
-$Clear_Button.Add_MouseUp( { $Sumbit_Status.Text = '' }) # Make cleaner... later
 
 function Confirm-NoTextError {
+    $i = 0
     foreach ($control in Find-Control -ControlType 'TextBox') {
         if ($ErrorProvider.GetError($control).length -gt 0) {
-            return $false
+            $i++
         }
-        else {
-            return $true
-        }
+    }
+    if ($i -gt 0) {
+        return $false
+    }
+    else {
+        return $true
     }
 }
 
@@ -250,15 +265,17 @@ function Update-Submission {
     return $Submission
 }
 
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "^[Aa]{0,1}\d{8}$" -CurrentField $Stu_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER: A12345678' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "^[Aa]{0,1}\d{8}$" -CurrentField $Stu_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "\w*" -CurrentField $OP_Text -ErrorMSG 'INVALID LOCATION' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Equipment_Text -ErrorMSG 'INVALID EQUIPMENT' })
 $Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoTextError) {
             $error.Clear()
             try {
-                Update-Submission | Export-Csv -path $filePath -append -NoTypeInformation -force
+                Update-Submission | Export-Csv -path $IssuePath -append -NoTypeInformation -force
                 Update-CurrentIssues
+                $Sumbit_Status.Text = ''
             }
             catch {
                 [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Submission Error', 'OK', 'Error')
@@ -266,9 +283,6 @@ $Submit_Button.Add_MouseUp( {
         }
         else {
             $Sumbit_Status.Text = 'Please fix errors'
-        }
-        if (!$error) {
-            #$Sumbit_Status.Text = 'Submitted'
         }
         Start-Sleep -Seconds 2
     })
