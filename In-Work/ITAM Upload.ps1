@@ -1,40 +1,57 @@
-$Credentials = Get-Credential
+# https://www.powershellgallery.com/packages/Selenium/3.0.0
 
-$Driver = Start-SeChrome -Incognito
-Enter-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:1"
+# To Add:
+    # remove xpath for clicking next
 
-# Login to ITAM
-$usernameElement = Find-SeElement -Driver $Driver -Wait -Timeout 10 -Id 'P101_USERNAME'
-$passwordElement = Find-SeElement -Driver $Driver -Id 'P101_PASSWORD'
-$loginButtonElement = Find-SeElement -Driver $Driver -Id 'P101_LOGIN'
+function Main {
+    $Credentials = Get-Credential
 
-Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
-Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
-Invoke-SeClick -Element $loginButtonElement
+    $Driver = Start-SeChrome -Incognito
+    Enter-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:1"
 
-# Navigate to Upload Assests Page
-$uploadAssestsXPath = '/html/body/form/div[1]/div[4]/div/div[3]/div/a'
-Find-SeElement -XPath $uploadAssestsXPath -Driver $Driver | Invoke-SeClick -Driver $driver
+    #region Login to ITAM
+    $usernameElement = Find-SeElement -Driver $Driver -Wait -Timeout 10 -Id 'P101_USERNAME'
+    $passwordElement = Find-SeElement -Driver $Driver -Id 'P101_PASSWORD'
+    $loginButtonElement = Find-SeElement -Driver $Driver -Id 'P101_LOGIN'
 
-# Upload File
-$importFromUploadRadioButton = Find-SeElement -Driver $Driver -Id 'P10_IMPORT_FROM_0'
-$importFromUploadFileSelectionButton = Find-SeElement -Driver $Driver -Wait -Timeout 10 -Id 'P10_FILE_NAME'
+    Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
+    Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
+    Invoke-SeClick -Element $loginButtonElement
 
-Invoke-SeClick -Element $importFromUploadRadioButton -Driver $driver
+    #ADD LOGIN SUCCESS/FAILURE CHECK
 
-$filePath = "C:\Users\Wrcrabtree\Desktop\test.csv"
-Send-SeKeys -Element $importFromUploadFileSelectionButton -Keys $filePath
+    # Click Next
+    Find-SeElement -XPath '/html/body/form/div[1]/div[4]/div/div[3]/div/a' -Driver $Driver | Invoke-SeClick -Driver $Driver
+    #endregion
 
-# Remove the quotes
-(Find-SeElement -Driver $Driver -Id 'P10_ENCLOSED_BY').clear() 
+    #region Upload File
+    $importFromUploadRadioButton = Find-SeElement -Driver $Driver -Id 'P10_IMPORT_FROM_0'
+    $importFromUploadFileSelectionButton = Find-SeElement -Driver $Driver -Wait -Timeout 10 -Id 'P10_FILE_NAME'
+    Invoke-SeClick -Element $importFromUploadRadioButton -Driver $driver
+    $filePath = "C:\Users\Wrcrabtree\Downloads\ITAM Upload - Sheet1.csv"
+    Send-SeKeys -Element $importFromUploadFileSelectionButton -Keys $filePath
 
-$nextButtonXPath = '/html/body/form/div[5]/table/tbody/tr/td[1]/div[2]/div[1]/div/div[2]/button[2]'
-Find-SeElement -XPath $nextButtonXPath -Driver $Driver | Invoke-SeClick -Driver $driver
+    # Remove the quotes
+    (Find-SeElement -Driver $Driver -Id 'P10_ENCLOSED_BY').clear() 
 
-for ($i = 1; $i -lt 13; $i++) {
-    $uploadedColumn = Find-SeElement -Driver $Driver -Id "id3_$i"
-    $ITAMColumn = Find-SeElement -Driver $Driver -Id "id1_$i"
-    Get-SeSelectionOption -Element $ITAMColumn -ByPartialText $uploadedColumn.Text
+    # Click Next
+    Find-SeElement -XPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[2]/div[1]/div/div[2]/button[2]' -Driver $Driver | Invoke-SeClick -Driver $Driver
+    #endregion
+
+    #region Connect uploaded CSV headers to ITAM headers
+    # Current Issue: ByPartialText selects first 'like' column. Mis-selects Type-> MODEL_SUBTYPE, Status -> ENCRYPTION_STATUS
+    for ($i = 1; $i -lt 14; $i++) {
+        $uploadedColumn = Find-SeElement -Driver $Driver -Id "id3_$i"
+        $ITAMColumn = Find-SeElement -Driver $Driver -Id "id1_$i"
+        Get-SeSelectionOption -Element $ITAMColumn -ByPartialText $uploadedColumn.Text
+    }
+
+    # Click Next
+    Find-SeElement -XPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[2]/div[1]/div/div[2]/button[3]' -Driver $Driver | Invoke-SeClick -Driver $Driver
+    #endregion
+
+    # Manually verify upload then run backup script
+    #Stop-SeDriver -Driver $Driver
 }
-#Start-Sleep -Seconds 10
-#Stop-SeDriver -Driver $Driver
+
+Main
