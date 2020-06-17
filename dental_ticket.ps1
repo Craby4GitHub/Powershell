@@ -5,6 +5,7 @@
 
 # https://stackoverflow.com/a/40621143/20267
 # hide the powerhsell console
+
 Add-Type -Name Window -Namespace Console -MemberDefinition '
     [DllImport("Kernel32.dll")]
     public static extern IntPtr GetConsoleWindow();
@@ -15,16 +16,8 @@ Add-Type -Name Window -Namespace Console -MemberDefinition '
 $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0) # hide
 
-
-
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
-
-#todo
-#Equipment field - link to csv, clear
-#add pk(i forgot what pk stood for, oops)
-#ticket history | Done
-
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle = "FixedDialog"
@@ -33,75 +26,47 @@ $Form.text = "Equipment Repair Form"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
 
-<#
-$Stu_Num_Label                   = New-Object system.Windows.Forms.Label
-$Stu_Num_Label.text              = "Student Number"
-$Stu_Num_Label.AutoSize          = $true
-$Stu_Num_Label.width             = 25
-$Stu_Num_Label.height            = 10
-$Stu_Num_Label.location          = New-Object System.Drawing.Point(25,10)
-$Stu_Num_Label.Font              = 'Microsoft Sans Serif,10'
-#>
+$ID_Num_Group = New-Object system.Windows.Forms.Groupbox
+$ID_Num_Group.height = 50
+$ID_Num_Group.width = 120
+$ID_Num_Group.text = "ID Number"
+$ID_Num_Group.location = New-Object System.Drawing.Point(10, 10)
 
-$Stu_Num_Group = New-Object system.Windows.Forms.Groupbox
-$Stu_Num_Group.height = 50
-$Stu_Num_Group.width = 120
-$Stu_Num_Group.text = "Student Number"
-$Stu_Num_Group.location = New-Object System.Drawing.Point(10, 10)
+$ID_Num_Text = New-Object system.Windows.Forms.TextBox
+$ID_Num_Text.multiline = $false
+$ID_Num_Text.width = 100
+$ID_Num_Text.height = 20
+$ID_Num_Text.location = New-Object System.Drawing.Point(5, 17)
+$ID_Num_Text.Font = 'Microsoft Sans Serif,10'
 
+$Location_Group = New-Object system.Windows.Forms.Groupbox
+$Location_Group.height = 50
+$Location_Group.width = 120
+$Location_Group.text = "Location"
+$Location_Group.location = New-Object System.Drawing.Point(140, 10)
 
-$Stu_Num_Text = New-Object system.Windows.Forms.TextBox
-$Stu_Num_Text.multiline = $false
-$Stu_Num_Text.width = 100
-$Stu_Num_Text.height = 20
-$Stu_Num_Text.location = New-Object System.Drawing.Point(5, 17)
-$Stu_Num_Text.Font = 'Microsoft Sans Serif,10'
-$Stu_Num_Text.text = 'A01070484'
-
-<#
-$OP_Label                       = New-Object system.Windows.Forms.Label
-$OP_Label.text                  = "Operatory"
-$OP_Label.AutoSize              = $true
-$OP_Label.width                 = 25
-$OP_Label.height                = 10
-$OP_Label.location              = New-Object System.Drawing.Point(150,10)
-$OP_Label.Font                  = 'Microsoft Sans Serif,10'
-#>
-
-$OP_Group = New-Object system.Windows.Forms.Groupbox
-$OP_Group.height = 50
-$OP_Group.width = 120
-$OP_Group.text = "Operatory"
-$OP_Group.location = New-Object System.Drawing.Point(140, 10)
-
-$OP_Text = New-Object system.Windows.Forms.TextBox
-$OP_Text.multiline = $false
-$OP_Text.width = 100
-$OP_Text.height = 20
-$OP_Text.location = New-Object System.Drawing.Point(5, 17)
-$OP_Text.Font = 'Microsoft Sans Serif,10'
-$OP_Text.Text = (Get-WmiObject -Class Win32_OperatingSystem).description
+$Location_Dropdown              = New-Object system.Windows.Forms.ComboBox
+$Location_Dropdown.width        = 100
+$Location_Dropdown.height       = 20
+$Location_Dropdown.location     = New-Object System.Drawing.Point(5,17)
+$Location_Dropdown.Font         = 'Microsoft Sans Serif,10'
+$Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
+$Location_Dropdown.AutoCompleteMode = 'Suggest'
+$Location_Dropdown.AutoCompleteSource = 'ListItems'
 
 $Equipment_Group = New-Object system.Windows.Forms.Groupbox
 $Equipment_Group.height = 50
 $Equipment_Group.width = 120
 $Equipment_Group.text = "Equipment"
 $Equipment_Group.location = New-Object System.Drawing.Point(270, 10)
-<#
-$Equipment_Label                       = New-Object system.Windows.Forms.Label
-$Equipment_Label.text                  = "Equipment"
-$Equipment_Label.AutoSize              = $true
-$Equipment_Label.width                 = 25
-$Equipment_Label.height                = 10
-$Equipment_Label.location              = New-Object System.Drawing.Point(275,10)
-$Equipment_Label.Font                  = 'Microsoft Sans Serif,10'
-#>
-$Equipment_Text = New-Object system.Windows.Forms.TextBox
-$Equipment_Text.multiline = $false
-$Equipment_Text.width = 100
-$Equipment_Text.height = 20
-$Equipment_Text.location = New-Object System.Drawing.Point(5, 17)
-$Equipment_Text.Font = 'Microsoft Sans Serif,10'
+
+$Equipment_Dropdown              = New-Object system.Windows.Forms.ComboBox
+$Equipment_Dropdown.width        = 100
+$Equipment_Dropdown.height       = 20
+$Equipment_Dropdown.location     = New-Object System.Drawing.Point(5,17)
+$Equipment_Dropdown.Font         = 'Microsoft Sans Serif,10'
+$Equipment_Dropdown.AutoCompleteMode = 'Suggest'
+$Equipment_Dropdown.AutoCompleteSource = 'ListItems'
 
 $Desc_Label = New-Object system.Windows.Forms.Label
 $Desc_Label.text = "Description of Problem"
@@ -162,29 +127,27 @@ $Clear_Button.height = 30
 $Clear_Button.location = New-Object System.Drawing.Point(300, 310)
 $Clear_Button.Font = 'Microsoft Sans Serif,10'
 
-$Form.controls.AddRange(@($Stu_Num_Group, $OP_Group, $Equipment_Group, $Desc_Label, $Desc_Text, $Submit_Button, $Sumbit_Status, $Clear_Button, $Issue_History, $Issue_History_Label))
-$Equipment_Group.controls.AddRange(@($Equipment_Text))
-$Stu_Num_Group.controls.AddRange(@($Stu_Num_Text))
-$OP_Group.controls.AddRange(@($OP_Text))
+$Form.controls.AddRange(@($ID_Num_Group, $Location_Group, $Equipment_Group, $Desc_Label, $Desc_Text, $Submit_Button, $Sumbit_Status, $Clear_Button, $Issue_History, $Issue_History_Label))
+$Equipment_Group.controls.AddRange(@($Equipment_Dropdown))
+$ID_Num_Group.controls.AddRange(@($ID_Num_Text))
+$Location_Group.controls.AddRange(@($Location_Dropdown))
 
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-$IssuePath = '\\wc-vm-prtsvr\c$\usmt\tester.csv'
-function Load-Issue {
-    #$filePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
-    
+
+function Get-Issues {   
     try {
         $issues = Import-Csv -Path $IssuePath
     }
     catch {
-        #Export-Csv -InputObject $Submission -Path $filePath
-        [System.Windows.Forms.MessageBox]::Show("Please contact Dawn. Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
+        Export-Csv -InputObject $Submission -Path $IssuePath -NoTypeInformation
+        [System.Windows.Forms.MessageBox]::Show("Please relaunch. Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
         exit
     }
     return $issues
 }
 function Update-CurrentIssues {
     $Issue_History.Rows.Clear()
-    foreach ($issue in Load-Issue) {
+    foreach ($issue in Get-Issues) {
         if (($OP_Text.Text -eq $issue.Operatory) -and ($issue.status -eq '')) {
             [void]$Issue_History.Rows.Add($($issue.'Equipment'), 
                                           $($issue.'Issue Description'),
@@ -194,7 +157,6 @@ function Update-CurrentIssues {
     # Sort the issues by most recent
     $Issue_History.Sort($Issue_History.Columns[2],[System.ComponentModel.ListSortDirection]::Descending)
 }
-Update-CurrentIssues
 
 function Find-Control($ControlType) {
     $FormControls = @()
@@ -219,8 +181,6 @@ function Clear-TextFields($Fields) {
         $OP_Text.Text = (Get-WmiObject -Class Win32_OperatingSystem).description
     }
 }
-
-$Clear_Button.Add_MouseUp( { Clear-TextFields })
 
 function Confirm-NoTextError {
     $i = 0
@@ -259,15 +219,79 @@ $Submission = [pscustomobject]@{
 function Update-Submission {
     $Submission.'Issue Description' = $Desc_Text.Text
     $Submission.'Operatory' = $OP_Text.Text
-    $Submission.'Equipment' = $Equipment_Text.Text
-    $Submission.'Student Number' = $Stu_Num_Text.Text
+    $Submission.'Equipment' = $Equipment_Dropdown.Text
+    $Submission.'Student Number' = $ID_Num_Text.Text
     $Submission.TimeStamp = Get-Date
     return $Submission
 }
 
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "^[Aa]{0,1}\d{8}$" -CurrentField $Stu_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "\w*" -CurrentField $OP_Text -ErrorMSG 'INVALID LOCATION' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Equipment_Text -ErrorMSG 'INVALID EQUIPMENT' })
+Update-CurrentIssues
+
+$Clear_Button.Add_MouseUp( { Clear-TextFields })
+@('1','2') | ForEach-Object {[void] $Location_Dropdown.Items.Add($_)}
+@('xray','thingy') | ForEach-Object {[void] $Equipment_Dropdown.Items.Add($_)}
+
+function Confirm-ID($CurrentField,$ErrorMSG) {
+    Switch -regex ($CurrentField.Text) {
+        #FACULTY
+        '^AJ((0[1-9])|(1[0-9])|20)$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^DAE[1-5]$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^DHE[1-5]$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^DR((0[1-9])|1[0-5])$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        #Student
+        '^DA(0[1-9]|((1|2)[0-9])|(30))$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^Y1((0[1-9])|((1|2)[0-9])|(30))$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^Y2((0[1-9])|((1|2)[0-9])|(30))$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        #ADMINISTRATIVE
+        '^ADM1$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^TECH$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^BA0[1-2]$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        '^FO0[1-2]$' {
+            $ErrorProvider.SetError($CurrentField, '')
+            break
+        }
+        default {
+            $ErrorProvider.SetError($CurrentField, $ErrorMSG)
+        }
+    }
+
+}
+#$IssuePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
+$IssuePath = "$PSScriptRoot\test.csv"
+
+$Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "\w*" -CurrentField $Location_Dropdown -ErrorMSG 'INVALID LOCATION' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Equipment_Dropdown -ErrorMSG 'INVALID EQUIPMENT' })
 $Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoTextError) {
