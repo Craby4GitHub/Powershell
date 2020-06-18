@@ -207,8 +207,8 @@ function Confirm-UserInput($Regex, $CurrentField, $ErrorMSG) {
 }
 
 $Submission = [pscustomobject]@{
-    'Student Number'    = ''
-    'Operatory'         = ''
+    'ID'    = ''
+    'Location'         = ''
     'Equipment'         = ''
     'Issue Description' = ''
     TimeStamp           = ''
@@ -218,13 +218,14 @@ $Submission = [pscustomobject]@{
 
 function Update-Submission {
     $Submission.'Issue Description' = $Desc_Text.Text
-    $Submission.'Operatory' = $OP_Text.Text
+    $Submission.'Location' = $Location_Text.Text
     $Submission.'Equipment' = $Equipment_Dropdown.Text
-    $Submission.'Student Number' = $ID_Num_Text.Text
+    $Submission.'ID' = $ID_Num_Text.Text
     $Submission.TimeStamp = Get-Date
     return $Submission
 }
-
+#$IssuePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
+$IssuePath = "$PSScriptRoot\test.csv"
 Update-CurrentIssues
 
 $Clear_Button.Add_MouseUp( { Clear-TextFields })
@@ -286,8 +287,7 @@ function Confirm-ID($CurrentField,$ErrorMSG) {
     }
 
 }
-#$IssuePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
-$IssuePath = "$PSScriptRoot\test.csv"
+
 
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "\w*" -CurrentField $Location_Dropdown -ErrorMSG 'INVALID LOCATION' })
