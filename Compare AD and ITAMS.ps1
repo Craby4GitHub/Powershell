@@ -64,12 +64,12 @@ $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*
 $15Characters = [regex]"\w{15}"
 
 # 2 letter campus code - 1 or 2 Building letter 8-9 numbers(2-3 for room and 6 for PCC) 2 letter computer type
-# new ^([a-zA-Z]{4}|(([a-zA-Z]{2}|\d{2})-[a-zA-Z]{1,2}))\d{8,9}[a-zA-Z]{2}$
+# new ^([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}[a-z]{2}$
 # gotta update region 'Pull PCC Number and Room Number' before using this ^
-$NormalCampus = [regex]"^([a-zA-Z]{4}|([a-zA-Z]{2}-([a-zA-Z]|[a-zA-Z]{2})))(\d{8}|\d{9})[a-zA-Z]{2}$"
+$NormalCampus = [regex]"^([a-z]{4}|(([a-z]{2}|\d{2})-([a-z]|[a-z]{2})))(\d{8}|\d{9})[a-z]{2}$"
 
 # 2 letter campus code 2 Building letter 9 numbers(3 for room and 6 for PCC) 2 letter computer type
-$DownTownCampus = [regex]"^[a-zA-Z]{4}\d{9}[a-zA-Z]{2}$"
+$DownTownCampus = [regex]"^[a-z]{4}\d{9}[a-z]{2}$"
 
 # VDI
 $VDI = [regex]"^(VDI-)\w{0,}$"
