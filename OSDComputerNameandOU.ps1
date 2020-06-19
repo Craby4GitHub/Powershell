@@ -8,7 +8,8 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 # Form
 $Form                   = New-Object System.Windows.Forms.Form    
-$Form.ClientSize        = '300,300'
+$Form.Height            ='300'
+$Form.Width             ='300'
 $Form.FormBorderStyle   = "FixedDialog"
 $Form.StartPosition     = "CenterScreen"
 $Form.Icon              = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + "\powershell.exe")
@@ -18,58 +19,69 @@ $Form.TopMost           = $true
 
 $ComputerName_Textbox           = New-Object System.Windows.Forms.TextBox
 $ComputerName_Textbox.Size      = New-Object System.Drawing.Size(240,50)
+$ComputerName_Textbox.Font      = 'Microsoft Sans Serif,10'
 $ComputerName_Textbox.TabIndex = '1'
 
 $ComputerName_Group                 = New-Object System.Windows.Forms.GroupBox
 $ComputerName_Group.Size            = New-Object System.Drawing.Size($($ComputerName_Textbox.Width+10),$($ComputerName_Textbox.Height*2.2))
-$ComputerName_Group.Location        = New-Object System.Drawing.Size($(($Form.Width-$ComputerName_Group.Width)/2),$($Form.Height / 30))
+$ComputerName_Group.Location        = New-Object System.Drawing.Size(5,$($Form.Height / 30))
+$ComputerName_Group.Font            = 'Microsoft Sans Serif,10'
 $ComputerName_Group.Text            = 'Computer name:'
 
-$ComputerName_Textbox.Location  = New-Object System.Drawing.Size(5,$(($ComputerName_Group.Height-$ComputerName_Textbox.Height)/2))
-
-$Domain_Group               = New-Object System.Windows.Forms.GroupBox
-$Domain_Group.Size          = New-Object System.Drawing.Size(260,40)
-$Domain_Group.Location      = New-Object System.Drawing.Size($(($Form.Width-$Domain_Group.Width)/2),$($Form.Height/4.5))
-$Domain_Group.Text          = 'Select Domain'
+$ComputerName_Textbox.Location  = New-Object System.Drawing.Size(5,$(($ComputerName_Group.Height-$ComputerName_Textbox.Height)/1.5))
 
 $EDU_RadioButton              = New-Object System.Windows.Forms.RadioButton
-$EDU_RadioButton.Location     = New-Object System.Drawing.Size(10,15)
-$EDU_RadioButton.Size         = New-Object System.Drawing.Size(100,20)
-$EDU_RadioButton.Text         = 'EDU-Domain'
+$EDU_RadioButton.Size         = New-Object System.Drawing.Size(60,20)
+$EDU_RadioButton.Font           = 'Microsoft Sans Serif,10'
+$EDU_RadioButton.Text         = 'EDU'
 $EDU_RadioButton.TabIndex = '2'
 
 $PCC_RadioButton              = New-Object System.Windows.Forms.RadioButton
-$PCC_RadioButton.Location     = New-Object System.Drawing.Size(110,15)
-$PCC_RadioButton.Size         = New-Object System.Drawing.Size(100,20)
-$PCC_RadioButton.Text         = 'PCC-Domain'
+$PCC_RadioButton.Size         = New-Object System.Drawing.Size(60,20)
+$PCC_RadioButton.Font           = 'Microsoft Sans Serif,10'
+$PCC_RadioButton.Text         = 'PCC'
 $PCC_RadioButton.TabIndex = '3'
 
-$Location_Group             = New-Object System.Windows.Forms.GroupBox
-$Location_Group.Size        = New-Object System.Drawing.Size(260,50)
-$Location_Group.Location    = New-Object System.Drawing.Size($(($Form.Width-$Location_Group.Width)/2),$(($Form.Height-$Location_Group.Height)/2))
-$Location_Group.Text        = "Select Campus"
+$Domain_Group               = New-Object System.Windows.Forms.GroupBox
+$Domain_Group.Size          = New-Object System.Drawing.Size($(($EDU_RadioButton.Width+$PCC_RadioButton.Width)+30),40)
+$Domain_Group.Location      = New-Object System.Drawing.Size(5,$($Form.Height/4.4))
+$Domain_Group.Font          = 'Microsoft Sans Serif,10'
+$Domain_Group.Text          = 'Select Domain'
+
+$EDU_RadioButton.Location     = New-Object System.Drawing.Size(5,$(($Domain_Group.Height-$EDU_RadioButton.Height)/1.3))
+$PCC_RadioButton.Location     = New-Object System.Drawing.Size($(($Domain_Group.Width-$PCC_RadioButton.Width)-5),$(($Domain_Group.Height-$PCC_RadioButton.Height)/1.3))
 
 $Location_Dropdown               = New-Object System.Windows.Forms.ComboBox
-$Location_Dropdown.Location      = New-Object System.Drawing.Size(10,15)
 $Location_Dropdown.Size          = New-Object System.Drawing.Size(240,30)
+$Location_Dropdown.Font         = 'Microsoft Sans Serif,10'
 $Location_Dropdown.DropDownStyle = "DropDown"
 $Location_Dropdown.Items.AddRange($LocationList)
 $Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Location_Dropdown.AutoCompleteSource = 'ListItems'
 $Location_Dropdown.TabIndex = '4'
 
+$Location_Group             = New-Object System.Windows.Forms.GroupBox
+$Location_Group.Size        = New-Object System.Drawing.Size($($Location_Dropdown.Width+10),$($Location_Dropdown.Height*2.2))
+$Location_Group.Location    = New-Object System.Drawing.Size(5,$(($Form.Height-$Location_Group.Height)/2))
+$Location_Group.Font        = 'Microsoft Sans Serif,10'
+$Location_Group.Text        = "Select Campus"
+
+$Location_Dropdown.Location      = New-Object System.Drawing.Size(5,$(($Location_Group.Height-$Location_Dropdown.Height)/1.5))
+
 $Submit_Button                 = New-Object System.Windows.Forms.Button
 $Submit_Button.Size            = New-Object System.Drawing.Size(80,25)
 $Submit_Button.Location        = New-Object System.Drawing.Size($(($Form.Width-$Submit_Button.Width)/2),215)
+$Submit_Button.Font             = 'Microsoft Sans Serif,10'
 $Submit_Button.Text            = "OK"
 $Submit_Button.Enabled = $false
 $Submit_Button.TabIndex = '5'
 $Submit_Button.TabStop = $true
+$Submit_Button.Anchor = 'top'
 
 $Form.Controls.AddRange(@($ComputerName_Group,$Domain_Group,$Location_Group,$Submit_Button))
-$ComputerName_Group.controls.AddRange(@($ComputerName_Textbox))
+$ComputerName_Group.controls.Add($ComputerName_Textbox)
 $Domain_Group.controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
-$Location_Group.controls.AddRange(@($Location_Dropdown))
+$Location_Group.controls.Add($Location_Dropdown)
 #endregion
 
 function Set-OULocation {
@@ -78,12 +90,12 @@ function Set-OULocation {
     $Location
     )
     if ($EDU_RadioButton.Checked -eq $true) {
-        $Global:OULocation = "LDAP://OU=$($Location),OU=Staging,DC=$($EDU_RadioButton.Text),DC=pima,DC=edu"
         $Domain = "EDU-Domain.pima.edu"
+        $Global:OULocation = "LDAP://OU=$($Location),OU=Staging,DC=$($Domain),DC=pima,DC=edu"
     }
     if ($PCC_RadioButton.Checked -eq $true) {
-        $Global:OULocation = "LDAP://OU=$($Location),OU=Staging,DC=$($PCC_RadioButton.Text),DC=pima,DC=edu"
         $Domain = "PCC-Domain.pima.edu"
+        $Global:OULocation = "LDAP://OU=$($Location),OU=Staging,DC=$($Domain),DC=pima,DC=edu"
     }
     elseif (($EDU_RadioButton.Checked -or $PCC_RadioButton.Checked) -eq $false) {
         $ErrorProvider.SetError($Domain_Group, 'Select a domain')
