@@ -63,24 +63,20 @@ $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Size = New-Object System.Drawing.Size(80, 25)
 $Submit_Button.Location = New-Object System.Drawing.Size($(($Location_Group.Width - $Submit_Button.Width) / 2), $($Location_Group.Location.Y + $Location_Group.Size.Height + 5))
 $Submit_Button.Text = "OK"
-$Submit_Button.Enabled = $false
 $Submit_Button.TabIndex = 4
 $Form.AcceptButton = $Submit_Button
 
 $Form.Height = $($ComputerName_Group.Height + $Domain_Group.Height + $Location_Group.Height + $Submit_Button.Height + 70)
 
 $Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Location_Group, $Submit_Button))
-$ComputerName_Group.controls.Add($ComputerName_Textbox)
-$Domain_Group.controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
-$Location_Group.controls.Add($Location_Dropdown)
+$ComputerName_Group.Controls.Add($ComputerName_Textbox)
+$Domain_Group.Controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
+$Location_Group.Controls.Add($Location_Dropdown)
 #endregion
 
 #region Functions
-function Set-OULocation {
-    param(
-        [parameter(Mandatory = $true)]
-        $Location
-    )
+function Set-OULocation($Location) {
+    $ErrorProvider.SetError($Domain_Group,'')
     if ($EDU_RadioButton.Checked -eq $true) {
         $Domain = "EDU-Domain.pima.edu"
         # Temp Global, for testing
@@ -100,12 +96,11 @@ function Set-OULocation {
 }
 
 Function Set-OSDComputerName {
-    $ErrorProvider.Clear()
+    $ErrorProvider.SetError($ComputerName_Group,'')
     #Validation Rule for computer names.
     if ($ComputerName_Textbox.Text -notmatch "([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}([a-z]{2}|v\d{1})") {
         $ErrorProvider.SetError($ComputerName_Group, "Computer name invalid, please correct the computer name.")
     }
-
     else {
         # Temp Global, for testing
         $Global:OSDComputerName = $ComputerName_Textbox.Text.ToUpper()
@@ -141,9 +136,16 @@ function Confirm-NoError {
 #endregion
 
 #region Actions
-$Location_Dropdown.Add_SelectedValueChanged( { $Submit_Button.Enabled = $true })
-$Submit_Button.Add_Click( { Set-OSDComputerName })
-$Submit_Button.Add_Click( { Set-OULocation -Location $Location_Dropdown.SelectedItem.ToString() }) 
+$Submit_Button.Add_Click( { 
+        if ($Location_Dropdown.Items -contains $Location_Dropdown.Text) {
+            $ErrorProvider.SetError($Location_Group,'')
+            Set-OULocation -Location $Location_Dropdown.Text
+        }
+        else {
+            $ErrorProvider.SetError($Location_Group, 'Select a location')
+        } 
+    })
+$Submit_Button.Add_Click( { Set-OSDComputerName }) 
 $Submit_Button.Add_Click( {
         if (Confirm-NoError) {
             # Temp Messagebox, for testing
@@ -151,6 +153,7 @@ $Submit_Button.Add_Click( {
             $Form.Close()
         }
     })
+    
 #endregion
 
 [void]$Form.ShowDialog()
