@@ -16,16 +16,23 @@ Add-Type -Name Window -Namespace Console -MemberDefinition '
 $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0) # hide
 
+#region GUI
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
+$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle = "FixedDialog"
-$Form.ClientSize = "400,350"
+$Form.ClientSize = "400,400"
 $Form.text = "Equipment Repair Form"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
 $Form.Font = 'Microsoft Sans Serif,10'
+
+$ID_Num_Text = New-Object system.Windows.Forms.TextBox
+$ID_Num_Text.multiline = $false
+$ID_Num_Text.width = 100
+$ID_Num_Text.height = 20
 
 $ID_Num_Group = New-Object system.Windows.Forms.Groupbox
 $ID_Num_Group.height = 50
@@ -33,11 +40,15 @@ $ID_Num_Group.width = 120
 $ID_Num_Group.text = "ID Number"
 $ID_Num_Group.location = New-Object System.Drawing.Point(10, 10)
 
-$ID_Num_Text = New-Object system.Windows.Forms.TextBox
-$ID_Num_Text.multiline = $false
-$ID_Num_Text.width = 100
-$ID_Num_Text.height = 20
-$ID_Num_Text.location = New-Object System.Drawing.Point(5, 17)
+$ID_Num_Text.location = New-Object System.Drawing.Point(($($ID_Num_Group.Width - $ID_Num_Text.Width) / 2), ($($ID_Num_Group.Height - $ID_Num_Text.Height) / 1.5))
+
+$Location_Dropdown              = New-Object system.Windows.Forms.ComboBox
+$Location_Dropdown.width        = 100
+$Location_Dropdown.height       = 20
+$Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
+$Location_Dropdown.DropDownStyle = "DropDown"
+$Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$Location_Dropdown.AutoCompleteSource = 'ListItems'
 
 $Location_Group = New-Object system.Windows.Forms.Groupbox
 $Location_Group.height = 50
@@ -45,14 +56,13 @@ $Location_Group.width = 120
 $Location_Group.text = "Location"
 $Location_Group.location = New-Object System.Drawing.Point(140, 10)
 
-$Location_Dropdown              = New-Object system.Windows.Forms.ComboBox
-$Location_Dropdown.width        = 100
-$Location_Dropdown.height       = 20
-$Location_Dropdown.location     = New-Object System.Drawing.Point(5,17)
-$Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
-$Location_Dropdown.DropDownStyle = "DropDown"
-$Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
-$Location_Dropdown.AutoCompleteSource = 'ListItems'
+$Location_Dropdown.location = New-Object System.Drawing.Point(($($Location_Group.Width - $Location_Dropdown.Width) / 2), ($($Location_Group.Height - $Location_Dropdown.Height) / 1.5))
+
+$Equipment_Dropdown              = New-Object system.Windows.Forms.ComboBox
+$Equipment_Dropdown.width        = 100
+$Equipment_Dropdown.height       = 20
+$Equipment_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$Equipment_Dropdown.AutoCompleteSource = 'ListItems'
 
 $Equipment_Group = New-Object system.Windows.Forms.Groupbox
 $Equipment_Group.height = 50
@@ -60,71 +70,72 @@ $Equipment_Group.width = 120
 $Equipment_Group.text = "Equipment"
 $Equipment_Group.location = New-Object System.Drawing.Point(270, 10)
 
-$Equipment_Dropdown              = New-Object system.Windows.Forms.ComboBox
-$Equipment_Dropdown.width        = 100
-$Equipment_Dropdown.height       = 20
-$Equipment_Dropdown.location     = New-Object System.Drawing.Point(5,17)
-$Equipment_Dropdown.AutoCompleteMode = 'SuggestAppend'
-$Equipment_Dropdown.AutoCompleteSource = 'ListItems'
-
-$Desc_Label = New-Object system.Windows.Forms.Label
-$Desc_Label.text = "Description of Problem"
-$Desc_Label.AutoSize = $true
-$Desc_Label.width = 25
-$Desc_Label.height = 10
-$Desc_Label.location = New-Object System.Drawing.Point(140, 76)
+$Equipment_Dropdown.location = New-Object System.Drawing.Point(($($Equipment_Group.Width - $Equipment_Dropdown.Width) / 2), ($($Equipment_Group.Height - $Equipment_Dropdown.Height) / 1.5))
 
 $Desc_Text = New-Object system.Windows.Forms.TextBox
 $Desc_Text.multiline = $true
-$Desc_Text.width = 300
 $Desc_Text.height = 70
-$Desc_Text.location = New-Object System.Drawing.Point(50, 100)
 
-$Issue_History_Label = New-Object system.Windows.Forms.Label
-$Issue_History_Label.text = "Current Issues"
-$Issue_History_Label.AutoSize = $true
-$Issue_History_Label.width = 25
-$Issue_History_Label.height = 10
-$Issue_History_Label.location = New-Object System.Drawing.Point(140, 180)
+$Desc_Group = New-Object system.Windows.Forms.Groupbox
+$Desc_Group.height = 100
+$Desc_Group.width = $($Form.Width - 40)
+$Desc_Group.text = "Description of Issue"
+$Desc_Group.location = New-Object System.Drawing.Point(10, 76)
+
+$Desc_Text.width = $($Desc_Group.Width - 20)
+$Desc_Text.location = New-Object System.Drawing.Point(($($Desc_Group.Width - $Desc_Text.Width) / 2), ($($Desc_Group.Height - $Desc_Text.Height) / 1.5))
 
 $Issue_History = New-Object system.Windows.Forms.DataGridView
-$Issue_History.width = 360
-$Issue_History.height = 100
-$Issue_History.location = New-Object System.Drawing.Point(20, 200)
 $Issue_History.ScrollBars = "Vertical"
 $Issue_History.AutoGenerateColumns = $true
+$Issue_History.AutoSizeColumnsMode = 'AllCells'
+$Issue_History.RowHeadersVisible = $false
 $Issue_History.ColumnCount = 3
 $Issue_History.Columns[0].Name = 'Equipment'
 $Issue_History.Columns[1].Name = 'Issue'
+# Isnt formating...
+$Issue_History.Columns[2].DefaultCellStyle.Format = "m"
 $Issue_History.Columns[2].Name = 'Submitted'
 $Issue_History.TabStop = $false
+
+$Issue_History_Group = New-Object system.Windows.Forms.Groupbox
+$Issue_History_Group.height = 150
+$Issue_History_Group.width = $($Form.Width - 40)
+$Issue_History_Group.text = "Current Issues"
+$Issue_History_Group.location = New-Object System.Drawing.Point(10, 180)
+
+$Issue_History.height = $($Issue_History_Group.Height - 20)
+$Issue_History.width = $($Issue_History_Group.Width - 20)
+$Issue_History.location = New-Object System.Drawing.Point(($($Issue_History_Group.Width - $Issue_History.Width) / 2), ($($Issue_History_Group.Height - $Issue_History.Height) / 1.1))
 
 $Submit_Button = New-Object system.Windows.Forms.Button
 $Submit_Button.text = "Submit"
 $Submit_Button.width = 60
 $Submit_Button.height = 30
-$Submit_Button.location = New-Object System.Drawing.Point(30, 310)
+$Submit_Button.location = New-Object System.Drawing.Point(30, 350)
 
 $Sumbit_Status = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize = $true
 $Sumbit_Status.width = 250
 $Sumbit_Status.height = 10
-$Sumbit_Status.location = New-Object System.Drawing.Point(100, 310)
+$Sumbit_Status.location = New-Object System.Drawing.Point(100, 350)
 $Form.AcceptButton = $Submit_Button
 
 $Clear_Button = New-Object system.Windows.Forms.Button
 $Clear_Button.text = "Clear"
 $Clear_Button.width = 60
 $Clear_Button.height = 30
-$Clear_Button.location = New-Object System.Drawing.Point(300, 310)
+$Clear_Button.location = New-Object System.Drawing.Point(300, 350)
 
-$Form.controls.AddRange(@($ID_Num_Group, $Location_Group, $Equipment_Group, $Desc_Label, $Desc_Text, $Submit_Button, $Sumbit_Status, $Clear_Button, $Issue_History, $Issue_History_Label))
-$Equipment_Group.controls.AddRange(@($Equipment_Dropdown))
-$ID_Num_Group.controls.AddRange(@($ID_Num_Text))
-$Location_Group.controls.AddRange(@($Location_Dropdown))
+$Form.controls.AddRange(@($ID_Num_Group, $Location_Group, $Equipment_Group, $Desc_Group, $Issue_History_Group, $Submit_Button, $Sumbit_Status, $Clear_Button))
+$ID_Num_Group.controls.Add($ID_Num_Text)
+$Location_Group.controls.Add($Location_Dropdown)
+$Equipment_Group.controls.Add($Equipment_Dropdown)
+$Desc_Group.Controls.Add($Desc_Text)
+$Issue_History_Group.Controls.Add($Issue_History)
+#endregion
 
-$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-
+#region Functions
 function Get-File($filePath) {   
     try {
         $file = Import-Csv -Path $filePath
@@ -139,7 +150,7 @@ function Get-File($filePath) {
 function Update-CurrentIssues {
     $Issue_History.Rows.Clear()
     foreach ($issue in Get-File -filePath $IssuePath) {
-        if (($OP_Text.Text -eq $issue.Operatory) -and ($issue.status -eq '')) {
+        if (($Location_Dropdown.Text -eq $issue.Location) -and ($issue.status -eq '')) {
             [void]$Issue_History.Rows.Add($($issue.'Equipment'), 
                                           $($issue.'Issue Description'),
                                           $($issue.TimeStamp))
@@ -257,7 +268,7 @@ $Submission = [pscustomobject]@{
 
 function Update-Submission {
     $Submission.'Issue Description' = $Desc_Text.Text
-    $Submission.'Location' = $Location_Text.Text
+    $Submission.'Location' = $Location_Dropdown.Text
     $Submission.'Equipment' = $Equipment_Dropdown.Text
     $Submission.'ID' = $ID_Num_Text.Text
     $Submission.TimeStamp = Get-Date
@@ -266,24 +277,29 @@ function Update-Submission {
 function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
     if ($Dropdown.Items -contains $Dropdown.Text) {
         $ErrorProvider.SetError($Group,'')
-        Set-OULocation -Location $Dropdown.Text
+        return $true
     }
     else {
         $ErrorProvider.SetError($Group, $ErrorMSG)
+        return $false
     }     
 }
+#endregion
 
 # Generate ticket file
 # Export-Csv -InputObject $Submission -Path $IssuePath -NoTypeInformation
+
 #$IssuePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
-$IssuePath = "$PSScriptRoot\test.csv"
+$IssuePath = "$PSScriptRoot\tickets.csv"
 Update-CurrentIssues
 
 $dentalArea = Get-File -filePath "$PSScriptRoot\Equipment and Locations.csv"
 
+#region Actions
 $Clear_Button.Add_MouseUp( { Clear-Fields })
 $dentalArea[0].PSObject.Properties.Name[1..$dentalArea[0].PSObject.Properties.Name.count] | ForEach-Object {[void] $Location_Dropdown.Items.Add($_)}
 $Location_Dropdown.Add_SelectedValueChanged({
+    Update-CurrentIssues
     $Equipment_Dropdown.Items.Clear()
     $i=0
     foreach ($equipment in $dentalArea.$($Location_Dropdown.SelectedItem)) {
@@ -314,5 +330,6 @@ $Submit_Button.Add_MouseUp( {
         }
         Start-Sleep -Seconds 2
     })
+#endregion
 
 [void]$Form.ShowDialog()
