@@ -4,18 +4,23 @@
 [void][System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") 
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
+$screen = [System.Windows.Forms.Screen]::AllScreens
+
+
 $Form = New-Object System.Windows.Forms.Form    
 $Form.FormBorderStyle = "FixedDialog"
 $Form.StartPosition = "CenterScreen"
-$Form.Width = '200'
+$Form.Width = $($screen[0].bounds.Width / 7)
+$Form.Height = $($screen[0].bounds.Height / 3.5)
 $Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + "\powershell.exe")
 $Form.Text = "Active Directory Information"
 $Form.ControlBox = $false
 $Form.TopMost = $true
-$Form.Font = 'Microsoft Sans Serif,10'
+$Form.Font = 'Microsoft Sans Serif,8'
 
 $ComputerName_Textbox = New-Object System.Windows.Forms.TextBox
 $ComputerName_Textbox.TabIndex = 1
+$ComputerName_Textbox.text = 'wc-r015123123sc'
 
 $ComputerName_Group = New-Object System.Windows.Forms.GroupBox
 $ComputerName_Group.Size = New-Object System.Drawing.Size($($Form.Width - 30), $($ComputerName_Textbox.Height * 2.2))
@@ -26,18 +31,18 @@ $ComputerName_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Grou
 $ComputerName_Textbox.Location = New-Object System.Drawing.Size($(($ComputerName_Group.Width - $ComputerName_Textbox.Width) / 2), $(($ComputerName_Group.Height - $ComputerName_Textbox.Height) / 1.5))
 
 $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
-$EDU_RadioButton.Size = New-Object System.Drawing.Size(60, 20)
+$EDU_RadioButton.Size = New-Object System.Drawing.Size(70, 20)
 $EDU_RadioButton.TabStop = $true
 $EDU_RadioButton.Text = 'EDU'
 
 $PCC_RadioButton = New-Object System.Windows.Forms.RadioButton
-$PCC_RadioButton.Size = New-Object System.Drawing.Size(60, 20)
+$PCC_RadioButton.Size = New-Object System.Drawing.Size(70, 20)
 $PCC_RadioButton.TabStop = $true
 $PCC_RadioButton.Text = 'PCC'
 
 $Domain_Group = New-Object System.Windows.Forms.GroupBox
-$Domain_Group.Size = New-Object System.Drawing.Size($(($EDU_RadioButton.Width + $PCC_RadioButton.Width) + 30), $($EDU_RadioButton.Height + $PCC_RadioButton.Height))
-$Domain_Group.Location = New-Object System.Drawing.Size($(($ComputerName_Group.Width - $Domain_Group.Width) / 2), $($($ComputerName_Group.Location.Y + $ComputerName_Group.Size.Height + 5)))
+$Domain_Group.Size = New-Object System.Drawing.Size($($Form.Width - 30), $(($EDU_RadioButton.Height + $PCC_RadioButton.Height) * 1.2))
+$Domain_Group.Location = New-Object System.Drawing.Size(5, $($($ComputerName_Group.Location.Y + $ComputerName_Group.Size.Height + 5)))
 $Domain_Group.TabIndex = 2
 $Domain_Group.Text = 'Select Domain'
 
@@ -61,12 +66,10 @@ $Location_Dropdown.Location = New-Object System.Drawing.Size($(($Location_Group.
 
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Size = New-Object System.Drawing.Size(80, 25)
-$Submit_Button.Location = New-Object System.Drawing.Size($(($Location_Group.Width - $Submit_Button.Width) / 2), $($Location_Group.Location.Y + $Location_Group.Size.Height + 5))
+$Submit_Button.Location = New-Object System.Drawing.Size($(($Location_Group.Width - $Submit_Button.Width) / 2), $($Form.Height * .666))
 $Submit_Button.Text = "OK"
 $Submit_Button.TabIndex = 4
 $Form.AcceptButton = $Submit_Button
-
-$Form.Height = $($ComputerName_Group.Height + $Domain_Group.Height + $Location_Group.Height + $Submit_Button.Height + 70)
 
 $Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Location_Group, $Submit_Button))
 $ComputerName_Group.Controls.Add($ComputerName_Textbox)
