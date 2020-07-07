@@ -45,7 +45,6 @@ $ID_Num_Text.location = New-Object System.Drawing.Point(($($ID_Num_Group.Width -
 $Location_Dropdown = New-Object system.Windows.Forms.ComboBox
 $Location_Dropdown.width = 100
 $Location_Dropdown.height = 20
-$Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
 $Location_Dropdown.DropDownStyle = "DropDown"
 $Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Location_Dropdown.AutoCompleteSource = 'ListItems'
@@ -160,6 +159,18 @@ function Update-CurrentIssues {
     # Sort the issues by most recent
     $Issue_History.Sort($Issue_History.Columns[2], [System.ComponentModel.ListSortDirection]::Descending)
 }
+
+function Update-CurrentEquipment {
+        $Equipment_Dropdown.Items.Clear()
+        $i = 0
+        foreach ($equipment in $dentalArea.$($Location_Dropdown.SelectedItem)) {
+            if ($equipment -eq 'x') {
+                [void]$Equipment_Dropdown.Items.Add($dentalArea[$i].'Equipment')
+            }
+            $i++
+        }
+}
+
 function Find-Group() {
     $FormGroups = @()
     ForEach ($control in $Form.Controls) {
@@ -275,6 +286,7 @@ function Update-Submission {
     $Submission.TimeStamp = Get-Date
     return $Submission
 }
+
 function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
     if ($Dropdown.Items -contains $Dropdown.Text) {
         $ErrorProvider.SetError($Group, '')
@@ -289,26 +301,24 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
 
 # Generate ticket file
 # Export-Csv -InputObject $Submission -Path $IssuePath -NoTypeInformation
-
-#$IssuePath = "\\dentrix-prod-1\staff\front desk\tickets.csv"
+#\\dentrix-prod-1\staff\front desk\tickets.csv
 $IssuePath = "$PSScriptRoot\tickets.csv"
-Update-CurrentIssues
 
 $dentalArea = Get-File -filePath "$PSScriptRoot\Equipment and Locations.csv"
+$dentalArea[0].PSObject.Properties.Name[1..$dentalArea[0].PSObject.Properties.Name.count] | ForEach-Object { [void] $Location_Dropdown.Items.Add($_) }
+
+$Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
+
+Update-CurrentIssues
+Update-CurrentEquipment
+
 
 #region Actions
 $Clear_Button.Add_MouseUp( { Clear-Fields })
-$dentalArea[0].PSObject.Properties.Name[1..$dentalArea[0].PSObject.Properties.Name.count] | ForEach-Object { [void] $Location_Dropdown.Items.Add($_) }
+
 $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentIssues
-        $Equipment_Dropdown.Items.Clear()
-        $i = 0
-        foreach ($equipment in $dentalArea.$($Location_Dropdown.SelectedItem)) {
-            if ($equipment -eq 'x') {
-                $Equipment_Dropdown.Items.Add($dentalArea[$i].'Equipment')
-            }
-            $i++
-        }
+        Update-CurrentEquipment
     })
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
