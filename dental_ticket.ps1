@@ -117,16 +117,16 @@ $Submit_Button.location = New-Object System.Drawing.Point(30, 350)
 
 $Sumbit_Status = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize = $true
-$Sumbit_Status.width = 250
+$Sumbit_Status.width = 150
 $Sumbit_Status.height = 10
-$Sumbit_Status.location = New-Object System.Drawing.Point(100, 350)
+$Sumbit_Status.location = New-Object System.Drawing.Point($($Submit_Button.Location.X + $Submit_Button.width + 10 ),$($Submit_Button.location.Y))
 $Form.AcceptButton = $Submit_Button
 
 $Clear_Button = New-Object system.Windows.Forms.Button
 $Clear_Button.text = "Clear"
 $Clear_Button.width = 60
 $Clear_Button.height = 30
-$Clear_Button.location = New-Object System.Drawing.Point(300, 350)
+$Clear_Button.location = New-Object System.Drawing.Point($($Sumbit_Status.location.X + $Sumbit_Status.width), 350)
 
 $Form.controls.AddRange(@($ID_Num_Group, $Location_Group, $Equipment_Group, $Desc_Group, $Issue_History_Group, $Submit_Button, $Sumbit_Status, $Clear_Button))
 $ID_Num_Group.controls.Add($ID_Num_Text)
