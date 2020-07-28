@@ -141,6 +141,7 @@ function Get-File($filePath) {
         $file = Import-Csv -Path $filePath
     }
     catch {
+        Write-Log -Level 'FATAL' -Message $_.Exception.Message -Source $env:COMPUTERNAME
         [System.Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
         exit
     }
@@ -297,12 +298,37 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
         return $false
     }     
 }
+
+Function Write-Log {
+    [CmdletBinding()]
+    Param(
+    [Parameter(Mandatory=$False)]
+    [ValidateSet("INFO","WARN","ERROR","FATAL","DEBUG")]
+    [String]
+    $Level = "INFO",
+
+    [Parameter(Mandatory=$True)]
+    [string]
+    $Message,
+
+    [Parameter(Mandatory=$True)]
+    [string]
+    $Source
+    )
+
+    $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+    $Line = "$Stamp,$Level,$Source,$Message,$($ID_Num_Text.Text),$($Location_Dropdown.Text),$($Equipment_Dropdown.Text),$($Desc_Text.Text)"
+
+    Add-Content $ErrorPath -Value $Line
+}
+
 #endregion
 
 # Generate ticket file
 # Export-Csv -InputObject $Submission -Path $IssuePath -NoTypeInformation
 #\\dentrix-prod-1\staff\front desk\tickets.csv
 $IssuePath = "$PSScriptRoot\tickets.csv"
+$ErrorPath = "$PSScriptRoot\errors.csv"
 
 $dentalArea = Get-File -filePath "$PSScriptRoot\Equipment and Locations.csv"
 $dentalArea[0].PSObject.Properties.Name[1..$dentalArea[0].PSObject.Properties.Name.count] | ForEach-Object { [void] $Location_Dropdown.Items.Add($_) }
@@ -311,7 +337,6 @@ $Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Descripti
 
 Update-CurrentIssues
 Update-CurrentEquipment
-
 
 #region Actions
 $Clear_Button.Add_MouseUp( { Clear-Fields })
@@ -333,6 +358,7 @@ $Submit_Button.Add_MouseUp( {
                 $Sumbit_Status.Text = ''
             }
             catch {
+                Write-Log -Level 'FATAL' -Message $_.Exception.Message -Source $env:COMPUTERNAME
                 [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Submission Error', 'OK', 'Error')
             }
         }
