@@ -141,7 +141,7 @@ function Get-File($filePath) {
         $file = Import-Csv -Path $filePath
     }
     catch {
-        Write-Log -Level 'FATAL' -Message $_.Exception.Message -Source $env:COMPUTERNAME
+        Write-Log -Level 'FATAL' -Message $_.Exception.Message
         [System.Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
         exit
     }
@@ -254,14 +254,15 @@ function Confirm-ID($CurrentField, $Group, $ErrorMSG) {
             break
         }
         default {
+            Write-Log -Level INFO -Message 'Invalid ID' -Element $CurrentField.Text
             $ErrorProvider.SetError($Group, $ErrorMSG)
         }
     }
-
 }
 
 function Confirm-UserInput($Regex, $CurrentField, $ErrorMSG) {
     if ($CurrentField.Text -Notmatch $Regex) {
+        Write-Log -Level INFO -Message 'Invalid Input' -Element $CurrentField.Text
         $ErrorProvider.SetError($CurrentField, $ErrorMSG)
     }
     else {
@@ -294,6 +295,7 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
         return $true
     }
     else {
+        Write-Log -Level INFO -Message 'Invalid Selection' -Element $Dropdown.Text
         $ErrorProvider.SetError($Group, $ErrorMSG)
         return $false
     }     
@@ -311,13 +313,13 @@ Function Write-Log {
     [string]
     $Message,
 
-    [Parameter(Mandatory=$True)]
+    [Parameter(Mandatory=$false)]
     [string]
-    $Source
+    $Element
     )
 
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $Line = "$Stamp,$Level,$Source,$Message,$($ID_Num_Text.Text),$($Location_Dropdown.Text),$($Equipment_Dropdown.Text),$($Desc_Text.Text)"
+    $Line = "$Stamp,$Level,$env:COMPUTERNAME,$Message,$Element"
 
     Add-Content $ErrorPath -Value $Line
 }
@@ -345,10 +347,23 @@ $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentIssues
         Update-CurrentEquipment
     })
+
+$Equipment_Dropdown.Add_SelectedValueChanged({
+    foreach ($row in $Issue_History.Rows) {
+        if ($Equipment_Dropdown.Text -eq $row.Cells.Value[0]) {
+            $row.DefaultCellStyle.Backcolor = 'Red'
+            $DuplicateTicket = [System.Windows.Forms.MessageBox]::Show("A ticket has already been submitted for $($Equipment_Dropdown.Text): $($row.Cells.Value[1])`n`nAre you having this issue?", 'Warning', 'YesNo', 'Warning')
+            if ($DuplicateTicket -eq 'Yes') {
+                [void]$Form.Close()
+            }
+        }
+    }
+})
+
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "." -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "(^$)|(\s+$)" -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $ErrorProvider.Clear()
@@ -358,7 +373,7 @@ $Submit_Button.Add_MouseUp( {
                 $Sumbit_Status.Text = ''
             }
             catch {
-                Write-Log -Level 'FATAL' -Message $_.Exception.Message -Source $env:COMPUTERNAME
+                Write-Log -Level 'FATAL' -Message $_.Exception.Message
                 [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Submission Error', 'OK', 'Error')
             }
         }
