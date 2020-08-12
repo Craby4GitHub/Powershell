@@ -118,7 +118,7 @@ $Sumbit_Status = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize = $true
 $Sumbit_Status.width = 150
 $Sumbit_Status.height = 10
-$Sumbit_Status.location = New-Object System.Drawing.Point($($Submit_Button.Location.X + $Submit_Button.width + 10 ),$($Submit_Button.location.Y))
+$Sumbit_Status.location = New-Object System.Drawing.Point($($Submit_Button.Location.X + $Submit_Button.width + 20 ),$($Submit_Button.location.Y))
 $Form.AcceptButton = $Submit_Button
 
 $Clear_Button = New-Object system.Windows.Forms.Button
@@ -184,7 +184,7 @@ function Find-Group() {
 
 function Clear-Fields {
     $ID_Num_Text.Text = ''
-    $Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).description
+    $Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
     $Equipment_Dropdown.Text = ''
     $Desc_Text.Text = ''
 }
@@ -301,6 +301,17 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
     }     
 }
 
+function Check-DuplicateIssue{
+    foreach ($row in $Issue_History.Rows) {
+        if ($Equipment_Dropdown.Text -eq $row.Cells.Value[0]) {           
+            $DuplicateTicket = [System.Windows.Forms.MessageBox]::Show("A ticket has already been submitted for $($Equipment_Dropdown.Text):`n`n$($row.Cells.Value[1])`n`nAre you having this issue?", 'Warning', 'YesNo', 'Warning')
+            if ($DuplicateTicket -eq 'Yes') {
+                $Equipment_Dropdown.SelectedIndex = -1
+            }
+        }
+    }
+}
+
 Function Write-Log {
     [CmdletBinding()]
     Param(
@@ -348,18 +359,9 @@ $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentEquipment
     })
 
-$Equipment_Dropdown.Add_SelectedValueChanged({
-    foreach ($row in $Issue_History.Rows) {
-        if ($Equipment_Dropdown.Text -eq $row.Cells.Value[0]) {
-            $row.DefaultCellStyle.Backcolor = 'Red'
-            $DuplicateTicket = [System.Windows.Forms.MessageBox]::Show("A ticket has already been submitted for $($Equipment_Dropdown.Text): $($row.Cells.Value[1])`n`nAre you having this issue?", 'Warning', 'YesNo', 'Warning')
-            if ($DuplicateTicket -eq 'Yes') {
-                [void]$Form.Close()
-            }
-        }
-    }
-})
+$Equipment_Dropdown.Add_SelectedValueChanged({ Check-DuplicateIssue })
 
+$Submit_Button.Add_MouseUp( { Check-DuplicateIssue })
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
