@@ -303,6 +303,9 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
 
 function Check-DuplicateIssue{
     foreach ($row in $Issue_History.Rows) {
+        if ($Equipment_Dropdown.Text -eq 'Other') {
+            return
+        }
         if ($Equipment_Dropdown.Text -eq $row.Cells.Value[0]) {           
             $DuplicateTicket = [System.Windows.Forms.MessageBox]::Show("A ticket has already been submitted for $($Equipment_Dropdown.Text):`n`n$($row.Cells.Value[1])`n`nAre you having this issue?", 'Warning', 'YesNo', 'Warning')
             if ($DuplicateTicket -eq 'Yes') {
