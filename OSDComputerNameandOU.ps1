@@ -53,7 +53,7 @@ $PCC_RadioButton.Location = New-Object System.Drawing.Size($(($Domain_Group.Widt
 
 $Location_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Location_Dropdown.DropDownStyle = "DropDown"
-$Location_Dropdown.Items.AddRange(@("Adult Education", "Community", "Desert Vista", "District", "Downtown", "East", "Maintenance and Security", "Northwest", "West"))
+$Location_Dropdown.Items.AddRange(@("Adult Education", "Desert Vista", "District", "Downtown", "East", "Maintenance and Security", "Northwest", "West"))
 $Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Location_Dropdown.AutoCompleteSource = 'ListItems'
 $Location_Dropdown.TabIndex = 3
@@ -105,15 +105,26 @@ function Set-OULocation($Location) {
 
 Function Set-OSDComputerName {
     $ErrorProvider.SetError($ComputerName_Group,'')
+
+    Switch -regex ($ComputerName_Textbox.Text) {
+        #Normal Campus
+        '([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}([a-z]{2}|v\d{1})' {
+            $Global:OSDComputerName = $ComputerName_Textbox.Text.ToUpper()
+            #$TSEnv = New-Object -COMObject Microsoft.SMS.TSEnvironment
+            #$TSEnv.Value("OSDComputerName") = "$($OSDComputerName)"
+            break
+        }
+        #CARES Act
+        '[a-z]{3}-[a-z]{3}\d{6}[a-z]{2}' {
+            $Global:OSDComputerName = $ComputerName_Textbox.Text.ToUpper()
+            #$TSEnv = New-Object -COMObject Microsoft.SMS.TSEnvironment
+            #$TSEnv.Value("OSDComputerName") = "$($OSDComputerName)"
+            break
+        }
+        default {
+            $ErrorProvider.SetError($ComputerName_Group, "Computer name invalid, please correct the computer name.")
+        }
     #Validation Rule for computer names.
-    if ($ComputerName_Textbox.Text -notmatch "([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}([a-z]{2}|v\d{1})") {
-        $ErrorProvider.SetError($ComputerName_Group, "Computer name invalid, please correct the computer name.")
-    }
-    else {
-        # Temp Global, for testing
-        $Global:OSDComputerName = $ComputerName_Textbox.Text.ToUpper()
-        #$TSEnv = New-Object -COMObject Microsoft.SMS.TSEnvironment
-        #$TSEnv.Value("OSDComputerName") = "$($OSDComputerName)"
     }
 }
 
