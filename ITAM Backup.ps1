@@ -14,4 +14,4 @@ Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
 Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
 Invoke-SeClick -Element $loginButtonElement
 #endregion
-Stop-SeDriver -Driver $Driver
+#Stop-SeDriver -Driver $Driver
