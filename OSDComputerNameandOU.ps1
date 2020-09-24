@@ -12,7 +12,7 @@ $screen = [System.Windows.Forms.Screen]::AllScreens
 $Form = New-Object System.Windows.Forms.Form    
 $Form.FormBorderStyle = 'FixedDialog'
 $Form.StartPosition = 'CenterScreen'
-$Form.Width = $($screen[0].bounds.Width / 6)
+$Form.Width = $($screen[0].bounds.Width / 5)
 $Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
 $Form.Text = 'Active Directory Information'
 $Form.ControlBox = $false
@@ -27,25 +27,27 @@ $ComputerName_Textbox.text = 'wc-r015123123sc'
 #>
 $ComputerName_Campus_Label = New-Object system.Windows.Forms.Label
 $ComputerName_Campus_Label.Text = 'Campus'
-$ComputerName_Campus_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_Campus_Label.Text, $ComputerName_Campus_Label.Font)).Width), 30)
-$ComputerName_Campus_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_Campus_Textbox.Text = 'WC'
+$ComputerName_Campus_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_Campus_Label.Text, $ComputerName_Campus_Label.Font)).Width), 20)
+$ComputerName_Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
+$ComputerName_Campus_Dropdown.DropDownStyle = 'DropDown'
+$ComputerName_Campus_Dropdown.Items.AddRange(@('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC', 'PCC'))
+$ComputerName_Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$ComputerName_Campus_Dropdown.AutoCompleteSource = 'ListItems'
 
 $ComputerName_BuildingRoom_Label = New-Object system.Windows.Forms.Label
-$ComputerName_BuildingRoom_Label.Text = 'Building/Room'
-$ComputerName_BuildingRoom_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_BuildingRoom_Label.Text, $ComputerName_BuildingRoom_Label.Font)).Width), 30)
+$ComputerName_BuildingRoom_Label.Text = 'Bldg/Room'
+$ComputerName_BuildingRoom_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_BuildingRoom_Label.Text, $ComputerName_BuildingRoom_Label.Font)).Width), 20)
 $ComputerName_BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
 $ComputerName_BuildingRoom_Textbox.Text = 'R016'
 
 $ComputerName_PCCNumber_Label = New-Object system.Windows.Forms.Label
 $ComputerName_PCCNumber_Label.Text = 'PCC#'
-$ComputerName_PCCNumber_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_PCCNumber_Label.Text, $ComputerName_PCCNumber_Label.Font)).Width), 30)
+$ComputerName_PCCNumber_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_PCCNumber_Label.Text, $ComputerName_PCCNumber_Label.Font)).Width), 20)
 $ComputerName_PCCNumber_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_PCCNumber_Textbox.Text = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
 
 $ComputerName_Suffix_Label = New-Object system.Windows.Forms.Label
 $ComputerName_Suffix_Label.Text = 'Suffix'
-$ComputerName_Suffix_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_Suffix_Label.Text, $ComputerName_Suffix_Label.Font)).Width), 30)
+$ComputerName_Suffix_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_Suffix_Label.Text, $ComputerName_Suffix_Label.Font)).Width), 20)
 $ComputerName_Suffix_Textbox = New-Object System.Windows.Forms.TextBox
 $ComputerName_Suffix_Textbox.Text = 'LL'
 
@@ -55,24 +57,24 @@ $ComputerName_Group.Location = New-Object System.Drawing.Point($($Form.Width * .
 $ComputerName_Group.Text = 'Computer name:'
 
 #$ComputerName_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .9), 50)
-$ComputerName_Campus_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .1), 50)
+$ComputerName_Campus_Dropdown.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
 $ComputerName_BuildingRoom_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
 $ComputerName_PCCNumber_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .3), 50)
-$ComputerName_Suffix_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
+$ComputerName_Suffix_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .15), 50)
 
 
 #$ComputerName_Group.Height = $ComputerName_Textbox.Height * 2.2
-$ComputerName_Group.Height = ($ComputerName_Campus_Textbox.Height + $ComputerName_Campus_Label.Height) * 1.5
+$ComputerName_Group.Height = ($ComputerName_Campus_Dropdown.Height + $ComputerName_Campus_Label.Height) * 1.8
 #$ComputerName_Textbox.Location = New-Object System.Drawing.Size($(($ComputerName_Group.Width - $ComputerName_Textbox.Width) * .5), $(($ComputerName_Group.Height - $ComputerName_Textbox.Height) * .75))
-$ComputerName_Campus_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_Group.Width - $ComputerName_Campus_Textbox.Width) * .1), $(($ComputerName_Group.Height - $ComputerName_Campus_Textbox.Height) * .75))
-$ComputerName_BuildingRoom_Textbox.Location = New-Object System.Drawing.Point($($ComputerName_Campus_Textbox.Location.X + $ComputerName_Campus_Textbox.Width), $(($ComputerName_Group.Height - $ComputerName_BuildingRoom_Textbox.Height) * .75))
-$ComputerName_PCCNumber_Textbox.Location = New-Object System.Drawing.Point($($ComputerName_BuildingRoom_Textbox.Location.X + $ComputerName_BuildingRoom_Textbox.Width), $(($ComputerName_Group.Height - $ComputerName_PCCNumber_Textbox.Height) * .75))
-$ComputerName_Suffix_Textbox.Location = New-Object System.Drawing.Point($($ComputerName_PCCNumber_Textbox.Location.X + $ComputerName_PCCNumber_Textbox.Width), $(($ComputerName_Group.Height - $ComputerName_Suffix_Textbox.Height) * .75))
+$ComputerName_Campus_Dropdown.Location = New-Object System.Drawing.Point($(($ComputerName_Group.Width - $ComputerName_Campus_Dropdown.Width) * .05), $(($ComputerName_Group.Height - $ComputerName_Campus_Dropdown.Height) * .75))
+$ComputerName_BuildingRoom_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_Campus_Dropdown.Location.X + $ComputerName_Campus_Dropdown.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_BuildingRoom_Textbox.Height) * .75))
+$ComputerName_PCCNumber_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_BuildingRoom_Textbox.Location.X + $ComputerName_BuildingRoom_Textbox.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_PCCNumber_Textbox.Height) * .75))
+$ComputerName_Suffix_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_PCCNumber_Textbox.Location.X + $ComputerName_PCCNumber_Textbox.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_Suffix_Textbox.Height) * .75))
 
-$ComputerName_Campus_Label.Location = New-Object System.Drawing.Point($ComputerName_Campus_Textbox.Location.X, $($ComputerName_Campus_Textbox.Location.Y - 20))
-$ComputerName_BuildingRoom_Label.Location = New-Object System.Drawing.Point($ComputerName_BuildingRoom_Textbox.Location.X, $($ComputerName_BuildingRoom_Textbox.Location.Y - 20))
-$ComputerName_PCCNumber_Label.Location = New-Object System.Drawing.Point($ComputerName_PCCNumber_Textbox.Location.X, $($ComputerName_PCCNumber_Textbox.Location.Y - 20))
-$ComputerName_Suffix_Label.Location = New-Object System.Drawing.Point($ComputerName_Suffix_Textbox.Location.X, $($ComputerName_Suffix_Textbox.Location.Y - 20))
+$ComputerName_Campus_Label.Location = New-Object System.Drawing.Point($($ComputerName_Campus_Dropdown.Location.X + (($ComputerName_Campus_Dropdown.Width / 2) - ($ComputerName_Campus_Label.Width / 2))), $($ComputerName_Campus_Dropdown.Location.Y - 20))
+$ComputerName_BuildingRoom_Label.Location = New-Object System.Drawing.Point($($ComputerName_BuildingRoom_Textbox.Location.X + (($ComputerName_BuildingRoom_Textbox.Width / 2) - ($ComputerName_BuildingRoom_Label.Width / 2))), $($ComputerName_BuildingRoom_Textbox.Location.Y - 20))
+$ComputerName_PCCNumber_Label.Location = New-Object System.Drawing.Point($($ComputerName_PCCNumber_Textbox.Location.X + (($ComputerName_PCCNumber_Textbox.Width / 2) - ($ComputerName_PCCNumber_Label.Width / 2))), $($ComputerName_PCCNumber_Textbox.Location.Y - 20))
+$ComputerName_Suffix_Label.Location = New-Object System.Drawing.Point($($ComputerName_Suffix_Textbox.Location.X + (($ComputerName_Suffix_Textbox.Width / 2) - ($ComputerName_Suffix_Label.Width / 2))), $($ComputerName_Suffix_Textbox.Location.Y - 20))
 
 $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
 $EDU_RadioButton.TabStop = $true
@@ -120,7 +122,7 @@ $Form.AcceptButton = $Submit_Button
 $Form.Height = $Submit_Button.Location.Y * 1.4
 $Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Location_Group, $Submit_Button))
 #$ComputerName_Group.Controls.Add($ComputerName_Textbox)
-$ComputerName_Group.Controls.AddRange(@($ComputerName_Campus_Textbox, $ComputerName_Campus_Label, $ComputerName_BuildingRoom_Textbox, $ComputerName_BuildingRoom_Label,$ComputerName_PCCNumber_Textbox, $ComputerName_PCCNumber_Label, $ComputerName_Suffix_Textbox, $ComputerName_Suffix_Label))
+$ComputerName_Group.Controls.AddRange(@($ComputerName_Campus_Dropdown, $ComputerName_Campus_Label, $ComputerName_BuildingRoom_Textbox, $ComputerName_BuildingRoom_Label, $ComputerName_PCCNumber_Textbox, $ComputerName_PCCNumber_Label, $ComputerName_Suffix_Textbox, $ComputerName_Suffix_Label))
 $Domain_Group.Controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
 $Location_Group.Controls.Add($Location_Dropdown)
 
@@ -155,26 +157,83 @@ function Confirm-NoError {
 #endregion
 
 #region Actions
-$Submit_Button.Add_Click( { 
 
+$PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
+if ($PCCNumber -match '\d{6}') {
+    $ComputerName_PCCNumber_Textbox.Text = $PCCNumber
+}
+
+
+$Submit_Button.Add_Click( { 
+        if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {    
+            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
+                $ErrorProvider.SetError($ComputerName_Group, '')
+                if ($ComputerName_BuildingRoom_Textbox.Text -match '[a-z]{1}\d{3}|[a-z]{2}\d{2}|[a-z]{3}') {
+                    if ($ComputerName_PCCNumber_Textbox.Text -match '\d{6}') {
+                        if ($ComputerName_Suffix_Textbox.Text -match '[a-z]{2}') {
+                            $ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                        }
+                        else {
+                            $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper suffix')
+                        }
+                    }
+                    else {
+                        $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper PCC Number')
+                    }
+                }
+                else {
+                    $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper building/room')
+                }
+            }
+            else {
+                $ErrorProvider.SetError($ComputerName_Group, 'Select a proper campus')
+            }            
+        }
+        else {
+            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
+                $ErrorProvider.SetError($ComputerName_Group, '')
+                if ($ComputerName_BuildingRoom_Textbox.Text -match '[a-z]{2}\d{3}') {
+                    if ($ComputerName_PCCNumber_Textbox.Text -match '\d{6}') {
+                        if ($ComputerName_Suffix_Textbox.Text -match '[a-z]{2}') {
+                            $ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                        }
+                        else {
+                            $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper suffix')
+                        }
+                    }
+                    else {
+                        $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper PCC Number')
+                    }
+                }
+                else {
+                    $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper building/room')
+                }
+            }
+            else {
+                $ErrorProvider.SetError($ComputerName_Group, 'Select a proper campus')
+            } 
+        }
+
+
+    <#
         # Verify Computer Name
         $ErrorProvider.SetError($ComputerName_Group, '')
-        Switch -regex ($ComputerName_Textbox.Text) {
+        Switch -regex ($ComputerName) {
             #Normal Campus
             '([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}([a-z]{2}|v\d{1})' {
-                $ComputerName = $ComputerName_Textbox.Text.ToUpper()
+                $ComputerName = $ComputerName.ToUpper()
                 break
             }
             #CARES Act
             '[a-z]{3}-[a-z]{3}\d{6}[a-z]{2}' {
-                $ComputerName = $ComputerName_Textbox.Text.ToUpper()
+                $ComputerName = $ComputerName.ToUpper()
                 break
             }
             default {
                 $ErrorProvider.SetError($ComputerName_Group, 'Computer name invalid, please correct the computer name.')
             }
         }
-
+#>
         # Verify Location
         if ($Location_Dropdown.Items -contains $Location_Dropdown.Text) {
             $ErrorProvider.SetError($Location_Group, '')
