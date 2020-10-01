@@ -19,18 +19,14 @@ $Form.ControlBox = $false
 $Form.TopMost = $true
 $Form.Font = 'Microsoft Sans Serif,8'
 
-<#
-$ComputerName_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_Textbox.TabIndex = 1
-#Temp name for testing
-$ComputerName_Textbox.text = 'wc-r015123123sc'
-#>
+$CampusList = @(('29','Adult Education'), ('ER','Adult Education'), ('EP','Adult Education'), ('DV','Desert Vista'), ('DO', 'District'), ('DC', 'Downtown'), ('EC','East'), ('MS','Maintenance and Security'), ('NW','Northwest'), ('WC','West'), ('PCC','West'))
+
 $ComputerName_Campus_Label = New-Object system.Windows.Forms.Label
 $ComputerName_Campus_Label.Text = 'Campus'
 $ComputerName_Campus_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_Campus_Label.Text, $ComputerName_Campus_Label.Font)).Width), 20)
 $ComputerName_Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $ComputerName_Campus_Dropdown.DropDownStyle = 'DropDown'
-$ComputerName_Campus_Dropdown.Items.AddRange(@('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC', 'PCC'))
+$ComputerName_Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object {$($_[0])}))
 $ComputerName_Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $ComputerName_Campus_Dropdown.AutoCompleteSource = 'ListItems'
 
@@ -44,6 +40,7 @@ $ComputerName_PCCNumber_Label = New-Object system.Windows.Forms.Label
 $ComputerName_PCCNumber_Label.Text = 'PCC#'
 $ComputerName_PCCNumber_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ComputerName_PCCNumber_Label.Text, $ComputerName_PCCNumber_Label.Font)).Width), 20)
 $ComputerName_PCCNumber_Textbox = New-Object System.Windows.Forms.TextBox
+$ComputerName_PCCNumber_Textbox.Text = '123456'
 
 $ComputerName_Suffix_Label = New-Object system.Windows.Forms.Label
 $ComputerName_Suffix_Label.Text = 'Suffix'
@@ -56,16 +53,12 @@ $ComputerName_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), 5
 $ComputerName_Group.Location = New-Object System.Drawing.Point($($Form.Width * .05), 10)
 $ComputerName_Group.Text = 'Computer name:'
 
-#$ComputerName_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .9), 50)
 $ComputerName_Campus_Dropdown.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
 $ComputerName_BuildingRoom_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
 $ComputerName_PCCNumber_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .3), 50)
 $ComputerName_Suffix_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .15), 50)
 
-
-#$ComputerName_Group.Height = $ComputerName_Textbox.Height * 2.2
 $ComputerName_Group.Height = ($ComputerName_Campus_Dropdown.Height + $ComputerName_Campus_Label.Height) * 1.8
-#$ComputerName_Textbox.Location = New-Object System.Drawing.Size($(($ComputerName_Group.Width - $ComputerName_Textbox.Width) * .5), $(($ComputerName_Group.Height - $ComputerName_Textbox.Height) * .75))
 $ComputerName_Campus_Dropdown.Location = New-Object System.Drawing.Point($(($ComputerName_Group.Width - $ComputerName_Campus_Dropdown.Width) * .05), $(($ComputerName_Group.Height - $ComputerName_Campus_Dropdown.Height) * .75))
 $ComputerName_BuildingRoom_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_Campus_Dropdown.Location.X + $ComputerName_Campus_Dropdown.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_BuildingRoom_Textbox.Height) * .75))
 $ComputerName_PCCNumber_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_BuildingRoom_Textbox.Location.X + $ComputerName_BuildingRoom_Textbox.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_PCCNumber_Textbox.Height) * .75))
@@ -95,36 +88,17 @@ $Domain_Group.Text = 'Select Domain'
 $EDU_RadioButton.Location = New-Object System.Drawing.Point($(($Domain_Group.Width - ($EDU_RadioButton.Width + $PCC_RadioButton.Width)) * .5), $(($Domain_Group.Height - $EDU_RadioButton.Height) * .75))
 $PCC_RadioButton.Location = New-Object System.Drawing.Point($($EDU_RadioButton.Location.X + $EDU_RadioButton.Width), $(($Domain_Group.Height - $PCC_RadioButton.Height) * .75))
 
-$Location_Dropdown = New-Object System.Windows.Forms.ComboBox
-$Location_Dropdown.DropDownStyle = 'DropDown'
-$Location_Dropdown.Items.AddRange(@('Adult Education', 'Desert Vista', 'District', 'Downtown', 'East', 'Maintenance and Security', 'Northwest', 'West'))
-$Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
-$Location_Dropdown.AutoCompleteSource = 'ListItems'
-$Location_Dropdown.TabIndex = 3
-
-$Location_Group = New-Object System.Windows.Forms.GroupBox
-$Location_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), 50)
-$Location_Group.Location = New-Object System.Drawing.Point($($Form.Width * .05), $($($Domain_Group.Location.Y + $Domain_Group.Size.Height + 5)))
-$Location_Group.Text = 'Select Campus'
-
-$Location_Dropdown.Size = New-Object System.Drawing.Size($($Location_Group.Width * .9), 50)
-$Location_Group.Height = $Location_Dropdown.Height * 2.2
-$Location_Dropdown.Location = New-Object System.Drawing.Point($(($Location_Group.Width - $Location_Dropdown.Width) * .5), $(($Location_Group.Height - $Location_Dropdown.Height) * .75))
-
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Size = New-Object System.Drawing.Size(80, 25)
-$Submit_Button.Location = New-Object System.Drawing.Point($((($Location_Group.Width - $Submit_Button.Width) * .5) + $Location_Dropdown.Location.X), $($Location_Group.Location.Y + $Location_Group.Size.Height + 5))
+$Submit_Button.Location = New-Object System.Drawing.Point($((($Domain_Group.Width - $Submit_Button.Width) * .5) + $Domain_Group.Location.X), $($Domain_Group.Location.Y + $Domain_Group.Size.Height + 5))
 $Submit_Button.Text = 'OK'
 $Submit_Button.TabIndex = 4
 $Form.AcceptButton = $Submit_Button
 
-#$Form.Height = $($ComputerName_Group.Size.Height + $Domain_Group.Size.Height + $Location_Group.Size.Height + $Submit_Button.Size.Height) * 1.5
-$Form.Height = $Submit_Button.Location.Y * 1.4
-$Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Location_Group, $Submit_Button))
-#$ComputerName_Group.Controls.Add($ComputerName_Textbox)
+$Form.Height = $Submit_Button.Location.Y * 1.5
+$Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Submit_Button))
 $ComputerName_Group.Controls.AddRange(@($ComputerName_Campus_Dropdown, $ComputerName_Campus_Label, $ComputerName_BuildingRoom_Textbox, $ComputerName_BuildingRoom_Label, $ComputerName_PCCNumber_Textbox, $ComputerName_PCCNumber_Label, $ComputerName_Suffix_Textbox, $ComputerName_Suffix_Label))
 $Domain_Group.Controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
-$Location_Group.Controls.Add($Location_Dropdown)
 
 #endregion
 
@@ -163,77 +137,42 @@ if ($PCCNumber -match '\d{6}') {
     $ComputerName_PCCNumber_Textbox.Text = $PCCNumber
 }
 
-
 $Submit_Button.Add_Click( { 
-        if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {    
-            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
-                $ErrorProvider.SetError($ComputerName_Group, '')
-                if ($ComputerName_BuildingRoom_Textbox.Text -match '[a-z]{1}\d{3}|[a-z]{2}\d{2}|[a-z]{3}') {
-                    if ($ComputerName_PCCNumber_Textbox.Text -match '\d{6}') {
-                        if ($ComputerName_Suffix_Textbox.Text -match '[a-z]{2}') {
+
+        if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
+            $ErrorProvider.SetError($ComputerName_Group, '')
+            if ($ComputerName_BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
+                if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
+                    if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$') {
+                        if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {
                             $ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            if ($ComputerName.Length -ne 15) {
+                                $ErrorProvider.SetError($ComputerName_Group, 'Name too long')
+                            }
                         }
                         else {
-                            $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper suffix')
+                            $ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            if ($ComputerName.Length -ne 15) {
+                                $ErrorProvider.SetError($ComputerName_Group, 'Name too long')
+                            }
                         }
                     }
                     else {
-                        $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper PCC Number')
+                        $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper suffix')
                     }
                 }
                 else {
-                    $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper building/room')
+                    $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper PCC Number')
                 }
             }
             else {
-                $ErrorProvider.SetError($ComputerName_Group, 'Select a proper campus')
-            }            
+                $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper building/room')
+            }
         }
         else {
-            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
-                $ErrorProvider.SetError($ComputerName_Group, '')
-                if ($ComputerName_BuildingRoom_Textbox.Text -match '[a-z]{2}\d{3}') {
-                    if ($ComputerName_PCCNumber_Textbox.Text -match '\d{6}') {
-                        if ($ComputerName_Suffix_Textbox.Text -match '[a-z]{2}') {
-                            $ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
-                        }
-                        else {
-                            $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper suffix')
-                        }
-                    }
-                    else {
-                        $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper PCC Number')
-                    }
-                }
-                else {
-                    $ErrorProvider.SetError($ComputerName_Group, 'Enter a proper building/room')
-                }
-            }
-            else {
-                $ErrorProvider.SetError($ComputerName_Group, 'Select a proper campus')
-            } 
-        }
-
-
-    <#
-        # Verify Computer Name
-        $ErrorProvider.SetError($ComputerName_Group, '')
-        Switch -regex ($ComputerName) {
-            #Normal Campus
-            '([a-z]{4}|(([a-z]{2}|\d{2})-[a-z]{1,2}))\d{8,9}([a-z]{2}|v\d{1})' {
-                $ComputerName = $ComputerName.ToUpper()
-                break
-            }
-            #CARES Act
-            '[a-z]{3}-[a-z]{3}\d{6}[a-z]{2}' {
-                $ComputerName = $ComputerName.ToUpper()
-                break
-            }
-            default {
-                $ErrorProvider.SetError($ComputerName_Group, 'Computer name invalid, please correct the computer name.')
-            }
-        }
-#>
+            $ErrorProvider.SetError($ComputerName_Group, 'Select a proper campus')
+        }            
+        
         # Verify Location
         if ($Location_Dropdown.Items -contains $Location_Dropdown.Text) {
             $ErrorProvider.SetError($Location_Group, '')
@@ -246,11 +185,11 @@ $Submit_Button.Add_Click( {
         $ErrorProvider.SetError($Domain_Group, '')
         if ($EDU_RadioButton.Checked -eq $true) {
             $Domain = 'EDU-Domain.pima.edu'
-            $OULocation = "LDAP://OU=$($Location_Dropdown.Text),OU=Staging,DC=$Domain,DC=pima,DC=edu"
+            $OULocation = "LDAP://OU=$($CampusList[$ComputerName_Campus_Dropdown.SelectedIndex][1]),OU=Staging,DC=$Domain,DC=pima,DC=edu"
         }
         if ($PCC_RadioButton.Checked -eq $true) {
             $Domain = 'PCC-Domain.pima.edu'
-            $OULocation = "LDAP://OU=$($Location_Dropdown.Text),OU=Staging,DC=$Domain,DC=pima,DC=edu"
+            $OULocation = "LDAP://OU=$($CampusList[$ComputerName_Campus_Dropdown.SelectedIndex][1]),OU=Staging,DC=$Domain,DC=pima,DC=edu"
         }
         elseif (($EDU_RadioButton.Checked -or $PCC_RadioButton.Checked) -eq $false) {
             $ErrorProvider.SetError($Domain_Group, 'Select a domain')
