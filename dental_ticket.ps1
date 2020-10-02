@@ -277,7 +277,12 @@ $Submission = [pscustomobject]@{
     'Issue Description' = ''
     TimeStamp           = ''
     'Status'            = ''
+    'Res Date'          = ''
+    'Resolution'        = ''
+    'Who'               = ''
     'Note'              = ''
+    
+
 }
 
 function Update-Submission {
@@ -303,6 +308,9 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
 
 function Check-DuplicateIssue{
     foreach ($row in $Issue_History.Rows) {
+        if ($Equipment_Dropdown.Text -eq 'Other') {
+            break
+        }
         if ($Equipment_Dropdown.Text -eq $row.Cells.Value[0]) {           
             $DuplicateTicket = [System.Windows.Forms.MessageBox]::Show("A ticket has already been submitted for $($Equipment_Dropdown.Text):`n`n$($row.Cells.Value[1])`n`nAre you having this issue?", 'Warning', 'YesNo', 'Warning')
             if ($DuplicateTicket -eq 'Yes') {
@@ -365,7 +373,7 @@ $Submit_Button.Add_MouseUp( { Check-DuplicateIssue })
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "(^$)|(\s+$)" -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "*" -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $ErrorProvider.Clear()
