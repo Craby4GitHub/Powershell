@@ -70,7 +70,7 @@ $LunchTimeAmount_CheckBox.text = "Half Hour Lunch"
 $LunchTimeAmount_CheckBox.AutoSize = $false
 $LunchTimeAmount_CheckBox.width = 95
 $LunchTimeAmount_CheckBox.height = 20
-$LunchTimeAmount_CheckBox.location = New-Object System.Drawing.Point(169, 300)
+$LunchTimeAmount_CheckBox.location = New-Object System.Drawing.Point(100, 300)
 $LunchTimeAmount_CheckBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $TimeOut_TextBox = New-Object system.Windows.Forms.TextBox
@@ -121,7 +121,7 @@ ForEach-Object {
 $i = 0
 foreach ($payPeriod in $payPeriods) {
     if (($payPeriod.status -eq 'Not Started') -or ($payPeriod.status -eq 'In Progress')) {
-        [void]$TimeSheets.Items.Add($($([cultureinfo]::InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName($payPeriod.startdate.month)) + ' ' + $($payPeriod.startDate.Day) + ', ' + $($payPeriod.startDate.Year)))
+        [void]$TimeSheets.Items.Add($($([cultureinfo]::InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName($payPeriod.startdate.month)) + ' ' + $($payPeriod.startDate.tostring('dd')) + ', ' + $($payPeriod.startDate.Year)))
         $TimeSheets.items[$i].Tag = $payPeriod
     }
     $i++
@@ -129,7 +129,7 @@ foreach ($payPeriod in $payPeriods) {
 
 
 
-$EarnCode = @(
+$EarnCodes = @(
     ('1HR', 'Hourly Pay'),
     ('LAN', 'Annual Leave Taken'),
     ('LSK', 'Sick Leave Taken'),
@@ -166,6 +166,39 @@ $Submit_Button.Add_Click( {
 
             $JobsSeqNo = Find-SeElement -Name 'JobsSeqNo' -Driver $Driver | Get-SeElementAttribute -Attribute 'Value'
 
+            $TimeSheetTable = Get-SeElement -Driver $Driver -XPath '/html/body/div[3]/table[1]/tbody/tr[5]/td/form/table[1]'
+
+            $TimeSheetTableRows = $TimeSheetTable.FindElementsByTagName('tr')
+
+            $EnteredHours = @()
+
+            #Ignore Total Hours/Unit Rows
+            foreach($Row in $TimeSheetTableRows[0..($TimeSheetTableRows.Count-3)]){
+                $dataSeperated = $Row.text -split '\n'
+                if ($dataSeperated[0] -ne 'Earning Shift Default') {
+                    for ($i = 0; $i -lt $EarnCodes.Count; $i++) {
+                        if ($EarnCodes[$i][1] -match $dataSeperated[0]) {
+                            $EarnCode = $EarnCodes[$i][1]
+                        }
+                    }
+                }else {
+                    
+                }
+                $EarnCode = $null
+
+                
+                foreach($day in $dataSeperated[-7..-1]){
+                    if ($day -notmatch 'Enter Hours') {
+                        
+                    }
+                }
+                $EnteredHours += [PSCustomObject] @{
+                    Earning = $EarnCode
+                    days   = $null
+
+                }
+            }
+
             for ($i = 0; $x.tag.startDate.AddDays($i) -lt $x.tag.endDate.AddDays(1); $i++) {
                 foreach ($day in $Week.Items) {
                     if ($x.tag.startDate.addDays($i).dayofweek -eq $day.text) {
@@ -175,7 +208,7 @@ $Submit_Button.Add_Click( {
             }
 
             foreach ($checkedDay in $Week.CheckedItems.Tag) {
-                Open-SeUrl -Target $Driver -url "https://bannerweb.pima.edu/pls/pccp/bwpkteci.P_TimeInOut?JobsSeqNo=$($JobsSeqNo)&LastDate=0&EarnCode=$($EarnCode[0][0])&DateSelected=$($checkedDay.toString("dd-MMM-yyyy"))&LineNumber=5"
+                Open-SeUrl -Target $Driver -url "https://bannerweb.pima.edu/pls/pccp/bwpkteci.P_TimeInOut?JobsSeqNo=$($JobsSeqNo)&LastDate=0&EarnCode=$($EarnCodes[0][0])&DateSelected=$($checkedDay.toString("dd-MMM-yyyy"))&LineNumber=5"
                 
 
                 $TimeIn = Find-SeElement -Id 'timein_input_id' -Driver $Driver
