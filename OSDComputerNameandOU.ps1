@@ -50,9 +50,9 @@ $ComputerName_Suffix_Textbox = New-Object System.Windows.Forms.TextBox
 $ComputerName_Suffix_Textbox.TabIndex = 4
 
 $ComputerName_Group = New-Object System.Windows.Forms.GroupBox
-$ComputerName_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), 50)
-$ComputerName_Group.Location = New-Object System.Drawing.Point($($Form.Width * .05), 10)
 $ComputerName_Group.Text = 'Computer name:'
+$ComputerName_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), 50)
+$ComputerName_Group.Location = New-Object System.Drawing.Point($(($Form.Width - $ComputerName_Group.Width) * .25), 10)
 
 $ComputerName_Campus_Dropdown.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
 $ComputerName_BuildingRoom_Textbox.Size = New-Object System.Drawing.Size($($ComputerName_Group.Width * .2), 50)
@@ -66,38 +66,38 @@ $ComputerName_BuildingRoom_Textbox.Location = New-Object System.Drawing.Point($(
 $ComputerName_PCCNumber_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_BuildingRoom_Textbox.Location.X + $ComputerName_BuildingRoom_Textbox.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_PCCNumber_Textbox.Height) * .75))
 $ComputerName_Suffix_Textbox.Location = New-Object System.Drawing.Point($(($ComputerName_PCCNumber_Textbox.Location.X + $ComputerName_PCCNumber_Textbox.Width) + 10), $(($ComputerName_Group.Height - $ComputerName_Suffix_Textbox.Height) * .75))
 
-$ComputerName_Campus_Label.Location = New-Object System.Drawing.Point($($ComputerName_Campus_Dropdown.Location.X + (($ComputerName_Campus_Dropdown.Width / 2) - ($ComputerName_Campus_Label.Width / 2))), $($ComputerName_Campus_Dropdown.Location.Y - 20))
-$ComputerName_BuildingRoom_Label.Location = New-Object System.Drawing.Point($($ComputerName_BuildingRoom_Textbox.Location.X + (($ComputerName_BuildingRoom_Textbox.Width / 2) - ($ComputerName_BuildingRoom_Label.Width / 2))), $($ComputerName_BuildingRoom_Textbox.Location.Y - 20))
-$ComputerName_PCCNumber_Label.Location = New-Object System.Drawing.Point($($ComputerName_PCCNumber_Textbox.Location.X + (($ComputerName_PCCNumber_Textbox.Width / 2) - ($ComputerName_PCCNumber_Label.Width / 2))), $($ComputerName_PCCNumber_Textbox.Location.Y - 20))
-$ComputerName_Suffix_Label.Location = New-Object System.Drawing.Point($($ComputerName_Suffix_Textbox.Location.X + (($ComputerName_Suffix_Textbox.Width / 2) - ($ComputerName_Suffix_Label.Width / 2))), $($ComputerName_Suffix_Textbox.Location.Y - 20))
+$ComputerName_Campus_Label.Location = New-Object System.Drawing.Point($($ComputerName_Campus_Dropdown.Location.X + ($ComputerName_Campus_Dropdown.Width - $ComputerName_Campus_Label.Width) * .25), $($ComputerName_Campus_Dropdown.Location.Y - 20))
+$ComputerName_BuildingRoom_Label.Location = New-Object System.Drawing.Point($($ComputerName_BuildingRoom_Textbox.Location.X + ($ComputerName_BuildingRoom_Textbox.Width - $ComputerName_BuildingRoom_Label.Width) * .25), $($ComputerName_BuildingRoom_Textbox.Location.Y - 20))
+$ComputerName_PCCNumber_Label.Location = New-Object System.Drawing.Point($($ComputerName_PCCNumber_Textbox.Location.X + ($ComputerName_PCCNumber_Textbox.Width - $ComputerName_PCCNumber_Label.Width) * .25), $($ComputerName_PCCNumber_Textbox.Location.Y - 20))
+$ComputerName_Suffix_Label.Location = New-Object System.Drawing.Point($($ComputerName_Suffix_Textbox.Location.X + ($ComputerName_Suffix_Textbox.Width - $ComputerName_Suffix_Label.Width) * .25), $($ComputerName_Suffix_Textbox.Location.Y - 20))
 
 $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
-$EDU_RadioButton.TabStop = $true
 $EDU_RadioButton.Text = 'EDU'
 $EDU_RadioButton.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($EDU_RadioButton.Text, $EDU_RadioButton.Font)).Width + 30), 30)
+$EDU_RadioButton.TabStop = $true
 
 $PCC_RadioButton = New-Object System.Windows.Forms.RadioButton
-$PCC_RadioButton.TabStop = $true
 $PCC_RadioButton.Text = 'PCC'
 $PCC_RadioButton.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($PCC_RadioButton.Text, $PCC_RadioButton.Font)).Width + 30), 30)
+$PCC_RadioButton.TabStop = $true
 
 $Domain_Group = New-Object System.Windows.Forms.GroupBox
-$Domain_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), $($EDU_RadioButton.Height + $PCC_RadioButton.Height))
-$Domain_Group.Location = New-Object System.Drawing.Point($($Form.Width * .05), $($($ComputerName_Group.Location.Y + $ComputerName_Group.Size.Height + 5)))
 $Domain_Group.Text = 'Select Domain'
+$Domain_Group.Size = New-Object System.Drawing.Size($($Form.Width * .8), $($EDU_RadioButton.Height + $PCC_RadioButton.Height))
+$Domain_Group.Location = New-Object System.Drawing.Point($(($Form.Width - $Domain_Group.Width) * .25), $($($ComputerName_Group.Location.Y + $ComputerName_Group.Size.Height + 5)))
 $Domain_Group.TabIndex = 5
 
 $EDU_RadioButton.Location = New-Object System.Drawing.Point($(($Domain_Group.Width - ($EDU_RadioButton.Width + $PCC_RadioButton.Width)) * .5), $(($Domain_Group.Height - $EDU_RadioButton.Height) * .75))
 $PCC_RadioButton.Location = New-Object System.Drawing.Point($($EDU_RadioButton.Location.X + $EDU_RadioButton.Width), $(($Domain_Group.Height - $PCC_RadioButton.Height) * .75))
 
 $Submit_Button = New-Object System.Windows.Forms.Button
+$Submit_Button.Text = 'Submit'
 $Submit_Button.Size = New-Object System.Drawing.Size(80, 25)
 $Submit_Button.Location = New-Object System.Drawing.Point($((($Domain_Group.Width - $Submit_Button.Width) * .5) + $Domain_Group.Location.X), $($Domain_Group.Location.Y + $Domain_Group.Size.Height + 5))
-$Submit_Button.Text = 'OK'
 $Submit_Button.TabIndex = 6
 $Form.AcceptButton = $Submit_Button
 
-$Form.Height = $Submit_Button.Location.Y * 1.5
+$Form.Height = ($Submit_Button.Location.Y + $Submit_Button.Height) * 1.1
 $Form.Controls.AddRange(@($ComputerName_Group, $Domain_Group, $Submit_Button))
 $ComputerName_Group.Controls.AddRange(@($ComputerName_Campus_Dropdown, $ComputerName_Campus_Label, $ComputerName_BuildingRoom_Textbox, $ComputerName_BuildingRoom_Label, $ComputerName_PCCNumber_Textbox, $ComputerName_PCCNumber_Label, $ComputerName_Suffix_Textbox, $ComputerName_Suffix_Label))
 $Domain_Group.Controls.AddRange(@($EDU_RadioButton, $PCC_RadioButton))
