@@ -7,88 +7,128 @@ $Credentials = Get-Credential
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
+$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
+
 $Form = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle = "FixedDialog"
-$Form.ClientSize = "400,350"
+$Form.ClientSize = "450,350"
 $Form.text = "Timesheet Automation"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
 
-$Submit_Button = New-Object system.Windows.Forms.Button
-$Submit_Button.text = "Submit"
-$Submit_Button.width = 60
-$Submit_Button.height = 30
-$Submit_Button.location = New-Object System.Drawing.Point(150, 300)
+$panel = New-Object System.Windows.Forms.TableLayoutPanel
+$panel.Dock = "Fill"
+$panel.ColumnCount = 2
+$panel.RowCount = 3
+$panel.CellBorderStyle = "none"
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 25)))
 
 $TimeSheets = New-Object system.Windows.Forms.ListView
 $TimeSheets.text = "listView"
-$TimeSheets.width = 360
+$TimeSheets.width = 360 
 $TimeSheets.height = 70
-$TimeSheets.location = New-Object System.Drawing.Point(5, 10)
+$TimeSheets.Location = New-Object System.Drawing.Point($($Form.Width * .05), 10)
 $TimeSheets.CheckBoxes = $true
+$TimeSheets.Dock = 'Fill'
 
-$Week = New-Object system.Windows.Forms.ListView
-$Week.text = "listView"
-$Week.width = 360
-$Week.height = 70
-$Week.location = New-Object System.Drawing.Point(5, 100)
-$Week.CheckBoxes = $true
-$Week.Items.AddRange(@('Saturday', 'Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'))
+$WeekList = New-Object system.Windows.Forms.ListView
+$WeekList.text = "listView"
+$WeekList.Location = New-Object System.Drawing.Point(0, $($($TimeSheets.Location.Y + $TimeSheets.Size.Height + 5)))
+$WeekList.CheckBoxes = $true
+$WeekList.Items.AddRange(@('Sat', 'Sun', 'Mon', 'Tues', 'Wed', 'Thur', 'Fri'))
+$WeekList.Size = New-Object System.Drawing.Size(400, 50)
+$WeekList.Dock = 'Fill'
+
+$TimeSubmission_Group = New-Object system.Windows.Forms.Groupbox
+$TimeSubmission_Group.height = 100
+$TimeSubmission_Group.width = 200
+$TimeSubmission_Group.text = "Time Submission"
+$TimeSubmission_Group.Location = New-Object System.Drawing.Point($($Form.Width * .05), $($($WeekList.Location.Y + $WeekList.Size.Height + 5)))
+$TimeSubmission_Group.Dock = 'Fill'
+#$TimeSubmission_Group.Enabled = $false
 
 $TimeIn_TextBox = New-Object system.Windows.Forms.TextBox
 $TimeIn_TextBox.multiline = $false
-$TimeIn_TextBox.width = 100
-$TimeIn_TextBox.height = 20
-$TimeIn_TextBox.location = New-Object System.Drawing.Point(20, 257)
+$TimeIn_TextBox.Size = New-Object System.Drawing.Size($($TimeSubmission_Group.Width * .33), 50)
+$TimeIn_TextBox.Location = New-Object System.Drawing.Point($(($TimeSubmission_Group.Width / 16)), $(($TimeSubmission_Group.Height - $TimeIn_TextBox.Height) * .5))
 $TimeIn_TextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $TimeIn_Label = New-Object system.Windows.Forms.Label
-$TimeIn_Label.text = "Time In"
+$TimeIn_Label.text = "In"
 $TimeIn_Label.AutoSize = $true
-$TimeIn_Label.width = 25
-$TimeIn_Label.height = 10
-$TimeIn_Label.location = New-Object System.Drawing.Point($($TimeIn_TextBox.Location.X + ($TimeIn_TextBox.Width - $TimeIn_Label.Width) * .25), $($TimeIn_TextBox.Location.Y - 20))
+$TimeIn_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($TimeIn_Label.Text, $TimeIn_Label.Font)).Width), 20)
+$TimeIn_Label.Location = New-Object System.Drawing.Point($($TimeIn_TextBox.Location.X + (($TimeIn_TextBox.Width / 2) - ($TimeIn_Label.Width / 2))), $($TimeIn_TextBox.Location.Y - 20))
 $TimeIn_Label.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $Lunch_TextBox = New-Object system.Windows.Forms.TextBox
 $Lunch_TextBox.multiline = $false
-$Lunch_TextBox.width = 100
-$Lunch_TextBox.height = 20
-$Lunch_TextBox.location = New-Object System.Drawing.Point(120, 257)
+$Lunch_TextBox.Size = New-Object System.Drawing.Size($($TimeSubmission_Group.Width * .33), 50)
+$Lunch_TextBox.Location = New-Object System.Drawing.Point($(($TimeIn_TextBox.Location.X + $TimeIn_TextBox.Width) + 10), $(($TimeSubmission_Group.Height - $Lunch_TextBox.Height) * .5))
 $Lunch_TextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $Lunch_Label = New-Object system.Windows.Forms.Label
-$Lunch_Label.text = "Lunch Start"
+$Lunch_Label.text = "Lunch"
 $Lunch_Label.AutoSize = $true
-$Lunch_Label.width = 25
-$Lunch_Label.height = 10
-$Lunch_Label.location = New-Object System.Drawing.Point($($Lunch_TextBox.Location.X + ($Lunch_TextBox.Width - $Lunch_Label.Width) * .25), $($Lunch_TextBox.Location.Y - 20))
+$Lunch_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($Lunch_Label.Text, $Lunch_Label.Font)).Width), 20)
+$Lunch_Label.Location = New-Object System.Drawing.Point($($Lunch_TextBox.Location.X + (($Lunch_TextBox.Width / 2) - ($Lunch_Label.Width / 2))), $($Lunch_TextBox.Location.Y - 20))
 $Lunch_Label.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $LunchTimeAmount_CheckBox = New-Object system.Windows.Forms.CheckBox
-$LunchTimeAmount_CheckBox.text = "Half Hour Lunch"
+$LunchTimeAmount_CheckBox.text = "Half Hour"
 $LunchTimeAmount_CheckBox.AutoSize = $false
 $LunchTimeAmount_CheckBox.width = 95
 $LunchTimeAmount_CheckBox.height = 20
-$LunchTimeAmount_CheckBox.location = New-Object System.Drawing.Point(100, 300)
+$LunchTimeAmount_CheckBox.location = New-Object System.Drawing.Point($($Lunch_TextBox.Location.X), $($Lunch_TextBox.Location.Y + $Lunch_TextBox.height))
 $LunchTimeAmount_CheckBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $TimeOut_TextBox = New-Object system.Windows.Forms.TextBox
 $TimeOut_TextBox.multiline = $false
-$TimeOut_TextBox.width = 100
-$TimeOut_TextBox.height = 20
-$TimeOut_TextBox.location = New-Object System.Drawing.Point(237, 257)
+$TimeOut_TextBox.Size = New-Object System.Drawing.Size($($TimeSubmission_Group.Width * .33), 50)
+$TimeOut_TextBox.Location = New-Object System.Drawing.Point($(($Lunch_TextBox.Location.X + $Lunch_TextBox.Width) + 10), $(($TimeSubmission_Group.Height - $TimeOut_TextBox.Height) * .5))
 $TimeOut_TextBox.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
 $TimeOut_Label = New-Object system.Windows.Forms.Label
-$TimeOut_Label.text = "Time Out"
+$TimeOut_Label.text = "Out"
 $TimeOut_Label.AutoSize = $true
-$TimeOut_Label.width = 25
-$TimeOut_Label.height = 10
-$TimeOut_Label.location = New-Object System.Drawing.Point($($TimeOut_TextBox.Location.X + ($TimeOut_Label.Width - $ComputerName_Campus_Label.Width) * .25), $($TimeOut_TextBox.Location.Y - 20))
+$TimeOut_Label.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($TimeOut_Label.Text, $TimeOut_Label.Font)).Width), 20)
+$TimeOut_Label.Location = New-Object System.Drawing.Point($($TimeOut_TextBox.Location.X + (($TimeOut_TextBox.Width / 2) - ($TimeOut_Label.Width / 2))), $($TimeOut_TextBox.Location.Y - 20))
 $TimeOut_Label.Font = New-Object System.Drawing.Font('Microsoft Sans Serif', 10)
 
-$Form.controls.AddRange(@($Submit_Button, $TimeSheets, $Week,$TimeIn_Label,$TimeIn_TextBox,$Lunch_Label,$Lunch_TextBox,$TimeOut_Label,$TimeOut_TextBox))
+$Options_Group = New-Object system.Windows.Forms.Groupbox
+$Options_Group.height = 100
+$Options_Group.width = 200
+$Options_Group.text = "Options"
+$Options_Group.Location = New-Object System.Drawing.Point($($TimeSubmission_Group.Location.X + $TimeSubmission_Group.Width), $($TimeSubmission_Group.Location.Y))
+$Options_Group.Dock = 'Fill'
+#$Options_Group.Enabled = $false
+
+$QuickSelect_Button = New-Object system.Windows.Forms.Button
+$QuickSelect_Button.text = "Select M-F"
+$QuickSelect_Button.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($QuickSelect_Button.Text, $QuickSelect_Button.Font)).Width * 1.2), 30)
+$QuickSelect_Button.Dock = 'Top'
+
+$ClearTimesheet_Button = New-Object system.Windows.Forms.Button
+$ClearTimesheet_Button.text = "Clear Timesheet"
+$ClearTimesheet_Button.Size = New-Object System.Drawing.Size($(([System.Windows.Forms.TextRenderer]::MeasureText($ClearTimesheet_Button.Text, $ClearTimesheet_Button.Font)).Width * 1.2), 30)
+$ClearTimesheet_Button.Dock = 'Top'
+
+$Submit_Button = New-Object system.Windows.Forms.Button
+$Submit_Button.text = "Submit"
+$Submit_Button.Dock = 'Bottom'
+$Form.AcceptButton = $Submit_Button
+
+$panel.Controls.Add($TimeSheets, 0, 0)
+$panel.Controls.Add($WeekList, 0, 1)
+$panel.Controls.Add($TimeSubmission_Group, 0, 2)
+$panel.Controls.Add($Options_Group, 2, 1)
+$panel.Controls.Add($Submit_Button, 1, 2)
+$Form.controls.AddRange(@($panel))
+$TimeSubmission_Group.controls.AddRange(@($TimeIn_TextBox, $TimeIn_Label, $Lunch_TextBox, $Lunch_Label, $TimeOut_TextBox, $TimeOut_Label, $LunchTimeAmount_CheckBox))
+$Options_Group.controls.AddRange(@($QuickSelect_Button, $ClearTimesheet_Button))
 $Driver = Start-SeFirefox -PrivateBrowsing
 Open-SeUrl -Driver $Driver -Url "https://ban8sso.pima.edu/ssomanager/c/SSB?pkg=bwpktais.P_SelectTimeSheetRoll"
 
@@ -111,23 +151,23 @@ Select-String -Pattern "(?<startMonth>\w{3}) (?<startDay>\d{2}), (?<startYear>\d
 ForEach-Object {
     $startMonth, $startDay, $startYear, $endMonth, $endDay, $endYear, $status = $_.Matches[0].Groups['startMonth', 'startDay', 'startYear', 'endMonth', 'endDay', 'endYear', 'status'].Value
     $payPeriods += [PSCustomObject] @{
-        startDate = [DateTime]::ParseExact("$($startDay)$($startMonth)$($startYear)", 'ddMMMyyyy', $null)
-        endDate   = [DateTime]::ParseExact("$($endDay)$($endMonth)$($endYear)", 'ddMMMyyyy', $null)
+        startDate = [DateTime]::ParseExact("$($startDay)$($startMonth)$($startYear)1200am", 'ddMMMyyyyhhmmtt', $null)
+        endDate   = [DateTime]::ParseExact("$($endDay)$($endMonth)$($endYear)1159pm", 'ddMMMyyyyhhmmtt', $null)
         status    = $status
     }
 }
 
 # Adding checkboxes for each pay period not started or in progress
+
 $i = 0
 foreach ($payPeriod in $payPeriods) {
     if (($payPeriod.status -eq 'Not Started') -or ($payPeriod.status -eq 'In Progress')) {
         [void]$TimeSheets.Items.Add($($([cultureinfo]::InvariantCulture.DateTimeFormat.GetAbbreviatedMonthName($payPeriod.startdate.month)) + ' ' + $($payPeriod.startDate.tostring('dd')) + ', ' + $($payPeriod.startDate.Year)))
         $TimeSheets.items[$i].Tag = $payPeriod
+
     }
     $i++
 }
-
-
 
 $EarnCodes = @(
     ('1HR', 'Hourly Pay'),
@@ -157,9 +197,15 @@ $EarnCodes = @(
     ('LMU', 'Military Leave Unpaid')
 )
 
+$QuickSelect_Button.Add_Click( {
+        foreach ($Day in $WeekList.items[2..7]) {
+            $Day.Checked = $true
+        }
+    })
+
 $Submit_Button.Add_Click( {
-        foreach ($x in $TimeSheets.CheckedItems) {
-            Get-SeSelectionOption -Element $PayPeriodDropdown -ByPartialText "$($x.Text)"
+        foreach ($PayRange in $TimeSheets.CheckedItems) {
+            Get-SeSelectionOption -Element $PayPeriodDropdown -ByPartialText "$($PayRange.Text)"
             
             # Click Time Sheet button
             Find-SeElement -XPath '/html/body/div[3]/form/table[2]/tbody/tr/td/input' -Driver $Driver | Invoke-SeClick -Driver $Driver
@@ -173,7 +219,7 @@ $Submit_Button.Add_Click( {
             $EnteredHours = @()
 
             #Ignore Total Hours/Unit Rows
-            foreach($Row in $TimeSheetTableRows[0..($TimeSheetTableRows.Count-3)]){
+            foreach ($Row in $TimeSheetTableRows[0..($TimeSheetTableRows.Count - 3)]) {
                 $dataSeperated = $Row.text -split '\n'
                 if ($dataSeperated[0] -ne 'Earning Shift Default') {
                     for ($i = 0; $i -lt $EarnCodes.Count; $i++) {
@@ -181,79 +227,97 @@ $Submit_Button.Add_Click( {
                             $EarnCode = $EarnCodes[$i][1]
                         }
                     }
-                }else {
+                }
+                else {
                     
                 }
                 $EarnCode = $null
 
                 
-                foreach($day in $dataSeperated[-7..-1]){
+                foreach ($day in $dataSeperated[-7..-1]) {
                     if ($day -notmatch 'Enter Hours') {
                         
                     }
                 }
                 $EnteredHours += [PSCustomObject] @{
                     Earning = $EarnCode
-                    days   = $null
+                    days    = $null
 
                 }
             }
 
-            for ($i = 0; $x.tag.startDate.AddDays($i) -lt $x.tag.endDate.AddDays(1); $i++) {
-                foreach ($day in $Week.Items) {
-                    if ($x.tag.startDate.addDays($i).dayofweek -eq $day.text) {
-                        $day.Tag += @($x.tag.startDate.addDays($i))
+            # Add DateTime data for each Checkbox day, used to simplfy TimeSheet URL creation
+            for ($i = 0; $i -le [math]::Round(($PayRange.Tag.enddate - $PayRange.Tag.startdate).Totaldays, 1); $i++) {
+                foreach ($day in $WeekList.Items) {
+                    if ($PayRange.Tag.startDate.addDays($i).dayofweek -match $day.text) {
+                        $day.Tag += @($PayRange.Tag.startdate.addDays($i))
+                        break
                     }
                 }
             }
 
-            foreach ($checkedDay in $Week.CheckedItems.Tag) {
-                Open-SeUrl -Target $Driver -url "https://bannerweb.pima.edu/pls/pccp/bwpkteci.P_TimeInOut?JobsSeqNo=$($JobsSeqNo)&LastDate=0&EarnCode=$($EarnCodes[0][0])&DateSelected=$($checkedDay.toString("dd-MMM-yyyy"))&LineNumber=5"
+            foreach ($checkedDay in $WeekList.CheckedItems.Tag) {
+                if (($checkedDay -ge $PayRange.Tag.startdate) -and ($checkedDay -le $PayRange.Tag.enddate)) {
+                    Open-SeUrl -Target $Driver -url "https://bannerweb.pima.edu/pls/pccp/bwpkteci.P_TimeInOut?JobsSeqNo=$($JobsSeqNo)&LastDate=0&EarnCode=$($EarnCodes[0][0])&DateSelected=$($checkedDay.toString("dd-MMM-yyyy"))&LineNumber=5"
                 
-
-                $TimeIn = Find-SeElement -Id 'timein_input_id' -Driver $Driver
-                $TimeOut = Find-SeElement -Id 'timeout_input_id' -Driver $Driver
-                $AmPmDropDownIn = Find-SeElement -Name 'TimeInAm' -Driver $Driver
-                $AmPmDropDownOut = Find-SeElement -Name 'TimeOutAm' -Driver $Driver
-
-                [DateTime]$SubmitTimeIn = $TimeIn_TextBox.Text
-                Send-SeKeys -Element $TimeIn[0] -Keys $SubmitTimeIn.ToString('hh:mm')
-                Get-SeSelectionOption -Element $AmPmDropDownIn[0] -ByValue $SubmitTimeIn.ToString('tt')
-
-                if ($null -ne $Lunch_TextBox.Text) {
-                    [DateTime]$SubmitLunchTime = $Lunch_TextBox.Text
-                    Send-SeKeys -Element $TimeOut[0] -Keys $SubmitLunchTime.ToString('hh:mm')
-                    Get-SeSelectionOption -Element $AmPmDropDownOut[0] -ByValue $SubmitLunchTime.ToString('tt')
-
-                    if (!$LunchTimeAmount_CheckBox.Checked) {
-                        $SubmitLunchTime = $SubmitLunchTime.AddMinutes(60)
+                    $TimeIn = Find-SeElement -Id 'timein_input_id' -Driver $Driver
+                    $TimeOut = Find-SeElement -Id 'timeout_input_id' -Driver $Driver
+                    $AmPmDropDownIn = Find-SeElement -Name 'TimeInAm' -Driver $Driver
+                    $AmPmDropDownOut = Find-SeElement -Name 'TimeOutAm' -Driver $Driver
+    
+                    [DateTime]$SubmitTimeIn = $TimeIn_TextBox.Text
+                    Send-SeKeys -Element $TimeIn[0] -Keys $SubmitTimeIn.ToString('hh:mm')
+                    Get-SeSelectionOption -Element $AmPmDropDownIn[0] -ByValue $SubmitTimeIn.ToString('tt')
+    
+                    if ($null -ne $Lunch_TextBox.Text) {
+                        [DateTime]$SubmitLunchTime = $Lunch_TextBox.Text
+                        Send-SeKeys -Element $TimeOut[0] -Keys $SubmitLunchTime.ToString('hh:mm')
+                        Get-SeSelectionOption -Element $AmPmDropDownOut[0] -ByValue $SubmitLunchTime.ToString('tt')
+    
+                        if (!$LunchTimeAmount_CheckBox.Checked) {
+                            $SubmitLunchTime = $SubmitLunchTime.AddMinutes(60)
+                        }
+                        else {
+                            $SubmitLunchTime = $SubmitLunchTime.AddMinutes(30)
+                        }
+    
+                        Send-SeKeys -Element $TimeIn[1] -Keys $SubmitLunchTime.ToString('hh:mm')
+                        Get-SeSelectionOption -Element $AmPmDropDownIn[1] -ByValue $SubmitLunchTime.ToString('tt')
+    
+                        [DateTime]$SubmitTimeOut = $TimeOut_TextBox.Text
+                        Send-SeKeys -Element $TimeOut[1] -Keys $SubmitTimeOut.ToString('hh:mm')
+                        Get-SeSelectionOption -Element $AmPmDropDownOut[1] -ByValue $SubmitTimeOut.ToString('tt')
                     }
                     else {
-                        $SubmitLunchTime = $SubmitLunchTime.AddMinutes(30)
+                        [DateTime]$SubmitTimeOut = $TimeOut_TextBox.Text
+                        Send-SeKeys -Element $TimeOut[0] -Keys $SubmitTimeOut.ToString('hh:mm')
+                        Get-SeSelectionOption -Element $AmPmDropDownOut[0] -ByValue $SubmitTimeOut.ToString('tt')
                     }
-
-                    Send-SeKeys -Element $TimeIn[1] -Keys $SubmitLunchTime.ToString('hh:mm')
-                    Get-SeSelectionOption -Element $AmPmDropDownIn[1] -ByValue $SubmitLunchTime.ToString('tt')
-
-                    [DateTime]$SubmitTimeOut = $TimeOut_TextBox.Text
-                    Send-SeKeys -Element $TimeOut[1] -Keys $SubmitTimeOut.ToString('hh:mm')
-                    Get-SeSelectionOption -Element $AmPmDropDownOut[1] -ByValue $SubmitTimeOut.ToString('tt')
+    
+                    # Click Save button
+                    Find-SeElement -XPath '/html/body/div[3]/form/table[3]/tbody/tr[2]/td/input[2]' -Driver $Driver | Invoke-SeClick -Driver $Driver
+                
                 }
-                else {
-                    [DateTime]$SubmitTimeOut = $TimeOut_TextBox.Text
-                    Send-SeKeys -Element $TimeOut[0] -Keys $SubmitTimeOut.ToString('hh:mm')
-                    Get-SeSelectionOption -Element $AmPmDropDownOut[0] -ByValue $SubmitTimeOut.ToString('tt')
+                if ($checkedDay -eq $WeekList.CheckedItems.Tag[-1]) {
+                    # Click Time Sheet button
+                    Find-SeElement -XPath '/html/body/div[3]/form/table[3]/tbody/tr[1]/td/input[1]' -Driver $Driver | Invoke-SeClick -Driver $Driver
                 }
-
-                # Click Save button
-                Find-SeElement -XPath '/html/body/div[3]/form/table[3]/tbody/tr[2]/td/input[2]' -Driver $Driver | Invoke-SeClick -Driver $Driver
-            
+                
             }
-            # Click Time Sheet button
-            Find-SeElement -XPath '/html/body/div[3]/form/table[3]/tbody/tr[1]/td/input[1]' -Driver $Driver | Invoke-SeClick -Driver $Driver
+
+            # Click Position Selection button
+            Find-SeElement -XPath '/html/body/div[3]/table[1]/tbody/tr[5]/td/form/table[2]/tbody/tr/td[1]/input' -Driver $Driver | Invoke-SeClick -Driver $Driver
+
+            #Reload dropdown, becasue the object becomes stale
+            $PayPeriodDropdown = Find-SeElement -Driver $Driver -Id "period_1_id"
+                       
         }
     })
 
+
+$ClearTimesheet_Button.Add_Click( {
+
+    })
 
 [void]$Form.ShowDialog()
 
