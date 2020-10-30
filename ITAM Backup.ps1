@@ -1,8 +1,8 @@
 # https://www.powershellgallery.com/packages/Selenium/3.0.0
 
-#$Credentials = Get-Credential
+$Credentials = Get-Credential
 
-$Driver = Start-SeChrome -Incognito
+$Driver = Start-SeFirefox -PrivateBrowsing
 Enter-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26:4099767476960:CSV::::"
 
 #region Login to ITAM

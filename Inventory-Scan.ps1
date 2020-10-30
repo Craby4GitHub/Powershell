@@ -94,7 +94,7 @@ function Login_ITAM {
     #} until (!$LoginTimeOut.Enabled)
     
 }
-function Find-Asset {
+Function Find-Asset {
     param (
         $PCCNumber
     )
@@ -108,6 +108,37 @@ function Find-Asset {
         if ($InventoryTable.FindElementByXPath($PCCNumberFront_xpath + $i + $PCCNumberBack_xpath).text -eq $pccnumber) {
             return $i
             break
+        }
+    }
+}
+
+function Update-Asset {
+    param (
+        $PCCNumber,
+        $RoomNumber
+    )
+    $ITAMAsset = $ITAMAssests | Where-Object -Property 'Barcode #' -eq $PCCNumber
+    if ($null -ne $ITAMAsset) {
+        Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:2:15764768460589::NO:RP:P2_WAITAMBAST_SEQ:$($ITAMAsset.'IT #')"
+        Login_ITAM
+
+        $ChangeRoom = [System.Windows.Forms.MessageBox]::Show("Update $($PCCNumber) to room: $($RoomNumber)", 'Warning', 'OKCancel', 'Warning')
+        switch ($ChangeRoom) {
+            "OK" {
+                $AssetRoom_Element = Find-SeElement -Driver $Driver -Id 'P2_WAITAMBAST_ROOM'
+
+                $AssetRoom_Element.Clear()
+            
+                Send-SeKeys -Element $AssetRoom_Element -Keys $RoomNumber.Text
+
+                Find-SeElement -Driver $Driver -Id 'B3263727731989509' | Invoke-SeClick
+            } 
+            "Cancel" {
+                Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
+                Login_ITAM
+                $LocationDropDown = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
+                Get-SeSelectionOption -Element $LocationDropDown -ByPartialText "West Campus"
+            } 
         }
     }
 }
@@ -211,7 +242,7 @@ $Search_Button.Add_MouseUp( {
                     Find-SeElement -Driver $Driver -Id "f02_000$($AssestIndex)_0001" | Invoke-SeClick
                 }
                 else {
-                    write-host $PCC_TextBox.Text 'Not found on single page'
+                    Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text
                 }
                 
             }
@@ -227,32 +258,7 @@ $Search_Button.Add_MouseUp( {
                         break
                     }
                     if ($page -eq $PageDropdownOptions.Count - 1) {
-                        write-host $PCC_TextBox.Text 'Not found on multi page'
-                        $ITAMAsset = $ITAMAssests | Where-Object -Property 'Barcode #' -eq $PCC_TextBox.Text
-                        if ($null -ne $ITAMAsset) {
-                            Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:2:15764768460589::NO:RP:P2_WAITAMBAST_SEQ:$($ITAMAsset.'IT #')"
-                            Login_ITAM
-
-                            $ChangeRoom = [System.Windows.Forms.MessageBox]::Show("Update $($PCC_TextBox.Text) to room: $($Room_Dropdown.Text)", 'Warning', 'OKCancel', 'Warning')
-                            switch ($ChangeRoom) {
-                                "OK" {
-                                    $AssetRoom_Element = Find-SeElement -Driver $Driver -Id 'P2_WAITAMBAST_ROOM'
-
-                                    $AssetRoom_Element.Clear()
-            
-                                    Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.Text
-
-                                    Find-SeElement -Driver $Driver -Id 'B3263727731989509' | Invoke-SeClick
-                                } 
-                                "Cancel" {
-                                    Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
-                                    Login_ITAM
-                                } 
-                            }
-
-
-
-                        } 
+                         Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text
                     }
                 }
             }
