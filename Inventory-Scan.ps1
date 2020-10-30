@@ -12,15 +12,21 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle = "FixedDialog"
 $Form.ClientSize = "450,350"
-$Form.text = "Timesheet Automation"
+$Form.text = "ITAM Inventory Automation"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
+
+$Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
+$Campus_Dropdown.DropDownStyle = 'DropDown'
+$Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$Campus_Dropdown.AutoCompleteSource = 'ListItems'
+$Campus_Dropdown.TabIndex = 1
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
 $Room_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Room_Dropdown.AutoCompleteSource = 'ListItems'
-$Room_Dropdown.TabIndex = 1
+$Room_Dropdown.TabIndex = 2
 
 $PCC_Label = New-Object system.Windows.Forms.Label
 $PCC_Label.text = "PCC Number:"
@@ -30,33 +36,97 @@ $PCC_Label.Dock = 'Bottom'
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
 $PCC_TextBox.Dock = 'Bottom'
-$PCC_TextBox.TabIndex = 2
+$PCC_TextBox.TabIndex = 3
 
 $Search_Button = New-Object system.Windows.Forms.Button
 $Search_Button.text = "Search"
 $Search_Button.Dock = 'Bottom'
-$Search_Button.TabIndex = 3
+$Search_Button.TabIndex = 4
 $Form.AcceptButton = $Search_Button
 
 $panel = New-Object System.Windows.Forms.TableLayoutPanel
 $panel.Dock = "Fill"
-$panel.ColumnCount = 2
+$panel.ColumnCount = 3
 $panel.RowCount = 4
 $panel.CellBorderStyle = 1
-[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 25)))
 [void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 25)))
 [void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 
-$panel.Controls.Add($Room_Dropdown, 0, 0)
+$panel.Controls.Add($Campus_Dropdown, 0, 0)
+$panel.Controls.Add($Room_Dropdown, 1, 0)
 $panel.Controls.Add($PCC_Label, 0, 1)
 $panel.Controls.Add($PCC_TextBox, 0, 2)
 $panel.Controls.Add($Search_Button, 0, 3)
-$panel.SetColumnSpan($Submit_Button, 2)
+$panel.SetColumnSpan($Search_Button, 2)
 
 $Form.controls.Add($panel)
+
+
+$AssetUpdate_Popup = New-Object system.Windows.Forms.Form
+$AssetUpdate_Popup.Text = 'Asset Update'
+$AssetUpdate_Popup.FormBorderStyle = "FixedDialog"
+$AssetUpdate_Popup.ClientSize = "250,150"
+$AssetUpdate_Popup.TopMost = $true
+$AssetUpdate_Popup.StartPosition = 'CenterScreen'
+
+
+$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
+$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
+$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
+$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
+
+$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
+$Assigneduser_TextBox_Popup.multiline = $false
+$Assigneduser_TextBox_Popup.Dock = 'Top'
+$Assigneduser_TextBox_Popup.TabIndex = 1
+
+$Status_DropdownLabel_Popup = New-Object system.Windows.Forms.Label
+$Status_DropdownLabel_Popup.text = "Status"
+$Status_DropdownLabel_Popup.AutoSize = $true
+$Status_DropdownLabel_Popup.Dock = 'Bottom'
+
+$Status_Dropdown_Popup = New-Object System.Windows.Forms.ComboBox
+$Status_Dropdown_Popup.DropDownStyle = 'DropDown'
+$Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
+$Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
+$Status_Dropdown_Popup.TabIndex = 2
+$StatusList = @('Active', 'Disposed')
+$Status_Dropdown_Popup.Items.AddRange(($StatusList | ForEach-Object { $($_) }))
+
+$OK_Button_Popup = New-Object system.Windows.Forms.Button
+$OK_Button_Popup.text = "OK"
+$OK_Button_Popup.Dock = 'Bottom'
+$OK_Button_Popup.TabIndex = 4
+
+$Cancel_Button_Popup = New-Object system.Windows.Forms.Button
+$Cancel_Button_Popup.text = "Cancel"
+$Cancel_Button_Popup.Dock = 'Bottom'
+$Cancel_Button_Popup.TabIndex = 4
+
+$panelpopup = New-Object System.Windows.Forms.TableLayoutPanel
+$panelpopup.Dock = "Fill"
+$panelpopup.ColumnCount = 2
+$panelpopup.RowCount = 3
+$panelpopup.CellBorderStyle = 1
+[void]$panelpopup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+[void]$panelpopup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+[void]$panelpopup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$panelpopup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$panelpopup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+
+$panelpopup.Controls.Add($Assigneduser_TextBox_Popup, 1, 1)
+$panelpopup.Controls.Add($Status_Dropdown_Popup, 0, 1)
+$panelpopup.Controls.Add($Assigneduser_TextBoxLabel_Popup, 1, 0)
+$panelpopup.Controls.Add($Status_DropdownLabel_Popup, 0, 0)
+$panelpopup.Controls.Add($OK_Button_Popup, 0, 2)
+$panelpopup.Controls.Add($Cancel_Button_Popup, 1, 2)
+
+$AssetUpdate_Popup.controls.Add($panelpopup)
 
 #endregion
 
@@ -115,29 +185,65 @@ Function Find-Asset {
 function Update-Asset {
     param (
         $PCCNumber,
-        $RoomNumber
+        $RoomNumber,
+        $Campus
     )
     $ITAMAsset = $ITAMAssests | Where-Object -Property 'Barcode #' -eq $PCCNumber
     if ($null -ne $ITAMAsset) {
         Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:2:15764768460589::NO:RP:P2_WAITAMBAST_SEQ:$($ITAMAsset.'IT #')"
         Login_ITAM
+        $AssetStatus_Element = Find-SeElement -Driver $Driver -Id "P2_WAITAMBAST_STATUS"
+
+        $AssetAssignedUser_Element = Find-SeElement -Driver $Driver -Id "P2_WAITAMBAST_ASSIGNED_USER"
+
+        $AssetAssignedLocation_Element = Find-SeElement -Driver $Driver -Id "P2_WAITAMBAST_LOCATION"
+
+        $Status_Dropdown_Popup.Text = $AssetStatus_Element.Text
+
+        $AssetRoom_Element = Find-SeElement -Driver $Driver -Id 'P2_WAITAMBAST_ROOM'
+        
+        $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.Text
+
+        $OK_Button_Popup.Add_MouseUp( {
+                $AssetUpdate_Popup.Close()
+
+                $AssetRoom_Element.Clear()
+                Send-SeKeys -Element $AssetRoom_Element -Keys $RoomNumber.Text
+
+                $AssetStatus_Element.Clear()
+                Send-SeKeys -Element $AssetStatus_Element -Keys $Status_Dropdown_Popup.Text
+
+                $AssetAssignedUser_Element.Clear()
+                Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Status_Dropdown_Popup.Text
+
+                $AssetAssignedUser_Element.Clear()
+                Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Status_Dropdown_Popup.Text
+
+                Get-SeSelectionOption -Element $AssetAssignedLocation_Element -ByPartialText $Campus
+
+                #Find-SeElement -Driver $Driver -Id 'B3263727731989509' | Invoke-SeClick
+            })
+
+        $Cancel_Button_Popup.Add_MouseUp( {
+                $AssetUpdate_Popup.Close()
+                Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
+                Login_ITAM
+                $LocationDropDown_Element = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
+                Get-SeSelectionOption -Element $LocationDropDown_Element -ByPartialText "West Campus"
+            })
+
+
+
+
+        [void]$AssetUpdate_Popup.ShowDialog()
 
         $ChangeRoom = [System.Windows.Forms.MessageBox]::Show("Update $($PCCNumber) to room: $($RoomNumber)", 'Warning', 'OKCancel', 'Warning')
         switch ($ChangeRoom) {
             "OK" {
-                $AssetRoom_Element = Find-SeElement -Driver $Driver -Id 'P2_WAITAMBAST_ROOM'
-
-                $AssetRoom_Element.Clear()
-            
-                Send-SeKeys -Element $AssetRoom_Element -Keys $RoomNumber.Text
-
-                Find-SeElement -Driver $Driver -Id 'B3263727731989509' | Invoke-SeClick
+                
             } 
             "Cancel" {
-                Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
-                Login_ITAM
-                $LocationDropDown = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
-                Get-SeSelectionOption -Element $LocationDropDown -ByPartialText "West Campus"
+
             } 
         }
     }
@@ -242,7 +348,7 @@ $Search_Button.Add_MouseUp( {
                     Find-SeElement -Driver $Driver -Id "f02_000$($AssestIndex)_0001" | Invoke-SeClick
                 }
                 else {
-                    Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text
+                    Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text -Campus
                 }
                 
             }
@@ -258,7 +364,7 @@ $Search_Button.Add_MouseUp( {
                         break
                     }
                     if ($page -eq $PageDropdownOptions.Count - 1) {
-                         Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text
+                        Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text
                     }
                 }
             }
@@ -282,12 +388,19 @@ Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=4
 
 Login_ITAM -FirstLogin $true
 
-$LocationDropDown = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
-Get-SeSelectionOption -Element $LocationDropDown -ByPartialText "West Campus"
+$LocationDropDown_Element = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
+$LocationDropDownOptions_Element = Get-SeSelectionOption -Element $LocationDropDown_Element -ListOptionText
+$Campus_Dropdown.Items.AddRange($LocationDropDownOptions_Element)
 
-$RoomDropDown_Element = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-$RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
-$Room_Dropdown.Items.AddRange($RoomDropDownOptions_Element)
+#Campus selection not working, figur eout how to see dropdown change
+if ($Campus_Dropdown.SelectedIndexChanged) {
+    Get-SeSelectionOption -Element $LocationDropDown_Element -ByPartialText $Campus_Dropdown.SelectedItem
+    $RoomDropDown_Element = Find-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+    $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
+    $Room_Dropdown.Items.AddRange($RoomDropDownOptions_Element)
+}
+
+
 
 #Submit Button
 #Find-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
@@ -299,5 +412,5 @@ $Room_Dropdown.Items.AddRange($RoomDropDownOptions_Element)
 #https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:1:7876177828604::NO:RP::
 
 [void]$Form.ShowDialog()
-$Driver.close()
-$Driver.quit()
+#$Driver.close()
+#$Driver.quit()
