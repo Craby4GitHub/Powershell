@@ -11,61 +11,97 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.FormBorderStyle = "FixedDialog"
-$Form.ClientSize = "450,350"
-$Form.text = "ITAM Inventory Automation"
+$Form.ClientSize = "450,250"
+$Form.text = "ITAM - Inventory Automation"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
+$Form.BackColor = '#546b94'
+$Form.ForeColor = '#ffffff'
+
+#$PimaIcon = New-Object System.Drawing.Icon ("$PSScriptRoot\favicon.ico")
+#$Form.Icon = $PimaIcon
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
+$Campus_Dropdown.DropDownHeight = $Campus_Dropdown.ItemHeight * 5
+$Campus_Dropdown.Text = 'Select Campus'
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.TabIndex = 1
+$Campus_Dropdown.Dock = "Bottom"
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
+$Room_Dropdown.DropDownHeight = $Room_Dropdown.ItemHeight * 5
+$Room_Dropdown.Text = 'Select Room'
 $Room_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Room_Dropdown.AutoCompleteSource = 'ListItems'
 $Room_Dropdown.TabIndex = 2
+$Room_Dropdown.Dock = "Bottom"
 
 $PCC_Label = New-Object system.Windows.Forms.Label
 $PCC_Label.text = "PCC Number:"
+$PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $PCC_Label.AutoSize = $true
 $PCC_Label.Dock = 'Bottom'
 
+
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
-$PCC_TextBox.Dock = 'Bottom'
+$PCC_TextBox.Dock = 'Top'
 $PCC_TextBox.TabIndex = 3
 
 $Search_Button = New-Object system.Windows.Forms.Button
 $Search_Button.text = "Search"
-$Search_Button.Dock = 'Bottom'
+$Search_Button.Dock = 'Top'
 $Search_Button.TabIndex = 4
+$Search_Button.BackColor = '#a1adc4'
+$Search_Button.Font = 'Microsoft Sans Serif, 8pt, style=Bold'
 $Form.AcceptButton = $Search_Button
 
+$StatusBar = New-Object System.Windows.Forms.StatusBar
+$StatusBar.Text = "Ready"
+
+#Region Panel
 $panel = New-Object System.Windows.Forms.TableLayoutPanel
 $panel.Dock = "Fill"
-$panel.ColumnCount = 3
-$panel.RowCount = 4
+$panel.ColumnCount = 10
+$panel.RowCount = 10
 $panel.CellBorderStyle = 1
-[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+[void]$panel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
-$panel.Controls.Add($Campus_Dropdown, 0, 0)
-$panel.Controls.Add($Room_Dropdown, 1, 0)
-$panel.Controls.Add($PCC_Label, 0, 1)
-$panel.Controls.Add($PCC_TextBox, 0, 2)
-$panel.Controls.Add($Search_Button, 0, 3)
-$panel.SetColumnSpan($Search_Button, 2)
+$panel.Controls.Add($Campus_Dropdown, 2, 5)
+$panel.SetColumnSpan($Campus_Dropdown, 3)
+$panel.Controls.Add($Room_Dropdown, 5, 5)
+$panel.SetColumnSpan($Room_Dropdown, 3)
+$panel.Controls.Add($PCC_Label, 2, 7)
+$panel.SetColumnSpan($PCC_Label, 3)
+$panel.Controls.Add($PCC_TextBox, 2, 8)
+$panel.SetColumnSpan($PCC_TextBox, 3)
+$panel.Controls.Add($Search_Button, 5, 8)
+$panel.SetColumnSpan($Search_Button, 3)
 
-$Form.controls.Add($panel)
-
+$Form.controls.AddRange(@($panel,$StatusBar))
+#EndRegion 
 #region Assest Update Popup
 $AssetUpdate_Popup = New-Object system.Windows.Forms.Form
 $AssetUpdate_Popup.Text = 'Asset Update'
