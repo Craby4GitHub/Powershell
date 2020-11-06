@@ -100,7 +100,7 @@ $panel.SetColumnSpan($PCC_TextBox, 3)
 $panel.Controls.Add($Search_Button, 5, 8)
 $panel.SetColumnSpan($Search_Button, 3)
 
-$Form.controls.AddRange(@($panel,$StatusBar))
+$Form.controls.AddRange(@($panel, $StatusBar))
 #EndRegion 
 #region Assest Update Popup
 $AssetUpdate_Popup = New-Object system.Windows.Forms.Form
@@ -131,8 +131,6 @@ $Status_Dropdown_Popup.DropDownStyle = 'DropDown'
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
 $Status_Dropdown_Popup.TabIndex = 2
-$StatusList = @('Active', 'Disposed', 'On Hand', 'Missing', 'Stolen')
-$Status_Dropdown_Popup.Items.AddRange(($StatusList | ForEach-Object { $($_) }))
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.text = "OK"
@@ -225,61 +223,88 @@ function Update-Asset {
         $RoomNumber,
         $Campus
     )
-    $ITAMAsset = $ITAMAssests | Where-Object -Property 'Barcode #' -eq $PCCNumber
-    if ($null -ne $ITAMAsset) {
-        Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:2:15764768460589::NO:RP:P2_WAITAMBAST_SEQ:$($ITAMAsset.'IT #')"
-        Login_ITAM
-        $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P2_WAITAMBAST_STATUS"
-        $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
+    
+    #Open and login to main ITAM site
+    Open-SeUrl -Driver $Driver -Url $ITAM_URL
+    Login_ITAM
 
-        $AssetAssignedUser_Element = Get-SeElement -Driver $Driver -Id "P2_WAITAMBAST_ASSIGNED_USER"
-        $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
+    #Click Magnifying glass button
+    Get-SeElement -Driver $Driver -Id 'R3070613760137337_column_search_root' | Invoke-SeClick
 
-        $AssetAssignedLocation_Element = Get-SeElement -Driver $Driver -Id "P2_WAITAMBAST_LOCATION"
+    #Click Barcode option
+    Get-SeElement -Driver $Driver -Id 'R3070613760137337_column_search_drop_2_c1i' | Invoke-SeClick
 
-        $Status_Dropdown_Popup.Text = $AssetStatus_Element.Text
+    #Enter PCC number into search bar
+    Get-SeElement -Driver $Driver -Id 'R3070613760137337_search_field' | Send-SeKeys -Keys $PCCNumber
 
-        $AssetRoom_Element = Get-SeElement -Driver $Driver -Id 'P2_WAITAMBAST_ROOM'
+    #Click Go button
+    Get-SeElement -Driver $Driver -Id 'R3070613760137337_search_button' | Invoke-SeClick
 
-        $OK_Button_Popup.Add_MouseUp( {
-                
-                $AssetRoom_Element.Clear()
-                Send-SeKeys -Element $AssetRoom_Element -Keys $RoomNumber
+    #Click edit for asset NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
+    Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a' | Invoke-SeClick
 
-                $AssetStatus_Element.Clear()
-                Send-SeKeys -Element $AssetStatus_Element -Keys $Status_Dropdown_Popup.Text
+    #Populate UI status dropdown from ITAM and set UI selection to current asset status
+    $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
+    $AssetStatusOptions_Element = Get-SeSelectionOption -Element $AssetStatus_Element -ListOptionText
+    $Status_Dropdown_Popup.Items.Clear()
+    $Status_Dropdown_Popup.Items.AddRange($AssetStatusOptions_Element)
+    $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
 
-                $AssetAssignedUser_Element.Clear()
-                Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
+    #Populate UI status dropdown from ITAM and set UI selection to current asset status
+    $AssetAssignedUser_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_ASSIGNED_USER"
+    $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
 
-                Get-SeSelectionOption -Element $AssetAssignedLocation_Element -ByValue $Campus
+    $OK_Button_Popup.Add_MouseUp( {
+            $Global:Cancelled = $false
+      
+            #Clear Room on ITAM and enter room from UI
+            $AssetRoom_Element = Get-SeElement -Driver $Driver -Id 'P27_WAITAMBAST_ROOM'
+            $AssetRoom_Element.Clear()
+            Send-SeKeys -Element $AssetRoom_Element -Keys $RoomNumber
 
-                #Enable when code is ready to deploy
-                #Get-SeElement -Driver $Driver -Id 'B3263727731989509' | Invoke-SeClick
+            #Select status from UI
+            $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
+            Get-SeSelectionOption -Element $AssetStatus_Element -ByValue $Status_Dropdown_Popup.Text
 
-                Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
-                Login_ITAM
-                $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
-                Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
+            #Clear Assigned User on ITAM and enter Assigned User from UI
+            $AssetAssignedUser_Element.Clear()
+            Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
 
-                $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-                Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
+            #Select campus from UI
+            $AssetAssignedLocation_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_LOCATION"
+            Get-SeSelectionOption -Element $AssetAssignedLocation_Element -ByValue $Campus
 
-                $AssetUpdate_Popup.Close()
-            })
+            #Enable when code is ready to deploy
+            #Click Apply Changes button
+            Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[3]' | Invoke-SeClick
 
-        $Cancel_Button_Popup.Add_MouseUp( {
-                Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:1:$($loginInstance)"
-                Login_ITAM
-                $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
-                Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
+            #Open Inventory ITAM site and set campus/room UI
+            Open-SeUrl -Driver $Driver -Url $Inventory_URL
+            Login_ITAM
+            $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
+            Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
+            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+            Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
 
-                $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-                Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
-                $AssetUpdate_Popup.Close()
-            })
-        [void]$AssetUpdate_Popup.ShowDialog()
-    }
+            $AssetUpdate_Popup.Close()
+        })
+
+    $Cancel_Button_Popup.Add_MouseUp( {
+
+            #Open Inventory ITAM site and set campus/room UI
+            Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:1:$($loginInstance)"
+            Login_ITAM
+            $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
+            Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
+            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+            Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
+
+            $Global:Cancelled = $true
+
+            $AssetUpdate_Popup.Close()
+        })
+    [void]$AssetUpdate_Popup.ShowDialog()
+    
 }
 
 function Confirm-Asset {
@@ -287,6 +312,7 @@ function Confirm-Asset {
         
     )
 
+    #Lookinng for multiple pages
     try {
         $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"      
     }
@@ -294,37 +320,50 @@ function Confirm-Asset {
     }
 
     if ($null -eq $PageDropdown) {
-        $AssestIndex = Find-Asset -PCCNumber $PCC_TextBox.Text
-        if ($AssestIndex) {
-            #Click Verify
-            Get-SeElement -Driver $Driver -Id "f02_000$($AssestIndex)_0001" | Invoke-SeClick
-            #Enable when code is ready to deploy
-            #Submit Button
-            #Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-        }
-        else {
-            Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text -Campus $Campus_Dropdown.SelectedItem
-        } 
+        do {
+            $AssestIndex = Find-Asset -PCCNumber $PCC_TextBox.Text
+            if ($AssestIndex) {
+                #Click Verify button
+                Get-SeElement -Driver $Driver -Id "f02_000$($AssestIndex)_0001" | Invoke-SeClick
+                #Enable when code is ready to deploy
+                #Click Submit button
+                Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+                $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried"
+                Write-Log -message "$($PCC_TextBox.Text) has been inventoried"
+            }
+            else {
+                Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text -Campus $Campus_Dropdown.SelectedItem
+            }
+        } until (($null -ne $AssestIndex) -or $Global:Cancelled) 
     }
     else {
+        do {
+            $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381" 
         $PageDropdownOptions = Get-SeSelectionOption -Element $PageDropdown -ListOptionText 
         for ($page = 0; $page -lt $PageDropdownOptions.Count; $page++) {
+
+            #Re-load PageDropdown each time due to it geting stale when going to next page
             $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"
             Get-SeSelectionOption -Element $PageDropdown -ByIndex $page
 
-            $AssestIndex = Find-Asset -PCCNumber $PCC_TextBox.Text
-            if ($AssestIndex) {
-                #Click Verify
-                Get-SeElement -Driver $Driver -Id "f02_000$($AssestIndex)_0001" | Invoke-SeClick
-                #Enable when code is ready to deploy
-                #Submit Button
-                #Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-                break
-            }
-            if ($page -eq $PageDropdownOptions.Count - 1) {
-                Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text -Campus $Campus_Dropdown.SelectedItem
-            }
+            
+                $AssestIndex = Find-Asset -PCCNumber $PCC_TextBox.Text
+                if ($AssestIndex) {
+                    #Click Verify radio button
+                    Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
+                    #Enable when code is ready to deploy
+                    #Click Submit button
+                    Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+                    $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried"
+                    Write-Log -message "$($PCC_TextBox.Text) has been inventoried"
+                    break
+                }
+                if ($page -eq $PageDropdownOptions.Count - 1) {
+                    Update-Asset -PCCNumber $PCC_TextBox.Text -RoomNumber $Room_Dropdown.Text -Campus $Campus_Dropdown.SelectedItem
+                }
+            
         }
+    } until (($null -ne $AssestIndex) -or $Global:Cancelled)
     }
 }
 
@@ -378,17 +417,6 @@ Function Write-Log {
     Add-Content $PSScriptRoot\log.csv -Value $Line
 }
 
-Function Get-File($filePath) {   
-    try {
-        $file = Import-Csv -Path $filePath
-    }
-    catch {
-        Write-Log -Level 'FATAL' -Message $_.Exception.Message
-        [System.Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
-        exit
-    }
-    return $file
-}
 #endregion
 
 #region UI Actions
@@ -407,14 +435,13 @@ $Search_Button.Add_MouseUp( {
             
             foreach ($room in $RoomDropDownOptions_Element) {
                 if ($room -eq $Room_Dropdown.Text) {
-                    Get-SeSelectionOption -Element $RoomDropDown_Element -ByPartialText $Room_Dropdown.Text
+                    Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.Text
                     break
                 }
             }
 
-            
             #Reload page so data is always updated
-            Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403:1:$($loginInstance)::NO:RP::"
+            Open-SeUrl -Driver $Driver -Url ($Inventory_URL + ":1:$($loginInstance)::NO:RP::")
 
             Confirm-Asset
 
@@ -434,16 +461,19 @@ $Campus_Dropdown_SelectedIndexChanged = {
 $Campus_Dropdown.add_SelectedIndexChanged($Campus_Dropdown_SelectedIndexChanged)
 #endregion
 
-$ITAMAssests = Get-File -filePath 'C:\Users\wrcrabtree\Downloads\inventory_report.csv'
+#region Main
 
-$Driver = Start-SeFirefox -PrivateBrowsing -DefaultDownloadPath 'C:\Users\wrcrabtree\Documents\GitHub\Powershell'
+$ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+$Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
 
-Open-SeUrl -Driver $Driver -Url "https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403"
+$Driver = Start-SeFirefox -PrivateBrowsing
+
+Open-SeUrl -Driver $Driver -Url $Inventory_URL
+
 Login_ITAM -FirstLogin $true
 
-
 $Global:loginInstance = (Get-SeElement -Driver $Driver -Id 'pInstance').getattribute('value')
-
+$Global:Cancelled = $false
 $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
 $LocationDropDownOptions_Element = Get-SeSelectionOption -Element $LocationDropDown_Element -ListOptionText
 $Campus_Dropdown.Items.AddRange($LocationDropDownOptions_Element)
@@ -452,6 +482,4 @@ $Campus_Dropdown.Items.AddRange($LocationDropDownOptions_Element)
 #$Driver.close()
 #$Driver.quit()
 
-
-#Download Inventory Report
-#https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:18::CSV::::
+#endregion
