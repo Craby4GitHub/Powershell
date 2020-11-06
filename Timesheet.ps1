@@ -129,6 +129,7 @@ $panel.Controls.Add($Submit_Button, 1, 2)
 $Form.controls.AddRange(@($panel))
 $TimeSubmission_Group.controls.AddRange(@($TimeIn_TextBox, $TimeIn_Label, $Lunch_TextBox, $Lunch_Label, $TimeOut_TextBox, $TimeOut_Label, $LunchTimeAmount_CheckBox))
 $Options_Group.controls.AddRange(@($QuickSelect_Button, $ClearTimesheet_Button))
+
 $Driver = Start-SeFirefox -PrivateBrowsing
 Open-SeUrl -Driver $Driver -Url "https://ban8sso.pima.edu/ssomanager/c/SSB?pkg=bwpktais.P_SelectTimeSheetRoll"
 
@@ -212,40 +213,58 @@ $Submit_Button.Add_Click( {
 
             $JobsSeqNo = Find-SeElement -Name 'JobsSeqNo' -Driver $Driver | Get-SeElementAttribute -Attribute 'Value'
 
-            $TimeSheetTable = Get-SeElement -Driver $Driver -XPath '/html/body/div[3]/table[1]/tbody/tr[5]/td/form/table[1]'
+            # This code is meant to pull the timehseet table and return which days already have time filled out. I am other thinking it at the moment, will get back to someday...
+            <#
+            $TimeSheetTable = Get-SeElement -Driver $Driver -XPath '/html/body/div[3]/table[1]/tbody/tr[5]/td/form/table[1]/tbody'
+            /html/body/div[3]/table[1]/tbody/tr[5]/td/form/table[1]/tbody/tr[1]/td[6]
 
             $TimeSheetTableRows = $TimeSheetTable.FindElementsByTagName('tr')
 
             $EnteredHours = @()
 
-            #Ignore Total Hours/Unit Rows
-            foreach ($Row in $TimeSheetTableRows[0..($TimeSheetTableRows.Count - 3)]) {
-                $dataSeperated = $Row.text -split '\n'
-                if ($dataSeperated[0] -ne 'Earning Shift Default') {
-                    for ($i = 0; $i -lt $EarnCodes.Count; $i++) {
-                        if ($EarnCodes[$i][1] -match $dataSeperated[0]) {
-                            $EarnCode = $EarnCodes[$i][1]
-                        }
-                    }
-                }
-                else {
-                    
-                }
-                $EarnCode = $null
+            $headers = $TimeSheetTableRows[0].text -split '\n'
 
-                
-                foreach ($day in $dataSeperated[-7..-1]) {
-                    if ($day -notmatch 'Enter Hours') {
-                        
+            for ($i = 4; $i -lt $headers.count; $i++) {
+                $headers[$i] | Select-String -Pattern "(?<startMonth>\w{3}) (?<startDay>\d{2}), (?<startYear>\d{4})" |
+                ForEach-Object {
+                    $startMonth, $startDay, $startYear = $_.Matches[0].Groups['startMonth', 'startDay', 'startYear'].Value
+                    $EnteredHours += [PSCustomObject] @{
+                        header = [DateTime]::ParseExact("$($startDay)$($startMonth)$($startYear)", 'ddMMMyyyy', $null)
+                        earnCode = $null
+                        day = $null
                     }
-                }
-                $EnteredHours += [PSCustomObject] @{
-                    Earning = $EarnCode
-                    days    = $null
-
                 }
             }
 
+            #Ignore Total Hours/Unit Rows
+            foreach ($Row in $TimeSheetTableRows[1..($TimeSheetTableRows.Count - 3)]) {
+                $dataSeperated = $Row.text -split '\n'
+                
+                for ($i = 0; $i -lt $EarnCodes.Count; $i++) {
+                    if ($EarnCodes[$i][1] -match $dataSeperated[0]) {
+                        $EnteredHours.earnCode = $EarnCodes[$i][1]
+                        break
+                    }
+                }
+                
+                else {
+                    
+                }
+
+                for ($i = 4; $i -lt $dataSeperated.Count; $i++) {
+                    if ($day -notmatch 'Enter Hours') {
+                        $EnteredHours[$i]
+                    }
+                }
+                
+                $EnteredHours += [PSCustomObject] @{
+                    Earning = $EarnCode
+                    days    = $null
+    
+                }
+            }
+            #>
+            
             # Add DateTime data for each Checkbox day, used to simplfy TimeSheet URL creation
             for ($i = 0; $i -le [math]::Round(($PayRange.Tag.enddate - $PayRange.Tag.startdate).Totaldays, 1); $i++) {
                 foreach ($day in $WeekList.Items) {
