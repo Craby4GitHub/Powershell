@@ -58,7 +58,7 @@ function OSD-GUI {
 
     $ComputerName_Label = New-Object system.Windows.Forms.Label
     $ComputerName_Label.Text = 'Create Computer Name'
-    $ComputerName_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_Label.Font = 'Segoe UI, 10pt,style=bold'
     $ComputerName_Label.Dock = 'Bottom'
     $ComputerName_Label.Anchor = 'Bottom'
     $ComputerName_Label.AutoSize = $true
@@ -67,50 +67,49 @@ function OSD-GUI {
 
     $ComputerName_Campus_Label = New-Object system.Windows.Forms.Label
     $ComputerName_Campus_Label.Text = 'Campus'
-    $ComputerName_Campus_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_Campus_Label.Font = 'Segoe UI, 8pt'
     $ComputerName_Campus_Label.Dock = 'Bottom'
     $ComputerName_Campus_Label.Anchor = 'Bottom'
-    $ComputerName_Campus_Dropdown.AutoSize = $true
     $ComputerName_Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
     $ComputerName_Campus_Dropdown.DropDownStyle = 'DropDown'
     $ComputerName_Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $($_[0]) }))
     $ComputerName_Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
     $ComputerName_Campus_Dropdown.AutoCompleteSource = 'ListItems'
-    $ComputerName_Campus_Dropdown.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_Campus_Dropdown.Font = 'Segoe UI, 8pt'
     $ComputerName_Campus_Dropdown.TabIndex = 1
     $ComputerName_Campus_Dropdown.Dock = 'Top'
 
     $ComputerName_BuildingRoom_Label = New-Object system.Windows.Forms.Label
     $ComputerName_BuildingRoom_Label.Text = 'Bldg/Room'
-    $ComputerName_BuildingRoom_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_BuildingRoom_Label.Font = 'Segoe UI, 8pt'
     $ComputerName_BuildingRoom_Label.Dock = 'Bottom'
     $ComputerName_BuildingRoom_Label.Anchor = 'Bottom'
     $ComputerName_BuildingRoom_Label.AutoSize = $true
     $ComputerName_BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
-    $ComputerName_BuildingRoom_Textbox.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_BuildingRoom_Textbox.Font = 'Segoe UI, 8pt'
     $ComputerName_BuildingRoom_Textbox.Dock = 'Top'
     $ComputerName_BuildingRoom_Textbox.TabIndex = 2
 
     $ComputerName_PCCNumber_Label = New-Object system.Windows.Forms.Label
     $ComputerName_PCCNumber_Label.Text = 'PCC#'
-    $ComputerName_PCCNumber_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_PCCNumber_Label.Font = 'Segoe UI, 8pt'
     $ComputerName_PCCNumber_Label.Dock = 'Bottom'
     $ComputerName_PCCNumber_Label.Anchor = 'Bottom'
     $ComputerName_PCCNumber_Label.AutoSize = $true
     $ComputerName_PCCNumber_Textbox = New-Object System.Windows.Forms.TextBox
-    $ComputerName_PCCNumber_Textbox.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_PCCNumber_Textbox.Font = 'Segoe UI, 8pt'
     $ComputerName_PCCNumber_Textbox.TabIndex = 3
     $ComputerName_PCCNumber_Textbox.Dock = 'Top'
 
     $ComputerName_Suffix_Label = New-Object system.Windows.Forms.Label
     $ComputerName_Suffix_Label.Text = 'Suffix'
-    $ComputerName_Suffix_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_Suffix_Label.Font = 'Segoe UI, 8pt'
     $ComputerName_Suffix_Label.Dock = 'Bottom'
     $ComputerName_Suffix_Label.Anchor = 'Bottom'
     $ComputerName_Suffix_Label.AutoSize = $true
     $ComputerName_Suffix_Textbox = New-Object System.Windows.Forms.TextBox
     $ComputerName_Suffix_Textbox.TabIndex = 4
-    $ComputerName_Suffix_Textbox.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $ComputerName_Suffix_Textbox.Font = 'Segoe UI, 8pt'
     $ComputerName_Suffix_Textbox.Dock = 'Top'
 
 
@@ -127,14 +126,14 @@ function OSD-GUI {
 
     $DomainSelection_Label = New-Object system.Windows.Forms.Label
     $DomainSelection_Label.Text = 'Select a Domain'
-    $DomainSelection_Label.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $DomainSelection_Label.Font = 'Segoe UI, 10pt,style=bold'
     $DomainSelection_Label.Dock = 'Bottom'
     $DomainSelection_Label.Anchor = 'Bottom'
     $DomainSelection_Label.AutoSize = $true
 
     $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
     $EDU_RadioButton.Text = 'EDU'
-    $EDU_RadioButton.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $EDU_RadioButton.Font = 'Segoe UI, 8pt'
     $EDU_RadioButton.TabStop = $true
     $EDU_RadioButton.Dock = 'Fill'
     $EDU_RadioButton.AutoSize = $true
@@ -143,14 +142,14 @@ function OSD-GUI {
 
     $PCC_RadioButton = New-Object System.Windows.Forms.RadioButton
     $PCC_RadioButton.Text = 'PCC'
-    $PCC_RadioButton.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $PCC_RadioButton.Font = 'Segoe UI, 8pt'
     $PCC_RadioButton.TabStop = $true
     $PCC_RadioButton.Dock = 'Fill'
     $PCC_RadioButton.AutoSize = $true
 
     $Submit_Button = New-Object System.Windows.Forms.Button
     $Submit_Button.Text = 'Submit'
-    $Submit_Button.Font = New-Object System.Drawing.Font('Segoe UI', 8)
+    $Submit_Button.Font = 'Segoe UI, 8pt'
     $Submit_Button.TabIndex = 6
     $Submit_Button.Dock = 'Bottom'
     $Submit_Button.AutoSize = $true
@@ -266,19 +265,16 @@ function OSD-GUI {
             } 
         
             if (Confirm-NoError) {
-                # Temp Messagebox, for testing
-                #[void][System.Windows.Forms.MessageBox]::Show("Computer Name: $($ComputerName.ToUpper()) `nOU: $($OULocation)", "Test Submission")
+                # Output for testing
+                $ComputerName.ToUpper(), $OULocation, 'Passed' | Out-File '.\OSDTest.csv' -Append
+
+                #Enable when deployed
                 #$TSEnvironment = New-Object -COMObject Microsoft.SMS.TSEnvironment 
                 #$TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
                 #$TSEnvironment.Value("OSDDomainOUName") = "$($OULocation)"
-                #$TSEnvironment.Value("OSDDomainName") = "$($Domain)"
-                #$Form.Close()
-                $ComputerName.ToUpper(), $OULocation,'Passed' | Out-File '.\OSDTest.csv' -Append
+                #$TSEnvironment.Value("OSDDomainName") = "$($Domain)"               
                 [void]$Form.Close()
-            }else {
-                $ComputerName.ToUpper(),$OULocation,'Failed' | Out-File '.\OSDTest.csv' -Append
             }
-            #[void]$Form.Close()
         })
 
     #endregion
@@ -297,8 +293,9 @@ function OSD-GUI {
     $Submit_Button.PerformClick()
 }
 
-$CampusShortList = @('29','ER','EP','DV','DO','DC','EC','MS','NW','WC','PCC')
+$CampusShortList = @('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC', 'PCC')
+$RandomRooms = @('CG11', 'E513','AH321','emp','stu')
 
-for ($i = 0; $i -lt 10; $i++) {
-    OSD-GUI -Campus $(get-random -InputObject $CampusShortList) -Bldg 'E513' -PCC $(get-random -Maximum 999999) -Suffix $(-join((65..90) + (97..121) | Get-Random -Count 2 | % {[char]$_})) -Domain $(get-random -InputObject 'EDU','PCC')
+for ($i = 0; $i -lt 1; $i++) {
+    OSD-GUI -Campus $(get-random -InputObject $CampusShortList) -Bldg $(get-random -InputObject $RandomRooms) -PCC $(get-random -Maximum 999999) -Suffix $( -join ((65..90) + (97..121) | Get-Random -Count 2 | % { [char]$_ })) -Domain $(get-random -InputObject 'EDU', 'PCC')
 }
