@@ -1,8 +1,4 @@
-﻿import-module activedirectory
-$list = (Get-ADComputer -filter {Name -like "WC-C125142672SC"}).Name
-Write-Verbose  -Message "Trying to query $($list.count) computers found in AD"
-
-function Get-MappedDrives($ComputerName){
+﻿function Get-MappedDrives($ComputerName){
     #Ping remote machine, continue if available
     if(Test-Connection -ComputerName $ComputerName -Count 1 -Quiet){
       #Get remote explorer session to identify current user
@@ -26,9 +22,3 @@ function Get-MappedDrives($ComputerName){
       }else{"explorer.exe not running on $($ComputerName)"}
     }else{"Can't connect to $($ComputerName)"}
   }
-
-
-
-foreach ($computername in $list)  { 
-    Get-MappedDrives $computername
-}

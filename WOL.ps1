@@ -1,5 +1,5 @@
-. "$PSScriptRoot\Write-Log.ps1"
-. "$PSScriptRoot\Send-WOL.ps1"
+. "$PSScriptRoot\Callable\Write-Log.ps1"
+. "$PSScriptRoot\Callable\Send-WOL.ps1"
 
 $Computer = Read-Host "Enter computer name:"
 

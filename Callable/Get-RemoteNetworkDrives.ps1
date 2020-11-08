@@ -1,6 +1,4 @@
-﻿
-
-Function Get-RemoteNetworkDrives {
+﻿Function Get-RemoteNetworkDrives {
 
 	Param
 	(
@@ -691,15 +689,4 @@ Function Get-RemoteNetworkDrives {
 		}
 
 	}
-}
-
-
-
-import-module activedirectory
-$list = (Get-ADComputer -filter { Name -like "wc-c125*" }).Name
-foreach ($computername in $list) { 
-	if (Test-Connection -ComputerName $ComputerName -Count 1 -Quiet) {
-		Get-RemoteNetworkDrives $computername
-	}
-	else { "Can't connect to $($ComputerName)" }
 }
