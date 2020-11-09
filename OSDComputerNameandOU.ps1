@@ -24,7 +24,7 @@ function OSD-GUI {
     $Form.AutoScaleDimensions = '7,15'
     $Form.AutoScaleMode = 'Font'
     $Form.StartPosition = 'CenterScreen'
-    $Form.Width = $($screen[0].bounds.Width / 6)
+    $Form.Width = $($screen[0].bounds.Width / 5)
     $Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
     $Form.Text = 'Active Directory Information'
     $Form.ControlBox = $false
@@ -72,7 +72,7 @@ function OSD-GUI {
     $ComputerName_Campus_Label.Anchor = 'Bottom'
     $ComputerName_Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
     $ComputerName_Campus_Dropdown.DropDownStyle = 'DropDown'
-    $ComputerName_Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $($_[0]) }))
+    $ComputerName_Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
     $ComputerName_Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
     $ComputerName_Campus_Dropdown.AutoCompleteSource = 'ListItems'
     $ComputerName_Campus_Dropdown.Font = 'Segoe UI, 8pt'
@@ -294,7 +294,7 @@ function OSD-GUI {
 }
 
 $CampusShortList = @('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC', 'PCC')
-$RandomRooms = @('CG11', 'E513','AH321','emp','stu')
+$RandomRooms = @('CG11', 'E513', 'AH321', 'emp', 'stu')
 
 for ($i = 0; $i -lt 1; $i++) {
     OSD-GUI -Campus $(get-random -InputObject $CampusShortList) -Bldg $(get-random -InputObject $RandomRooms) -PCC $(get-random -Maximum 999999) -Suffix $( -join ((65..90) + (97..121) | Get-Random -Count 2 | % { [char]$_ })) -Domain $(get-random -InputObject 'EDU', 'PCC')
