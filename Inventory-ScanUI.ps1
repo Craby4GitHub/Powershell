@@ -3,26 +3,23 @@
 #Requires -Modules Selenium
 #Install-Module -Name Selenium -RequiredVersion 3.0.0
 
-$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-
 #region UI
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
+$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 #https://colorhunt.co/palette/10792
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-#$Form.ClientSize = "350,150"
 $Form.text = "ITAM - Inventory Automation"
 $Form.Font = 'Segoe UI, 8pt'
 $Form.TopMost = $true
 $Form.BackColor = '#303841'
 $Form.ForeColor = '#eeeeee' 
 $Form.FormBorderStyle = 'None'
-$form.AutoSize = $true
-#$Form.Icon = New-Object System.Drawing.Icon ("$PSScriptRoot\favicon.ico")
+$Form.AutoSize = $true
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
@@ -76,6 +73,7 @@ $Search_Button.text = "Search"
 $Search_Button.Dock = 'Fill'
 $Search_Button.TabIndex = 4
 $Search_Button.BackColor = '#00adb5'
+$Search_Button.ForeColor = '#eeeeee' 
 $Search_Button.Font = 'Segoe UI, 10pt, style=Bold'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
@@ -103,12 +101,12 @@ $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 5
 $LayoutPanel.RowCount = 6
 #$LayoutPanel.CellBorderStyle = 1
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 4)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 8)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -136,22 +134,11 @@ $AssetUpdate_Popup.ClientSize = "250,100"
 $AssetUpdate_Popup.TopMost = $true
 $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
-
-$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
-$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
-$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
-$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
-
-$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
-$Assigneduser_TextBox_Popup.multiline = $false
-$Assigneduser_TextBox_Popup.BackColor = '#3a4750'
-$Assigneduser_TextBox_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBox_Popup.Dock = 'Top'
-$Assigneduser_TextBox_Popup.TabIndex = 1
+$AssetUpdate_Popup.AutoSize = $true
 
 $Status_DropdownLabel_Popup = New-Object system.Windows.Forms.Label
 $Status_DropdownLabel_Popup.text = "Status"
+$Status_DropdownLabel_Popup.Font = 'Segoe UI, 8pt'
 $Status_DropdownLabel_Popup.ForeColor = '#eeeeee' 
 $Status_DropdownLabel_Popup.AutoSize = $true
 $Status_DropdownLabel_Popup.Dock = 'Bottom'
@@ -162,27 +149,54 @@ $Status_Dropdown_Popup.BackColor = '#3a4750'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
-$Status_Dropdown_Popup.TabIndex = 2
+$Status_Dropdown_Popup.TabIndex = 1
+$Status_Dropdown_Popup.Dock = "Fill"
+$Status_Dropdown_Popup.FlatStyle = 0
+$Status_Dropdown_Popup.Anchor = 'Left,Right'
+$Status_Dropdown_Popup.Font = 'Segoe UI, 8pt'
+
+$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
+$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
+$Assigneduser_TextBoxLabel_Popup.Font = 'Segoe UI, 8pt'
+$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
+$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
+$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
+
+$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
+$Assigneduser_TextBox_Popup.multiline = $false
+$Assigneduser_TextBox_Popup.BackColor = '#3a4750'
+$Assigneduser_TextBox_Popup.ForeColor = '#eeeeee' 
+$Assigneduser_TextBox_Popup.Dock = 'Top'
+$Assigneduser_TextBox_Popup.TabIndex = 2
+$Assigneduser_TextBox_Popup.BorderStyle = 1
+$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.text = "OK"
 $OK_Button_Popup.BackColor = '#00adb5'
 $OK_Button_Popup.ForeColor = '#eeeeee' 
 $OK_Button_Popup.Dock = 'Bottom'
-$OK_Button_Popup.TabIndex = 4
+$OK_Button_Popup.TabIndex = 3
+$OK_Button_Popup.Font = 'Segoe UI, 10pt, style=Bold'
+$OK_Button_Popup.FlatStyle = 1
+$OK_Button_Popup.FlatAppearance.BorderSize = 0
+$AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
 
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
 $Cancel_Button_Popup.text = "Cancel"
+$Cancel_Button_Popup.Font = 'Segoe UI, 8pt, style=Bold'
 $Cancel_Button_Popup.BackColor = '#3a4750'
 $Cancel_Button_Popup.ForeColor = '#eeeeee' 
 $Cancel_Button_Popup.Dock = 'Bottom'
 $Cancel_Button_Popup.TabIndex = 4
+$Cancel_Button_Popup.FlatStyle = 1
+$Cancel_Button_Popup.FlatAppearance.BorderSize = 0
 
 $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
 $LayoutPanel_Popup.ColumnCount = 2
 $LayoutPanel_Popup.RowCount = 3
-#$LayoutPanel_Popup.CellBorderStyle = 1
+$LayoutPanel_Popup.CellBorderStyle = 1
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
@@ -207,7 +221,7 @@ $OK_Button_Popup.Add_MouseUp( {
     })
 
 
-    $Close_Button.Add_MouseUp( {
+$Close_Button.Add_MouseUp( {
         $Form.Close()
     })
 #region Window Drag
