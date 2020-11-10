@@ -3,24 +3,23 @@
 #Requires -Modules Selenium
 #Install-Module -Name Selenium -RequiredVersion 3.0.0
 
-$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-
 #region UI
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
+$Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 #https://colorhunt.co/palette/10792
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.ClientSize = "350,150"
 $Form.text = "ITAM - Inventory Automation"
 $Form.Font = 'Segoe UI, 8pt'
 $Form.TopMost = $true
 $Form.BackColor = '#303841'
 $Form.ForeColor = '#eeeeee' 
-#$Form.Icon = New-Object System.Drawing.Icon ("$PSScriptRoot\favicon.ico")
+$Form.FormBorderStyle = 'None'
+$Form.AutoSize = $true
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
@@ -32,7 +31,10 @@ $Campus_Dropdown.ForeColor = '#eeeeee'
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.TabIndex = 1
-$Campus_Dropdown.Dock = "Bottom"
+$Campus_Dropdown.Dock = "Fill"
+$Campus_Dropdown.FlatStyle = 0
+$Campus_Dropdown.Anchor = 'Left,Right'
+
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
@@ -44,14 +46,17 @@ $Room_Dropdown.ForeColor = '#eeeeee'
 $Room_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Room_Dropdown.AutoCompleteSource = 'ListItems'
 $Room_Dropdown.TabIndex = 2
-$Room_Dropdown.Dock = "Bottom"
+$Room_Dropdown.Dock = "Fill"
 $Room_Dropdown.Enabled = $false
+$Room_Dropdown.FlatStyle = 0
+$Room_Dropdown.Anchor = 'Left,Right'
 
 $PCC_Label = New-Object system.Windows.Forms.Label
 $PCC_Label.text = "PCC Number:"
 $PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $PCC_Label.AutoSize = $true
 $PCC_Label.Dock = 'Bottom'
+$PCC_Label.Anchor = 'Bottom'
 
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
@@ -60,19 +65,35 @@ $PCC_TextBox.BackColor = '#3a4750'
 $PCC_TextBox.ForeColor = '#eeeeee' 
 $PCC_TextBox.Dock = 'Fill'
 $PCC_TextBox.TabIndex = 3
+$PCC_TextBox.BorderStyle = 1
+$PCC_TextBox.Anchor = 'Left,Right'
 
 $Search_Button = New-Object system.Windows.Forms.Button
 $Search_Button.text = "Search"
 $Search_Button.Dock = 'Fill'
 $Search_Button.TabIndex = 4
 $Search_Button.BackColor = '#00adb5'
+$Search_Button.ForeColor = '#eeeeee' 
 $Search_Button.Font = 'Segoe UI, 10pt, style=Bold'
+$Search_Button.FlatStyle = 1
+$Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
+
+$Close_Button = New-Object system.Windows.Forms.Button
+$Close_Button.text = "X"
+$Close_Button.Dock = 'Fill'
+$Close_Button.BackColor = '#303841'
+$Close_Button.Font = 'Segoe UI, 8pt, style=Bold'
+$Close_Button.FlatStyle = 0
+$Close_Button.FlatAppearance.BorderSize = 1
+$Close_Button.FlatAppearance.BorderColor = '#3a4750'
 
 $StatusBar = New-Object System.Windows.Forms.StatusBar
 $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
 $StatusBar.Dock = 'Bottom'
+$StatusBar.BackColor = '#3a4750'
+#$StatusBar.ForeColor = '#eeeeee'
 
 #Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
@@ -80,24 +101,25 @@ $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 5
 $LayoutPanel.RowCount = 6
 #$LayoutPanel.CellBorderStyle = 1
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
 
+$LayoutPanel.Controls.Add($Close_Button, 4, 0)
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 1)
 $LayoutPanel.Controls.Add($Room_Dropdown, 3, 1)
 $LayoutPanel.Controls.Add($PCC_Label, 1, 3)
 $LayoutPanel.Controls.Add($PCC_TextBox, 1, 4)
 $LayoutPanel.Controls.Add($Search_Button, 3, 3)
-$LayoutPanel.SetRowSpan($Search_Button, 3)
+$LayoutPanel.SetRowSpan($Search_Button, 2)
 
 $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
 #EndRegion 
@@ -112,22 +134,11 @@ $AssetUpdate_Popup.ClientSize = "250,100"
 $AssetUpdate_Popup.TopMost = $true
 $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
-
-$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
-$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
-$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
-$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
-
-$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
-$Assigneduser_TextBox_Popup.multiline = $false
-$Assigneduser_TextBox_Popup.BackColor = '#3a4750'
-$Assigneduser_TextBox_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBox_Popup.Dock = 'Top'
-$Assigneduser_TextBox_Popup.TabIndex = 1
+$AssetUpdate_Popup.AutoSize = $true
 
 $Status_DropdownLabel_Popup = New-Object system.Windows.Forms.Label
 $Status_DropdownLabel_Popup.text = "Status"
+$Status_DropdownLabel_Popup.Font = 'Segoe UI, 8pt'
 $Status_DropdownLabel_Popup.ForeColor = '#eeeeee' 
 $Status_DropdownLabel_Popup.AutoSize = $true
 $Status_DropdownLabel_Popup.Dock = 'Bottom'
@@ -138,27 +149,54 @@ $Status_Dropdown_Popup.BackColor = '#3a4750'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
-$Status_Dropdown_Popup.TabIndex = 2
+$Status_Dropdown_Popup.TabIndex = 1
+$Status_Dropdown_Popup.Dock = "Fill"
+$Status_Dropdown_Popup.FlatStyle = 0
+$Status_Dropdown_Popup.Anchor = 'Left,Right'
+$Status_Dropdown_Popup.Font = 'Segoe UI, 8pt'
+
+$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
+$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
+$Assigneduser_TextBoxLabel_Popup.Font = 'Segoe UI, 8pt'
+$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
+$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
+$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
+
+$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
+$Assigneduser_TextBox_Popup.multiline = $false
+$Assigneduser_TextBox_Popup.BackColor = '#3a4750'
+$Assigneduser_TextBox_Popup.ForeColor = '#eeeeee' 
+$Assigneduser_TextBox_Popup.Dock = 'Top'
+$Assigneduser_TextBox_Popup.TabIndex = 2
+$Assigneduser_TextBox_Popup.BorderStyle = 1
+$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.text = "OK"
 $OK_Button_Popup.BackColor = '#00adb5'
 $OK_Button_Popup.ForeColor = '#eeeeee' 
 $OK_Button_Popup.Dock = 'Bottom'
-$OK_Button_Popup.TabIndex = 4
+$OK_Button_Popup.TabIndex = 3
+$OK_Button_Popup.Font = 'Segoe UI, 10pt, style=Bold'
+$OK_Button_Popup.FlatStyle = 1
+$OK_Button_Popup.FlatAppearance.BorderSize = 0
+$AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
 
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
 $Cancel_Button_Popup.text = "Cancel"
+$Cancel_Button_Popup.Font = 'Segoe UI, 8pt, style=Bold'
 $Cancel_Button_Popup.BackColor = '#3a4750'
 $Cancel_Button_Popup.ForeColor = '#eeeeee' 
 $Cancel_Button_Popup.Dock = 'Bottom'
 $Cancel_Button_Popup.TabIndex = 4
+$Cancel_Button_Popup.FlatStyle = 1
+$Cancel_Button_Popup.FlatAppearance.BorderSize = 0
 
 $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
 $LayoutPanel_Popup.ColumnCount = 2
 $LayoutPanel_Popup.RowCount = 3
-#$LayoutPanel_Popup.CellBorderStyle = 1
+$LayoutPanel_Popup.CellBorderStyle = 1
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
@@ -173,9 +211,6 @@ $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
 
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
-#endregion
-
-#endregion
 
 #region Functions
 
@@ -204,10 +239,15 @@ function Login_ITAM {
 
         $usernameElement.Clear()
         $passwordElement.Clear()
-    
-        Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
-        Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
-        Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
+
+        try {
+            Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
+            Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
+            Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
+        }
+        catch {
+            Write-Log -Message "Could not enter credentials into website." -Level WARN
+        }
     
         try {
             $LoginCheck = Get-SeElement -Driver $Driver -ClassName 'userBlock'
@@ -314,7 +354,7 @@ function Update-Asset {
         $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
     }
     catch {
-        Write-Log -Message 'Could not find Asset Status element' -LogError $_.Exception.Message -Level ERROR
+        Write-Log -Message 'Could not find Asset Status element' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup
     }
 
     try {
@@ -323,7 +363,7 @@ function Update-Asset {
         $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
     }
     catch {
-        Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR
+        Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR -Control $Assigneduser_TextBox_Popup
     }
 
     $OK_Button_Popup.Add_MouseUp( {
@@ -446,11 +486,12 @@ function Confirm-Asset {
                     Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
                 }
                 catch {
-                    Write-Log -Message 'Could not find or click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+                    Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
                 }
 
                 $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
                 Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
             }
             else {
                 Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
@@ -460,15 +501,25 @@ function Confirm-Asset {
     }
     else {
         do {
-            $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381" 
-            $PageDropdownOptions = Get-SeSelectionOption -Element $PageDropdown -ListOptionText 
+
+            try {
+                $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381" 
+                $PageDropdownOptions = Get-SeSelectionOption -Element $PageDropdown -ListOptionText 
+            }
+            catch {
+                Write-Log -Message 'Could not get asset page dropdown' -LogError $_.Exception.Message -Level ERROR
+            }
+
             for ($page = 0; $page -lt $PageDropdownOptions.Count; $page++) {
 
-                #Re-load PageDropdown each time due to it geting stale when going to next page
-                $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"
-                Get-SeSelectionOption -Element $PageDropdown -ByIndex $page
+                try {
+                    $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"
+                    Get-SeSelectionOption -Element $PageDropdown -ByIndex $page
+                }
+                catch {
+                    Write-Log -Message 'Could not get asset page dropdown and select next page' -LogError $_.Exception.Message -Level ERROR
+                }
 
-            
                 $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room -Page $page
                 if ($AssestIndex) {
                     try {
@@ -477,11 +528,12 @@ function Confirm-Asset {
                         Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
                     }
                     catch {
-                        Write-Log -Message 'Could not find or click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+                        Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
                     }
     
                     $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
                     Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
 
                     break
                 }
@@ -494,14 +546,14 @@ function Confirm-Asset {
         } until (($null -ne $AssestIndex) -or $Global:Cancelled)
     }
 }
-function Confirm-UIInput($UIInput, $ErrorMSG) {
+function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
     switch -regex ($UIInput.ToString()) {
         'System.Windows.Forms.TextBox' {  
-            if ($UIInput.Text -match '^\d{6}$') {
+            if ($UIInput.Text -match $RegEx) {
                 $ErrorProvider.SetError($UIInput, '')
             }
             else {
-                Write-Log -Message $ErrorMSG
+                Write-Log -Message $ErrorMSG -Control $UIInput
                 $ErrorProvider.SetError($UIInput, $ErrorMSG)
                 return $false
             }
@@ -512,7 +564,7 @@ function Confirm-UIInput($UIInput, $ErrorMSG) {
                 return $true
             }
             else {
-                Write-Log -Message 'Invalid Selection'
+                Write-Log -Message 'Invalid Dropdown Selection' -Control $UIInput
                 $ErrorProvider.SetError($UIInput, $ErrorMSG)
                 return $false
             }
@@ -548,34 +600,52 @@ Function Write-Log {
 
         [Parameter(Mandatory = $false)]
         [string]
-        $LogError
+        $LogError,
+
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Control
     )
 
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $Line = "$Stamp,$Level,$($Credentials.UserName),$Message,$LogError"
+    $Line = "$Stamp,$Level,$($Credentials.UserName),$Control,$Message,$LogError"
 
-    Add-Content $PSScriptRoot\log.csv -Value $Line
+    Add-Content $PSScriptRoot\ITAMScan_Errorlog.csv -Value $Line
 }
 #endregion
 
 #region UI Actions
 
+$Close_Button.Add_MouseUp( {
+        $Form.Close()
+    })
+
 $Search_Button.Add_MouseDown( {
         Confirm-UIInput -UIInput $Campus_Dropdown -ErrorMSG 'Invalid Campus'
         Confirm-UIInput -UIInput $Room_Dropdown -ErrorMSG 'Invalid Room'
-        Confirm-UIInput -UIInput $PCC_TextBox -ErrorMSG 'Invalid PCC Number'
+        Confirm-UIInput -UIInput $PCC_TextBox -RegEx '^\d{6}$' -ErrorMSG 'Invalid PCC Number'
     })
 
 
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
 
-            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-            $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
+            try {
+                $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+                $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
+            }
+            catch {
+                Write-Log -Message 'Could not load room dropdown' -LogError $_.Exception.Message -Level ERROR
+            }
             
             foreach ($room in $RoomDropDownOptions_Element) {
                 if ($room -eq $Room_Dropdown.Text) {
-                    Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.Text
+                    try {
+                        Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.Text
+                    }
+                    catch {
+                        Write-Log -Message 'Could not slect room from dropdown' -LogError $_.Exception.Message -Level ERROR
+                    }
                     break
                 }
             }
@@ -597,17 +667,46 @@ $Search_Button.Add_MouseUp( {
 
 $Campus_Dropdown_SelectedIndexChanged = {
     $Room_Dropdown.Enabled = $false
-    $ErrorProvider
-    $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
-    Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
-    $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+    try {
+        $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
+        Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
+        $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+        $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
+    }
+    catch {
+        Write-Log -Message 'Could not load campus/room for UI dropdowns' -LogError $_.Exception.Message -Level ERROR
+    }
+
     $Room_Dropdown.Text = 'Select Room'
     $Room_Dropdown.Items.Clear()
-    $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
     $Room_Dropdown.Items.AddRange($RoomDropDownOptions_Element)
     $Room_Dropdown.Enabled = $true
 }
 $Campus_Dropdown.add_SelectedIndexChanged($Campus_Dropdown_SelectedIndexChanged)
+
+#region Window Drag
+$global:dragging = $false
+$global:mouseDragX = 0
+$global:mouseDragY = 0
+
+$LayoutPanel.Add_MouseDown( { 
+        $global:dragging = $true
+        $global:mouseDragX = [System.Windows.Forms.Cursor]::Position.X - $Form.Left
+        $global:mouseDragY = [System.Windows.Forms.Cursor]::Position.Y - $Form.Top
+    })
+
+$LayoutPanel.Add_MouseMove( { if ($global:dragging) {
+            $screen = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
+            $currentX = [System.Windows.Forms.Cursor]::Position.X
+            $currentY = [System.Windows.Forms.Cursor]::Position.Y
+            [int]$newX = [Math]::Min($currentX - $global:mouseDragX, $screen.Right - $Form.Width)
+            [int]$newY = [Math]::Min($currentY - $global:mouseDragY, $screen.Bottom - $Form.Height)
+            $form.Location = New-Object System.Drawing.Point($newX, $newY)
+        } })
+
+$LayoutPanel.Add_MouseUp( { $global:dragging = $false })
+#endregion
+
 #endregion
 
 #region Main
@@ -623,12 +722,20 @@ Login_ITAM -FirstLogin $true
 
 $Global:loginInstance = (Get-SeElement -Driver $Driver -Id 'pInstance').getattribute('value')
 $Global:Cancelled = $false
-$LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
-$LocationDropDownOptions_Element = Get-SeSelectionOption -Element $LocationDropDown_Element -ListOptionText
+
+try {
+    $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
+    $LocationDropDownOptions_Element = Get-SeSelectionOption -Element $LocationDropDown_Element -ListOptionText
+}
+catch {
+    Write-Log -Message 'Could not load campus forUI on first attempt' -LogError $_.Exception.Message -Level ERROR
+}
 $Campus_Dropdown.Items.AddRange($LocationDropDownOptions_Element)
 
 [void]$Form.ShowDialog()
+
 Write-Log -Message "Ending session for $($Credentials.UserName)"
+
 $Driver.close()
 $Driver.quit()
 
