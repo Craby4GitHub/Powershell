@@ -77,7 +77,6 @@ $Search_Button.ForeColor = '#eeeeee'
 $Search_Button.Font = 'Segoe UI, 10pt, style=Bold'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
-$Form.AcceptButton = $Search_Button
 
 $Close_Button = New-Object system.Windows.Forms.Button
 $Close_Button.text = "X"
@@ -93,7 +92,6 @@ $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
 $StatusBar.Dock = 'Bottom'
 $StatusBar.BackColor = '#3a4750'
-#$StatusBar.ForeColor = '#eeeeee'
 
 #Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
@@ -211,6 +209,8 @@ $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
 
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
+#EndRegion
+#EndRegion 
 
 #region Functions
 
@@ -241,15 +241,17 @@ function Login_ITAM {
         $passwordElement.Clear()
 
         try {
+            Write-Log -Message "Entering Username and Password into elements"
             Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
             Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
             Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
         }
         catch {
-            Write-Log -Message "Could not enter credentials into website." -Level WARN
+            Write-Log -Message "Could not enter credentials into website" -Level WARN
         }
     
         try {
+            Write-Log -Message "Verifying login"
             $LoginCheck = Get-SeElement -Driver $Driver -ClassName 'userBlock'
         }
         catch { 
@@ -258,7 +260,7 @@ function Login_ITAM {
         if ($null -eq $LoginCheck) {
             Start-Sleep -Seconds 5
         }
-    } until (!$LoginTimeOut.Enabled)
+    } until ($LoginCheck.Enabled)
     
 }
 Function Find-Asset {
@@ -343,6 +345,7 @@ function Update-Asset {
     }
     catch {
         Write-Log -Message 'Could not find or click edit option for asset' -LogError $_.Exception.Message -Level ERROR
+        Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room,'Not in ITAM'"
     }
 
     try {
@@ -354,7 +357,7 @@ function Update-Asset {
         $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
     }
     catch {
-        Write-Log -Message 'Could not find Asset Status element' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup
+        Write-Log -Message 'Could not find Asset Status element' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
     }
 
     try {
@@ -363,7 +366,7 @@ function Update-Asset {
         $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
     }
     catch {
-        Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR -Control $Assigneduser_TextBox_Popup
+        Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR -Control $Assigneduser_TextBox_Popup.Text
     }
 
     $OK_Button_Popup.Add_MouseUp( {
@@ -434,7 +437,7 @@ function Update-Asset {
             catch {
                 Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
             }
-
+            $StatusBar.Text = 'Ready'
             $AssetUpdate_Popup.Close()
         })
 
@@ -462,11 +465,10 @@ function Update-Asset {
             }
 
             $Global:Cancelled = $true
-
             $AssetUpdate_Popup.Close()
+            $StatusBar.Text = 'Ready'
         })
     [void]$AssetUpdate_Popup.ShowDialog()
-    
 }
 function Confirm-Asset {
     param (
@@ -476,10 +478,60 @@ function Confirm-Asset {
     )
 
     #Lookinng for multiple pages 
-    if (((get-seelement -driver $driver -classname uReportPagination).text -split '\n')[1] -ne 'Select Pagination') {
+    if (((get-seelement -driver $driver -classname uReportPagination).text -split '\n')[1] -match 'Select Pagination') {
+        do {
+            try {
+                Write-Log -Message "Getting Page Dropdown element options"
+                $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381" 
+                $PageDropdownOptions = Get-SeSelectionOption -Element $PageDropdown -ListOptionText 
+            }
+            catch {
+                Write-Log -Message 'Could not get asset page dropdown' -LogError $_.Exception.Message -Level ERROR
+            }
+            $StatusBar.Text = "Searching for $PCCNumber in $Room"
+            for ($page = 0; $page -lt $PageDropdownOptions.Count; $page++) {
+
+                try {
+                    Write-Log -Message "Getting Page Dropdown element and selecting a page"
+                    $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"
+                    Get-SeSelectionOption -Element $PageDropdown -ByIndex $page
+                }
+                catch {
+                    Write-Log -Message 'Could not get asset page dropdown and select next page' -LogError $_.Exception.Message -Level ERROR
+                }
+
+                $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room -Page $page
+                if ($AssestIndex) {
+                    $StatusBar.Text = "$PCCNumber Found!"
+                    try {
+                        Write-Log -Message 'Clicking Verify and Submit button'
+                        Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
+                        Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+                    }
+                    catch {
+                        Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+                    }
+    
+                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
+
+                    break
+                }
+                if ($page -eq $PageDropdownOptions.Count - 1) {
+                    $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
+                    Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
+                    Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
+                }
+
+            }
+        } until (($null -ne $AssestIndex) -or $Global:Cancelled)
+    }
+    else {
         do {
             $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room
             if ($AssestIndex) {
+                $StatusBar.Text = "$PCCNumber Found!"
                 try {
                     Write-Log -Message 'Clicking Verify and Submit button'
                     Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
@@ -494,56 +546,11 @@ function Confirm-Asset {
                 Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
             }
             else {
+                $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
                 Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
                 Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
             }
         } until (($null -ne $AssestIndex) -or $Global:Cancelled) 
-    }
-    else {
-        do {
-
-            try {
-                $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381" 
-                $PageDropdownOptions = Get-SeSelectionOption -Element $PageDropdown -ListOptionText 
-            }
-            catch {
-                Write-Log -Message 'Could not get asset page dropdown' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            for ($page = 0; $page -lt $PageDropdownOptions.Count; $page++) {
-
-                try {
-                    $PageDropdown = Get-SeElement -Driver $Driver -Id "X01_3257120268858381"
-                    Get-SeSelectionOption -Element $PageDropdown -ByIndex $page
-                }
-                catch {
-                    Write-Log -Message 'Could not get asset page dropdown and select next page' -LogError $_.Exception.Message -Level ERROR
-                }
-
-                $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room -Page $page
-                if ($AssestIndex) {
-                    try {
-                        Write-Log -Message 'Clicking Verify and Submit button'
-                        Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
-                        Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-                    }
-                    catch {
-                        Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
-                    }
-    
-                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
-
-                    break
-                }
-                if ($page -eq $PageDropdownOptions.Count - 1) {
-                    Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
-                    Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
-                }
-            
-            }
-        } until (($null -ne $AssestIndex) -or $Global:Cancelled)
     }
 }
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
@@ -553,7 +560,7 @@ function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
                 $ErrorProvider.SetError($UIInput, '')
             }
             else {
-                Write-Log -Message $ErrorMSG -Control $UIInput
+                Write-Log -Message $ErrorMSG -Control $UIInput.Text
                 $ErrorProvider.SetError($UIInput, $ErrorMSG)
                 return $false
             }
@@ -564,7 +571,7 @@ function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
                 return $true
             }
             else {
-                Write-Log -Message 'Invalid Dropdown Selection' -Control $UIInput
+                Write-Log -Message 'Invalid Dropdown Selection' -Control $UIInput.Text
                 $ErrorProvider.SetError($UIInput, $ErrorMSG)
                 return $false
             }
@@ -626,11 +633,12 @@ $Search_Button.Add_MouseDown( {
         Confirm-UIInput -UIInput $PCC_TextBox -RegEx '^\d{6}$' -ErrorMSG 'Invalid PCC Number'
     })
 
-
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
+            $StatusBar.Text = 'Starting Search...'
 
             try {
+                Write-Log -Message "Getting Room Dropdown element options"
                 $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
                 $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
             }
@@ -641,10 +649,11 @@ $Search_Button.Add_MouseUp( {
             foreach ($room in $RoomDropDownOptions_Element) {
                 if ($room -eq $Room_Dropdown.Text) {
                     try {
+                        Write-Log -Message "Selecting room from dropdown"
                         Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.Text
                     }
                     catch {
-                        Write-Log -Message 'Could not slect room from dropdown' -LogError $_.Exception.Message -Level ERROR
+                        Write-Log -Message "Could not select room: $($Room_Dropdown.Text) from dropdown" -LogError $_.Exception.Message -Level ERROR
                     }
                     break
                 }
@@ -714,21 +723,23 @@ $LayoutPanel.Add_MouseUp( { $global:dragging = $false })
 $ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
 $Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
 
-$Driver = Start-SeFirefox -PrivateBrowsing
+$Driver = Start-SeFirefox -PrivateBrowsing -Headless
 
 Open-SeUrl -Driver $Driver -Url $Inventory_URL
 
+$global:Credentials = $null
 Login_ITAM -FirstLogin $true
 
 $Global:loginInstance = (Get-SeElement -Driver $Driver -Id 'pInstance').getattribute('value')
 $Global:Cancelled = $false
 
 try {
+    Write-Log -Message 'Loading campus options for UI on first attempt'
     $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
     $LocationDropDownOptions_Element = Get-SeSelectionOption -Element $LocationDropDown_Element -ListOptionText
 }
 catch {
-    Write-Log -Message 'Could not load campus forUI on first attempt' -LogError $_.Exception.Message -Level ERROR
+    Write-Log -Message 'Could not load campus for UI on first attempt' -LogError $_.Exception.Message -Level ERROR
 }
 $Campus_Dropdown.Items.AddRange($LocationDropDownOptions_Element)
 
