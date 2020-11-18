@@ -4,7 +4,7 @@
 #>
 
 # https://stackoverflow.com/a/40621143/20267
-# hide the powerhsell console
+#region hide the powerhsell console
 
 Add-Type -Name Window -Namespace Console -MemberDefinition '
     [DllImport("Kernel32.dll")]
@@ -15,6 +15,7 @@ Add-Type -Name Window -Namespace Console -MemberDefinition '
     '
 $consolePtr = [Console.Window]::GetConsoleWindow()
 [Console.Window]::ShowWindow($consolePtr, 0) # hide
+#endregion
 
 #region GUI
 Add-Type -AssemblyName System.Windows.Forms
@@ -27,63 +28,66 @@ $Form.ClientSize = "400,400"
 $Form.text = "Equipment Repair Form"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
-$Form.Font = 'Microsoft Sans Serif,10'
+$Form.Font = 'Segoe UI, 8pt'
+
+$Main_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+$Main_LayoutPanel.Dock = "Fill"
+$Main_LayoutPanel.ColumnCount = 3
+$Main_LayoutPanel.RowCount = 4
+#$Main_LayoutPanel.CellBorderStyle = 1
+[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+
+$Equipment_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+$Equipment_LayoutPanel.Dock = "Fill"
+$Equipment_LayoutPanel.ColumnCount = 3
+$Equipment_LayoutPanel.RowCount = 1
+#$Equipment_LayoutPanel.CellBorderStyle = 1
+[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$Equipment_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
 
 $ID_Num_Text = New-Object system.Windows.Forms.TextBox
 $ID_Num_Text.multiline = $false
-$ID_Num_Text.width = 100
-$ID_Num_Text.height = 20
-
+$ID_Num_Text.Dock = 'Fill'
 $ID_Num_Group = New-Object system.Windows.Forms.Groupbox
-$ID_Num_Group.height = 50
-$ID_Num_Group.width = 120
 $ID_Num_Group.text = "ID Number"
-$ID_Num_Group.location = New-Object System.Drawing.Point(10, 10)
-
-$ID_Num_Text.location = New-Object System.Drawing.Point(($($ID_Num_Group.Width - $ID_Num_Text.Width) / 2), ($($ID_Num_Group.Height - $ID_Num_Text.Height) / 1.5))
+$ID_Num_Group.Dock = 'Fill'
+$ID_Num_Group.controls.Add($ID_Num_Text)
 
 $Location_Dropdown = New-Object system.Windows.Forms.ComboBox
-$Location_Dropdown.width = 100
-$Location_Dropdown.height = 20
 $Location_Dropdown.DropDownStyle = "DropDown"
 $Location_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Location_Dropdown.AutoCompleteSource = 'ListItems'
 $Location_Dropdown.DropDownWidth = '100'
-
+$Location_Dropdown.Dock = 'Fill'
 $Location_Group = New-Object system.Windows.Forms.Groupbox
-$Location_Group.height = 50
-$Location_Group.width = $($Location_Dropdown.Width + 20)
 $Location_Group.text = "Location"
-$Location_Group.location = New-Object System.Drawing.Point($($ID_Num_Group.location.X + $Location_Group.Width + 5),10)
-
-$Location_Dropdown.location = New-Object System.Drawing.Point(($($Location_Group.Width - $Location_Dropdown.Width) / 2), ($($Location_Group.Height - $Location_Dropdown.Height) / 1.5))
+$Location_Group.Dock = 'Fill'
+$Location_Group.controls.Add($Location_Dropdown)
 
 $Equipment_Dropdown = New-Object system.Windows.Forms.ComboBox
-$Equipment_Dropdown.width = 100
-$Equipment_Dropdown.height = 20
 $Equipment_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Equipment_Dropdown.AutoCompleteSource = 'ListItems'
-
+$Equipment_Dropdown.Dock = 'Fill'
 $Equipment_Group = New-Object system.Windows.Forms.Groupbox
-$Equipment_Group.height = 50
-$Equipment_Group.width = 120
 $Equipment_Group.text = "Equipment"
-$Equipment_Group.location = New-Object System.Drawing.Point($($Location_Group.location.X + $Equipment_Group.Width + 5), 10)
-
-$Equipment_Dropdown.location = New-Object System.Drawing.Point(($($Equipment_Group.Width - $Equipment_Dropdown.Width) / 2), ($($Equipment_Group.Height - $Equipment_Dropdown.Height) / 1.5))
+$Equipment_Group.Dock = 'Fill'
+$Equipment_Group.controls.Add($Equipment_Dropdown)
 
 $Desc_Text = New-Object system.Windows.Forms.TextBox
 $Desc_Text.multiline = $true
-$Desc_Text.height = 70
-
+$Desc_Text.Dock = 'Fill'
 $Desc_Group = New-Object system.Windows.Forms.Groupbox
-$Desc_Group.height = 100
-$Desc_Group.width = $($Form.Width - 40)
 $Desc_Group.text = "Description of Issue"
-$Desc_Group.location = New-Object System.Drawing.Point(10, 76)
-
-$Desc_Text.width = $($Desc_Group.Width - 20)
-$Desc_Text.location = New-Object System.Drawing.Point(($($Desc_Group.Width - $Desc_Text.Width) / 2), ($($Desc_Group.Height - $Desc_Text.Height) / 1.5))
+$Desc_Group.Dock = 'Fill'
+$Desc_Group.Controls.Add($Desc_Text)
 
 $Issue_History = New-Object system.Windows.Forms.DataGridView
 $Issue_History.ScrollBars = "Vertical"
@@ -93,46 +97,52 @@ $Issue_History.RowHeadersVisible = $false
 $Issue_History.ColumnCount = 3
 $Issue_History.Columns[0].Name = 'Equipment'
 $Issue_History.Columns[1].Name = 'Issue'
-# Isnt formating...
-$Issue_History.Columns[2].DefaultCellStyle.Format = "m"
+$Issue_History.Columns[2].DefaultCellStyle.Format = "ddMMMyy hh:mm tt"
 $Issue_History.Columns[2].Name = 'Submitted'
 $Issue_History.TabStop = $false
-
+$Issue_History.Dock = 'Fill'
+$Issue_History.Anchor = 'Left,Right'
 $Issue_History_Group = New-Object system.Windows.Forms.Groupbox
-$Issue_History_Group.height = 150
-$Issue_History_Group.width = $($Form.Width - 40)
 $Issue_History_Group.text = "Current Issues"
-$Issue_History_Group.location = New-Object System.Drawing.Point(10, 180)
-
-$Issue_History.height = $($Issue_History_Group.Height - 20)
-$Issue_History.width = $($Issue_History_Group.Width - 20)
-$Issue_History.location = New-Object System.Drawing.Point(($($Issue_History_Group.Width - $Issue_History.Width) / 2), ($($Issue_History_Group.Height - $Issue_History.Height) / 1.1))
+$Issue_History_Group.Dock = 'Fill'
+$Issue_History_Group.Controls.Add($Issue_History)
 
 $Submit_Button = New-Object system.Windows.Forms.Button
 $Submit_Button.text = "Submit"
-$Submit_Button.width = 60
-$Submit_Button.height = 30
-$Submit_Button.location = New-Object System.Drawing.Point(30, 350)
+$Submit_Button.Dock = 'Fill'
+$Submit_Button.Anchor = 'Left,Right'
 
 $Sumbit_Status = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize = $true
-$Sumbit_Status.width = 150
-$Sumbit_Status.height = 10
-$Sumbit_Status.location = New-Object System.Drawing.Point($($Submit_Button.Location.X + $Submit_Button.width + 20 ),$($Submit_Button.location.Y))
 $Form.AcceptButton = $Submit_Button
 
-$Clear_Button = New-Object system.Windows.Forms.Button
-$Clear_Button.text = "Clear"
-$Clear_Button.width = 60
-$Clear_Button.height = 30
-$Clear_Button.location = New-Object System.Drawing.Point($($Sumbit_Status.location.X + $Sumbit_Status.width), 350)
+$StatusBar = New-Object System.Windows.Forms.StatusBar
+$StatusBar.Text = "Ready"
+$StatusBar.SizingGrip = $false
+$StatusBar.Dock = 'Bottom'
 
-$Form.controls.AddRange(@($ID_Num_Group, $Location_Group, $Equipment_Group, $Desc_Group, $Issue_History_Group, $Submit_Button, $Sumbit_Status, $Clear_Button))
-$ID_Num_Group.controls.Add($ID_Num_Text)
-$Location_Group.controls.Add($Location_Dropdown)
-$Equipment_Group.controls.Add($Equipment_Dropdown)
-$Desc_Group.Controls.Add($Desc_Text)
-$Issue_History_Group.Controls.Add($Issue_History)
+$Form.controls.AddRange(@($Main_LayoutPanel, $Equipment_LayoutPanel,$StatusBar))
+#endregion
+
+#region Main Layout
+$Main_LayoutPanel.Controls.Add($Equipment_LayoutPanel, 0, 0)
+$Main_LayoutPanel.SetColumnSpan($Equipment_LayoutPanel, 3)
+
+$Main_LayoutPanel.Controls.Add($Desc_Group, 0, 1)
+$Main_LayoutPanel.SetColumnSpan($Desc_Group, 3)
+
+$Main_LayoutPanel.Controls.Add($Issue_History_Group, 0, 2)
+$Main_LayoutPanel.SetColumnSpan($Issue_History_Group, 3)
+
+$Main_LayoutPanel.Controls.Add($Submit_Button, 1, 3)
+#endregion
+
+#region Equipment Layout
+$Equipment_LayoutPanel.Controls.Add($ID_Num_Group, 0, 0)
+
+$Equipment_LayoutPanel.Controls.Add($Location_Group, 1, 0)
+
+$Equipment_LayoutPanel.Controls.Add($Equipment_Group, 2, 0)
 #endregion
 
 #region Functions
@@ -154,7 +164,7 @@ function Update-CurrentIssues {
         if (($Location_Dropdown.Text -eq $issue.Location) -and ($issue.status -eq '')) {
             [void]$Issue_History.Rows.Add($($issue.'Equipment'), 
                 $($issue.'Issue Description'),
-                $($issue.TimeStamp))
+                $([datetime]$issue.'TimeStamp'))
         }  
     }
     # Sort the issues by most recent
@@ -162,14 +172,14 @@ function Update-CurrentIssues {
 }
 
 function Update-CurrentEquipment {
-        $Equipment_Dropdown.Items.Clear()
-        $i = 0
-        foreach ($equipment in $dentalArea.$($Location_Dropdown.SelectedItem)) {
-            if ($equipment -eq 'x') {
-                [void]$Equipment_Dropdown.Items.Add($dentalArea[$i].'Equipment')
-            }
-            $i++
+    $Equipment_Dropdown.Items.Clear()
+    $i = 0
+    foreach ($equipment in $dentalArea.$($Location_Dropdown.SelectedItem)) {
+        if ($equipment -eq 'x') {
+            [void]$Equipment_Dropdown.Items.Add($dentalArea[$i].'Equipment')
         }
+        $i++
+    }
 }
 
 function Find-Group() {
@@ -275,14 +285,12 @@ $Submission = [pscustomobject]@{
     'Location'          = ''
     'Equipment'         = ''
     'Issue Description' = ''
-    TimeStamp           = ''
+    'TimeStamp'         = ''
     'Status'            = ''
     'Res Date'          = ''
     'Resolution'        = ''
     'Who'               = ''
     'Note'              = ''
-    
-
 }
 
 function Update-Submission {
@@ -290,7 +298,7 @@ function Update-Submission {
     $Submission.'Location' = $Location_Dropdown.Text
     $Submission.'Equipment' = $Equipment_Dropdown.Text
     $Submission.'ID' = $ID_Num_Text.Text
-    $Submission.TimeStamp = Get-Date
+    $Submission.'TimeStamp' = Get-Date
     return $Submission
 }
 
@@ -306,7 +314,7 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
     }     
 }
 
-function Check-DuplicateIssue{
+function Check-DuplicateIssue {
     foreach ($row in $Issue_History.Rows) {
         if ($Equipment_Dropdown.Text -eq 'Other') {
             break
@@ -323,18 +331,18 @@ function Check-DuplicateIssue{
 Function Write-Log {
     [CmdletBinding()]
     Param(
-    [Parameter(Mandatory=$False)]
-    [ValidateSet("INFO","WARN","ERROR","FATAL","DEBUG")]
-    [String]
-    $Level = "INFO",
+        [Parameter(Mandatory = $False)]
+        [ValidateSet("INFO", "WARN", "ERROR", "FATAL", "DEBUG")]
+        [String]
+        $Level = "INFO",
 
-    [Parameter(Mandatory=$True)]
-    [string]
-    $Message,
+        [Parameter(Mandatory = $True)]
+        [string]
+        $Message,
 
-    [Parameter(Mandatory=$false)]
-    [string]
-    $Element
+        [Parameter(Mandatory = $false)]
+        [string]
+        $Element
     )
 
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
@@ -360,20 +368,19 @@ Update-CurrentIssues
 Update-CurrentEquipment
 
 #region Actions
-$Clear_Button.Add_MouseUp( { Clear-Fields })
 
 $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentIssues
         Update-CurrentEquipment
     })
 
-$Equipment_Dropdown.Add_SelectedValueChanged({ Check-DuplicateIssue })
+$Equipment_Dropdown.Add_SelectedValueChanged( { Check-DuplicateIssue })
 
 $Submit_Button.Add_MouseUp( { Check-DuplicateIssue })
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex "*" -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
+$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex '' -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $ErrorProvider.Clear()
