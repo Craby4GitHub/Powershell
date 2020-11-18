@@ -3,9 +3,8 @@
     Dental Ticket
 #>
 
-# https://stackoverflow.com/a/40621143/20267
 #region hide the powerhsell console
-
+# https://stackoverflow.com/a/40621143/20267
 Add-Type -Name Window -Namespace Console -MemberDefinition '
     [DllImport("Kernel32.dll")]
     public static extern IntPtr GetConsoleWindow();
@@ -30,28 +29,22 @@ $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
 $Form.Font = 'Segoe UI, 8pt'
 
-$Main_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$Main_LayoutPanel.Dock = "Fill"
-$Main_LayoutPanel.ColumnCount = 3
-$Main_LayoutPanel.RowCount = 4
-#$Main_LayoutPanel.CellBorderStyle = 1
-[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-
-$Equipment_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$Equipment_LayoutPanel.Dock = "Fill"
-$Equipment_LayoutPanel.ColumnCount = 3
-$Equipment_LayoutPanel.RowCount = 1
-#$Equipment_LayoutPanel.CellBorderStyle = 1
-[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Equipment_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Equipment_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+$LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+$LayoutPanel.Dock = "Fill"
+$LayoutPanel.ColumnCount = 7
+$LayoutPanel.RowCount = 4
+#$LayoutPanel.CellBorderStyle = 1
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
 $ID_Num_Text = New-Object system.Windows.Forms.TextBox
 $ID_Num_Text.multiline = $false
@@ -116,33 +109,21 @@ $Sumbit_Status = New-Object system.Windows.Forms.Label
 $Sumbit_Status.AutoSize = $true
 $Form.AcceptButton = $Submit_Button
 
-$StatusBar = New-Object System.Windows.Forms.StatusBar
-$StatusBar.Text = "Ready"
-$StatusBar.SizingGrip = $false
-$StatusBar.Dock = 'Bottom'
-
-$Form.controls.AddRange(@($Main_LayoutPanel, $Equipment_LayoutPanel,$StatusBar))
+$Form.controls.Add($LayoutPanel)
 #endregion
 
 #region Main Layout
-$Main_LayoutPanel.Controls.Add($Equipment_LayoutPanel, 0, 0)
-$Main_LayoutPanel.SetColumnSpan($Equipment_LayoutPanel, 3)
+$LayoutPanel.Controls.Add($ID_Num_Group, 1, 0)
+$LayoutPanel.Controls.Add($Location_Group, 3, 0)
+$LayoutPanel.Controls.Add($Equipment_Group, 5, 0)
 
-$Main_LayoutPanel.Controls.Add($Desc_Group, 0, 1)
-$Main_LayoutPanel.SetColumnSpan($Desc_Group, 3)
+$LayoutPanel.Controls.Add($Desc_Group, 1, 1)
+$LayoutPanel.SetColumnSpan($Desc_Group, 5)
 
-$Main_LayoutPanel.Controls.Add($Issue_History_Group, 0, 2)
-$Main_LayoutPanel.SetColumnSpan($Issue_History_Group, 3)
+$LayoutPanel.Controls.Add($Issue_History_Group, 1, 2)
+$LayoutPanel.SetColumnSpan($Issue_History_Group, 5)
 
-$Main_LayoutPanel.Controls.Add($Submit_Button, 1, 3)
-#endregion
-
-#region Equipment Layout
-$Equipment_LayoutPanel.Controls.Add($ID_Num_Group, 0, 0)
-
-$Equipment_LayoutPanel.Controls.Add($Location_Group, 1, 0)
-
-$Equipment_LayoutPanel.Controls.Add($Equipment_Group, 2, 0)
+$LayoutPanel.Controls.Add($Submit_Button, 3, 3)
 #endregion
 
 #region Functions
@@ -182,27 +163,10 @@ function Update-CurrentEquipment {
     }
 }
 
-function Find-Group() {
-    $FormGroups = @()
-    ForEach ($control in $Form.Controls) {
-        if ($control.ToString().StartsWith("System.Windows.Forms.GroupBox")) {
-            $FormGroups += $control
-        }
-    }
-    return $FormGroups
-}
-
-function Clear-Fields {
-    $ID_Num_Text.Text = ''
-    $Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
-    $Equipment_Dropdown.Text = ''
-    $Desc_Text.Text = ''
-}
-
 function Confirm-NoError {
     $i = 0
-    foreach ($group in Find-Group) {
-        if ($ErrorProvider.GetError($group)) {
+    foreach ($control in $LayoutPanel.Controls) {
+        if ($ErrorProvider.GetError($control)) {
             $i++
         }
     }
@@ -376,7 +340,6 @@ $Location_Dropdown.Add_SelectedValueChanged( {
 
 $Equipment_Dropdown.Add_SelectedValueChanged( { Check-DuplicateIssue })
 
-$Submit_Button.Add_MouseUp( { Check-DuplicateIssue })
 $Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
 $Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
