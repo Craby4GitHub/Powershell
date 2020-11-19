@@ -41,7 +41,7 @@ $LayoutPanel.RowCount = 4
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -76,6 +76,7 @@ $Equipment_Group.controls.Add($Equipment_Dropdown)
 
 $Desc_Text = New-Object system.Windows.Forms.TextBox
 $Desc_Text.multiline = $true
+$Desc_Text.AutoSize = $true
 $Desc_Text.Dock = 'Fill'
 $Desc_Group = New-Object system.Windows.Forms.Groupbox
 $Desc_Group.text = "Description of Issue"
@@ -84,14 +85,13 @@ $Desc_Group.Controls.Add($Desc_Text)
 
 $Issue_History = New-Object system.Windows.Forms.DataGridView
 $Issue_History.ScrollBars = "Vertical"
-$Issue_History.AutoGenerateColumns = $true
 $Issue_History.AutoSizeColumnsMode = 'Fill'
 $Issue_History.RowHeadersVisible = $false
 $Issue_History.ColumnCount = 3
 $Issue_History.Columns[0].Name = 'Equipment'
 $Issue_History.Columns[1].Name = 'Issue'
-$Issue_History.Columns[2].DefaultCellStyle.Format = "ddMMMyy hh:mm tt"
 $Issue_History.Columns[2].Name = 'Submitted'
+$Issue_History.Columns[2].DefaultCellStyle.Format = "ddMMMyy hh:mm tt"
 $Issue_History.TabStop = $false
 $Issue_History.Dock = 'Fill'
 $Issue_History.Anchor = 'Left,Right'
@@ -105,8 +105,6 @@ $Submit_Button.text = "Submit"
 $Submit_Button.Dock = 'Fill'
 $Submit_Button.Anchor = 'Left,Right'
 
-$Sumbit_Status = New-Object system.Windows.Forms.Label
-$Sumbit_Status.AutoSize = $true
 $Form.AcceptButton = $Submit_Button
 
 $Form.controls.Add($LayoutPanel)
@@ -127,13 +125,13 @@ $LayoutPanel.Controls.Add($Submit_Button, 3, 3)
 #endregion
 
 #region Functions
-function Get-File($filePath) {   
+function Get-File($filePath,$fileName) {   
     try {
         $file = Import-Csv -Path $filePath
     }
     catch {
-        Write-Log -Level 'FATAL' -Message $_.Exception.Message
-        [System.Windows.Forms.MessageBox]::Show("Error: " + $_.Exception.Message, 'Critical Issue', 'OK', 'Error')
+        Write-Log -Level 'FATAL' -Message $_.Exception.InnerException.Message.toString
+        [System.Windows.Forms.MessageBox]::Show("Error: Could not open $($fileName)", 'Critical Issue', 'OK', 'Error')
         exit
     }
     return $file
@@ -141,11 +139,20 @@ function Get-File($filePath) {
 
 function Update-CurrentIssues {
     $Issue_History.Rows.Clear()
-    foreach ($issue in Get-File -filePath $IssuePath) {
+
+    foreach ($issue in Get-File -filePath $TicketPath -fileName "Tickets") {
         if (($Location_Dropdown.Text -eq $issue.Location) -and ($issue.status -eq '')) {
-            [void]$Issue_History.Rows.Add($($issue.'Equipment'), 
-                $($issue.'Issue Description'),
-                $([datetime]$issue.'TimeStamp'))
+            try {
+                [void]$Issue_History.Rows.Add(
+                    $($issue.'Equipment'), 
+                    $($issue.'Issue Description'),
+                    $([datetime]$issue.'TimeStamp'))
+            }
+            catch {
+                #$Error[0].Exception.GetType()
+                Write-Log -Message $_.Exception.InnerException.Message.toString
+                #$_.ScriptStackTrace.toString    
+            }
         }  
     }
     # Sort the issues by most recent
@@ -312,18 +319,23 @@ Function Write-Log {
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
     $Line = "$Stamp,$Level,$env:COMPUTERNAME,$Message,$Element"
 
-    Add-Content $ErrorPath -Value $Line
+    try {
+        Add-Content $ErrorPath -Value $Line
+    }
+    catch {
+        Write-Host 'Unable to open Error Log, close any open instances.'
+    }  
 }
 
 #endregion
 
 # Generate ticket file
-# Export-Csv -InputObject $Submission -Path $IssuePath -NoTypeInformation
+# Export-Csv -InputObject $Submission -Path $TicketPath -NoTypeInformation
 #\\dentrix-prod-1\staff\front desk\tickets.csv
-$IssuePath = "$PSScriptRoot\tickets.csv"
+$TicketPath = "$PSScriptRoot\tickets.csv"
 $ErrorPath = "$PSScriptRoot\errors.csv"
 
-$dentalArea = Get-File -filePath "$PSScriptRoot\Equipment and Locations.csv"
+$dentalArea = Get-File -filePath "$PSScriptRoot\Equipment and Locations.csv" -fileName "Equipment List"
 $dentalArea[0].PSObject.Properties.Name[1..$dentalArea[0].PSObject.Properties.Name.count] | ForEach-Object { [void] $Location_Dropdown.Items.Add($_) }
 
 $Location_Dropdown.Text = (Get-WmiObject -Class Win32_OperatingSystem).Description
@@ -348,7 +360,7 @@ $Submit_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $ErrorProvider.Clear()
             try {
-                Update-Submission | Export-Csv -Path $IssuePath -Append -NoTypeInformation -Force
+                Update-Submission | Export-Csv -Path $TicketPath -Append -NoTypeInformation -Force
                 Update-CurrentIssues
                 $Sumbit_Status.Text = ''
             }
