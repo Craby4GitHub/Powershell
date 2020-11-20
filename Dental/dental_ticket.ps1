@@ -22,18 +22,16 @@ Add-Type -AssemblyName System.Windows.Forms
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $Form = New-Object system.Windows.Forms.Form
-$Form.FormBorderStyle = "FixedDialog"
+$Form.FormBorderStyle = "Sizable"
 $Form.ClientSize = "400,400"
 $Form.text = "Equipment Repair Form"
 $Form.TopMost = $true
 $Form.StartPosition = 'CenterScreen'
-$Form.Font = 'Segoe UI, 8pt'
 
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 7
 $LayoutPanel.RowCount = 4
-#$LayoutPanel.CellBorderStyle = 1
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
@@ -124,14 +122,156 @@ $LayoutPanel.SetColumnSpan($Issue_History_Group, 5)
 $LayoutPanel.Controls.Add($Submit_Button, 3, 3)
 #endregion
 
+#region UI Theme
+$Theme = Get-Content -Path .\theme.json | ConvertFrom-Json
+
+$Form.Font =  $Theme.Form.Font
+
+if ($Theme.LayoutPanel.BackgroundImage.Length -ge $Theme.LayoutPanel.BackColor.Length) {
+    $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.LayoutPanel.BackgroundImage) -ErrorAction SilentlyContinue))
+    $LayoutPanel.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $LayoutPanel.BackColor = $Theme.LayoutPanel.BackColor
+}
+
+#$LayoutPanel.CellBorderStyle = 1
+
+$ID_Num_Text.Font = $Theme.ID_Num_Text.Font
+$ID_Num_Text.ForeColor = $Theme.ID_Num_Text.ForeColor
+$ID_Num_Text.BorderStyle = 1
+if ($Theme.ID_Num_Text.BackgroundImage.Length -ge $Theme.ID_Num_Text.BackColor.Length) {
+    $ID_Num_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Text.BackgroundImage) -ErrorAction SilentlyContinue))
+    $ID_Num_Text.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $ID_Num_Text.BackColor = $Theme.ID_Num_Text.BackColor
+}
+
+$ID_Num_Group.Font =  $Theme.ID_Num_Group.Font
+$ID_Num_Group.ForeColor =  $Theme.ID_Num_Group.ForeColor
+if ($Theme.ID_Num_Group.BackgroundImage.Length -ge $Theme.ID_Num_Group.BackColor.Length) {
+    $ID_Num_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $ID_Num_Group.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $ID_Num_Group.BackColor =  $Theme.ID_Num_Group.BackColor
+}
+
+$Location_Dropdown.Font =  $Theme.Location_Dropdown.Font
+$Location_Dropdown.ForeColor = $Theme.Location_Dropdown.ForeColor
+$Location_Dropdown.FlatStyle = 0
+if ($Theme.Location_Dropdown.BackgroundImage.Length -ge $Theme.Location_Dropdown.BackColor.Length) {
+    $Location_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Dropdown.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Location_Dropdown.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Location_Dropdown.BackColor =  $Theme.Location_Dropdown.BackColor
+}
+
+$Location_Group.Font =  $Theme.Location_Group.Font
+$Location_Group.ForeColor = $Theme.Location_Group.ForeColor
+if ($Theme.Location_Group.BackgroundImage.Length -ge $Theme.Location_Group.BackColor.Length) {
+    $Location_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Location_Group.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Location_Group.BackColor =  $Theme.Location_Group.BackColor
+}
+
+$Equipment_Dropdown.Font =  $Theme.Equipment_Dropdown.Font
+$Equipment_Dropdown.ForeColor = $Theme.Equipment_Dropdown.ForeColor
+$Equipment_Dropdown.FlatStyle = 0
+if ($Theme.Equipment_Dropdown.BackgroundImage.Length -ge $Theme.Equipment_Dropdown.BackColor.Length) {
+    $Equipment_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Dropdown.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Equipment_Dropdown.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Equipment_Dropdown.BackColor =  $Theme.Equipment_Dropdown.BackColor
+}
+
+$Equipment_Group.Font =  $Theme.Equipment_Group.Font
+$Equipment_Group.ForeColor = $Theme.Equipment_Group.ForeColor
+if ($Theme.Equipment_Group.BackgroundImage.Length -ge $Theme.Equipment_Group.BackColor.Length) {
+    $Equipment_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Equipment_Group.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Equipment_Group.BackColor =  $Theme.Equipment_Group.BackColor
+}
+
+$Desc_Text.Font =  $Theme.Desc_Text.Font
+$Desc_Text.ForeColor = $Theme.Desc_Text.ForeColor
+$Desc_Text.BorderStyle = 1
+if ($Theme.Desc_Text.BackgroundImage.Length -ge $Theme.Desc_Text.BackColor.Length) {
+    $Desc_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Text.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Desc_Text.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Desc_Text.BackColor =  $Theme.Desc_Text.BackColor
+}
+
+$Desc_Group.Font =  $Theme.Desc_Group.Font
+$Desc_Group.ForeColor = $Theme.Desc_Group.ForeColor
+if ($Theme.Desc_Group.BackgroundImage.Length -ge $Theme.Desc_Group.BackColor.Length) {
+    $Desc_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Desc_Group.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Desc_Group.BackColor =  $Theme.Desc_Group.BackColor
+}
+
+
+
+$Issue_History.Font =  $Theme.Issue_History.Font
+$Issue_History.ForeColor = $Theme.Issue_History.ForeColor
+if ($Theme.Issue_History.BackgroundImage.Length -ge $Theme.Issue_History.BackColor.Length) {
+    $Issue_History.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Issue_History.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Issue_History.BackColor =  $Theme.Issue_History.BackColor
+}
+$Issue_History.GridColor = $Theme.Issue_History.GridColor
+$Issue_History.RowsDefaultCellStyle.Backcolor  = $Theme.Issue_History.RowsDefaultCellStyleBackcolor
+$Issue_History.RowsDefaultCellStyle.Forecolor = $Theme.Issue_History.RowsDefaultCellStyleForecolor
+
+$Issue_History.ColumnHeadersDefaultCellStyle.Backcolor  = $Theme.Issue_History.ColumnHeadersDefaultCellStyleBackcolor
+$Issue_History.ColumnHeadersDefaultCellStyle.Forecolor = $Theme.Issue_History.ColumnHeadersDefaultCellStyleForecolor
+$Issue_History.EnableHeadersVisualStyles = $false
+#$Issue_History.ColumnHeadersBorderStyle = "1"  
+
+$Issue_History_Group.Font =  $Theme.Issue_History_Group.Font
+$Issue_History_Group.ForeColor = $Theme.Issue_History_Group.ForeColor
+if ($Theme.Issue_History_Group.BackgroundImage.Length -ge $Theme.Issue_History_Group.BackColor.Length) {
+    $Issue_History_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Issue_History_Group.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Issue_History_Group.BackColor =  $Theme.Issue_History_Group.BackColor
+}
+
+$Submit_Button.Font =  $Theme.Submit_Button.Font
+$Submit_Button.ForeColor = $Theme.Submit_Button.ForeColor
+$Submit_Button.FlatStyle = 1
+$Submit_Button.FlatAppearance.BorderSize = 0
+if ($Theme.Submit_Button.BackgroundImage.Length -ge $Theme.Submit_Button.BackColor.Length) {
+    $Submit_Button.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Submit_Button.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Submit_Button.BackgroundImageLayout = 'Stretch'
+}
+else{
+    $Submit_Button.BackColor =  $Theme.Submit_Button.BackColor
+}
+#endregion
+
 #region Functions
-function Get-File($filePath,$fileName) {   
+function Get-File($filePath, $fileName) {   
     try {
         $file = Import-Csv -Path $filePath
     }
     catch {
         Write-Log -Level 'FATAL' -Message $_.Exception.InnerException.Message.toString
-        [System.Windows.Forms.MessageBox]::Show("Error: Could not open $($fileName)", 'Critical Issue', 'OK', 'Error')
+        [System.Windows.Forms.MessageBox]::Show("Error: Could not open $($fileName), please contact the front desk for help. ", 'Critical Issue', 'OK', 'Error')
         exit
     }
     return $file
@@ -352,25 +492,23 @@ $Location_Dropdown.Add_SelectedValueChanged( {
 
 $Equipment_Dropdown.Add_SelectedValueChanged( { Check-DuplicateIssue })
 
-$Submit_Button.Add_MouseUp( { Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' })
-$Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION' })
-$Submit_Button.Add_MouseUp( { Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT' })
-$Submit_Button.Add_MouseUp( { Confirm-UserInput -regex '' -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION' })
+$Submit_Button.Add_MouseUp( { 
+        Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' 
+        Confirm-Dropdown -Dropdown $Location_Dropdown -Group $Location_Group -ErrorMSG 'INVALID LOCATION'
+        Confirm-Dropdown -Dropdown $Equipment_Dropdown -Group $Equipment_Group -ErrorMSG 'INVALID EQUIPMENT'
+        Confirm-UserInput -regex '' -CurrentField $Desc_Text -ErrorMSG 'INVALID DESCRIPTION'
+    })
 $Submit_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $ErrorProvider.Clear()
             try {
                 Update-Submission | Export-Csv -Path $TicketPath -Append -NoTypeInformation -Force
                 Update-CurrentIssues
-                $Sumbit_Status.Text = ''
             }
             catch {
                 Write-Log -Level 'FATAL' -Message $_.Exception.Message
                 [System.Windows.Forms.MessageBox]::Show($_.Exception.Message, 'Submission Error', 'OK', 'Error')
             }
-        }
-        else {
-            $Sumbit_Status.Text = 'Please fix errors'
         }
         Start-Sleep -Seconds 2
     })

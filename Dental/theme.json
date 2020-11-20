@@ -1,0 +1,82 @@
+{
+    "Form": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "Font": "Segoe UI, 8pt"
+    },
+    "LayoutPanel": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e"
+    },
+    "ID_Num_Text": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "ID_Num_Group": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Location_Dropdown": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Location_Group": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Equipment_Dropdown": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Equipment_Group": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Desc_Text": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Desc_Group": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Issue_History": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#ffd57e",
+        "Font": "Segoe UI, 8pt",
+        "GridColor":"#ffd57e",
+        "RowsDefaultCellStyleBackcolor":"#ffd57e",
+        "RowsDefaultCellStyleForecolor":"#000000",
+        "ColumnHeadersDefaultCellStyleBackcolor": "#ffd57e",
+        "ColumnHeadersDefaultCellStyleForecolor": "#ffd57e"
+    },
+    "Issue_History_Group": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    },
+    "Submit_Button": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 8pt"
+    }
+}
