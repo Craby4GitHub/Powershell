@@ -128,7 +128,7 @@ $Theme = Get-Content -Path .\theme.json | ConvertFrom-Json
 $Form.Font =  $Theme.Form.Font
 
 if ($Theme.LayoutPanel.BackgroundImage.Length -ge $Theme.LayoutPanel.BackColor.Length) {
-    $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.LayoutPanel.BackgroundImage) -ErrorAction SilentlyContinue))
+    $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.LayoutPanel.BackgroundImage)))
     $LayoutPanel.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -141,7 +141,7 @@ $ID_Num_Text.Font = $Theme.ID_Num_Text.Font
 $ID_Num_Text.ForeColor = $Theme.ID_Num_Text.ForeColor
 $ID_Num_Text.BorderStyle = 1
 if ($Theme.ID_Num_Text.BackgroundImage.Length -ge $Theme.ID_Num_Text.BackColor.Length) {
-    $ID_Num_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Text.BackgroundImage) -ErrorAction SilentlyContinue))
+    $ID_Num_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Text.BackgroundImage)))
     $ID_Num_Text.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -151,7 +151,7 @@ else{
 $ID_Num_Group.Font =  $Theme.ID_Num_Group.Font
 $ID_Num_Group.ForeColor =  $Theme.ID_Num_Group.ForeColor
 if ($Theme.ID_Num_Group.BackgroundImage.Length -ge $Theme.ID_Num_Group.BackColor.Length) {
-    $ID_Num_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $ID_Num_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Group.BackgroundImage)))
     $ID_Num_Group.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -162,7 +162,7 @@ $Location_Dropdown.Font =  $Theme.Location_Dropdown.Font
 $Location_Dropdown.ForeColor = $Theme.Location_Dropdown.ForeColor
 $Location_Dropdown.FlatStyle = 0
 if ($Theme.Location_Dropdown.BackgroundImage.Length -ge $Theme.Location_Dropdown.BackColor.Length) {
-    $Location_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Dropdown.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Location_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Dropdown.BackgroundImage)))
     $Location_Dropdown.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -172,7 +172,7 @@ else{
 $Location_Group.Font =  $Theme.Location_Group.Font
 $Location_Group.ForeColor = $Theme.Location_Group.ForeColor
 if ($Theme.Location_Group.BackgroundImage.Length -ge $Theme.Location_Group.BackColor.Length) {
-    $Location_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Location_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Group.BackgroundImage)))
     $Location_Group.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -183,7 +183,7 @@ $Equipment_Dropdown.Font =  $Theme.Equipment_Dropdown.Font
 $Equipment_Dropdown.ForeColor = $Theme.Equipment_Dropdown.ForeColor
 $Equipment_Dropdown.FlatStyle = 0
 if ($Theme.Equipment_Dropdown.BackgroundImage.Length -ge $Theme.Equipment_Dropdown.BackColor.Length) {
-    $Equipment_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Dropdown.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Equipment_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Dropdown.BackgroundImage)))
     $Equipment_Dropdown.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -193,7 +193,7 @@ else{
 $Equipment_Group.Font =  $Theme.Equipment_Group.Font
 $Equipment_Group.ForeColor = $Theme.Equipment_Group.ForeColor
 if ($Theme.Equipment_Group.BackgroundImage.Length -ge $Theme.Equipment_Group.BackColor.Length) {
-    $Equipment_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Equipment_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Group.BackgroundImage)))
     $Equipment_Group.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -204,7 +204,7 @@ $Desc_Text.Font =  $Theme.Desc_Text.Font
 $Desc_Text.ForeColor = $Theme.Desc_Text.ForeColor
 $Desc_Text.BorderStyle = 1
 if ($Theme.Desc_Text.BackgroundImage.Length -ge $Theme.Desc_Text.BackColor.Length) {
-    $Desc_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Text.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Desc_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Text.BackgroundImage)))
     $Desc_Text.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -214,7 +214,7 @@ else{
 $Desc_Group.Font =  $Theme.Desc_Group.Font
 $Desc_Group.ForeColor = $Theme.Desc_Group.ForeColor
 if ($Theme.Desc_Group.BackgroundImage.Length -ge $Theme.Desc_Group.BackColor.Length) {
-    $Desc_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Desc_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Group.BackgroundImage)))
     $Desc_Group.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -226,7 +226,7 @@ else{
 $Issue_History.Font =  $Theme.Issue_History.Font
 $Issue_History.ForeColor = $Theme.Issue_History.ForeColor
 if ($Theme.Issue_History.BackgroundImage.Length -ge $Theme.Issue_History.BackColor.Length) {
-    $Issue_History.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Issue_History.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History.BackgroundImage)))
     $Issue_History.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -244,7 +244,7 @@ $Issue_History.EnableHeadersVisualStyles = $false
 $Issue_History_Group.Font =  $Theme.Issue_History_Group.Font
 $Issue_History_Group.ForeColor = $Theme.Issue_History_Group.ForeColor
 if ($Theme.Issue_History_Group.BackgroundImage.Length -ge $Theme.Issue_History_Group.BackColor.Length) {
-    $Issue_History_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History_Group.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Issue_History_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History_Group.BackgroundImage)))
     $Issue_History_Group.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -256,7 +256,7 @@ $Submit_Button.ForeColor = $Theme.Submit_Button.ForeColor
 $Submit_Button.FlatStyle = 1
 $Submit_Button.FlatAppearance.BorderSize = 0
 if ($Theme.Submit_Button.BackgroundImage.Length -ge $Theme.Submit_Button.BackColor.Length) {
-    $Submit_Button.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Submit_Button.BackgroundImage) -ErrorAction SilentlyContinue))
+    $Submit_Button.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Submit_Button.BackgroundImage)))
     $Submit_Button.BackgroundImageLayout = 'Stretch'
 }
 else{
@@ -270,7 +270,7 @@ function Get-File($filePath, $fileName) {
         $file = Import-Csv -Path $filePath
     }
     catch {
-        Write-Log -Level 'FATAL' -Message $_.Exception.InnerException.Message.toString
+        #Write-Log -Level 'FATAL' -Message $_.Exception.InnerException.Message.toString
         [System.Windows.Forms.MessageBox]::Show("Error: Could not open $($fileName), please contact the front desk for help. ", 'Critical Issue', 'OK', 'Error')
         exit
     }
