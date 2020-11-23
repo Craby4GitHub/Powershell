@@ -8,20 +8,24 @@ Add-Type -Name Window -Namespace Console -MemberDefinition '
     public static extern bool ShowWindow(IntPtr hWnd, Int32 nCmdShow);
     '
 $consolePtr = [Console.Window]::GetConsoleWindow()
-[Console.Window]::ShowWindow($consolePtr, 0) # hide
+[Console.Window]::ShowWindow($consolePtr, 0) | Out-Null
 #endregion
+
+. (Join-Path $PSSCRIPTROOT "GUI.ps1")
+
+
 
 #region GUI
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
-$Form = New-Object system.Windows.Forms.Form
-$Form.FormBorderStyle = "Sizable"
-$Form.ClientSize = "400,400"
-$Form.text = "Equipment Repair Form"
-$Form.TopMost = $true
-$Form.StartPosition = 'CenterScreen'
+$AdminForm = New-Object system.Windows.Forms.Form
+$AdminForm.FormBorderStyle = "Sizable"
+$AdminForm.ClientSize = "400,400"
+$AdminForm.text = "Equipment Repair Form"
+$AdminForm.TopMost = $true
+$AdminForm.StartPosition = 'CenterScreen'
 
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
@@ -38,42 +42,50 @@ $LayoutPanel.RowCount = 4
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+$AdminForm.controls.Add($LayoutPanel)
 
+$WorkReport_Button = New-Object system.Windows.Forms.Button
+$WorkReport_Button.text = "Work Report"
+$WorkReport_Button.Dock = 'Fill'
+#$WorkReport_Button.Anchor = 'Left,Right'
 
-$Generate_WorkReport_Button = New-Object system.Windows.Forms.Button
-$Generate_WorkReport_Button.text = "Generate Work Report"
-$Generate_WorkReport_Button.Dock = 'Fill'
-$Generate_WorkReport_Button.Anchor = 'Left,Right'
+$TicketFile_Button = New-Object system.Windows.Forms.Button
+$TicketFile_Button.text = "Default Ticket File"
+$TicketFile_Button.Dock = 'Left'
 
+$EquipmentFile_Button = New-Object system.Windows.Forms.Button
+$EquipmentFile_Button.text = "Default Equipment File"
+$EquipmentFile_Button.Dock = 'Right'
 
-$Generate_TicketFile_Button = New-Object system.Windows.Forms.Button
-$Generate_TicketFile_Button.text = "Generate Default Ticket File"
-$Generate_TicketFile_Button.Dock = 'Fill'
-$Generate_TicketFile_Button.Anchor = 'Left,Right'
-
-$Generate_EquipmentFile_Button = New-Object system.Windows.Forms.Button
-$Generate_EquipmentFile_Button.text = "Generate Default Equipment File"
-$Generate_EquipmentFile_Button.Dock = 'Fill'
-$Generate_EquipmentFile_Button.Anchor = 'Left,Right'
+$Generate_Group = New-Object system.Windows.Forms.Groupbox
+$Generate_Group.text = "Generate Default Files"
+$Generate_Group.Dock = 'Fill'
+$Generate_Group.controls.AddRange(@($EquipmentFile_Button,$TicketFile_Button))
 
 $Modify_Theme_Button = New-Object system.Windows.Forms.Button
 $Modify_Theme_Button.text = "Modify Theme"
 $Modify_Theme_Button.Dock = 'Fill'
 $Modify_Theme_Button.Anchor = 'Left,Right'
 
-$Form.controls.Add($LayoutPanel)
-
-
-
 #region Main Layout
-$LayoutPanel.Controls.Add($Generate_WorkReport_Button, 1, 0)
-$LayoutPanel.Controls.Add($Generate_TicketFile_Button, 3, 0)
-$LayoutPanel.Controls.Add($Generate_EquipmentFile_Button, 5, 0)
+$LayoutPanel.Controls.Add($Generate_Group, 1, 0)
+$LayoutPanel.SetColumnSpan($Generate_Group,2)
+$LayoutPanel.Controls.Add($WorkReport_Button, 1, 1)
+#$LayoutPanel.Controls.Add($Generate_EquipmentFile_Button, 5, 0)
 
-$LayoutPanel.Controls.Add($Modify_Theme_Button, 1, 1)
+$LayoutPanel.Controls.Add($Modify_Theme_Button, 1, 2)
+
+#endregion
+
 
 #endregion
 
 
-#endregion
-[void]$Form.ShowDialog()
+
+$Modify_Theme_Button.Add_MouseUp( { 
+    $Form.show()
+    $Form.Location = New-Object System.Drawing.Point($($AdminForm.Location.X + $AdminForm.Width),$($AdminForm.Location.Y))
+})
+
+
+[void]$AdminForm.ShowDialog()
