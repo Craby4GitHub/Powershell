@@ -244,9 +244,12 @@ Update-CurrentEquipment
 $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentIssues
         Update-CurrentEquipment
+        $Current_Issues_Group.text = "Current issues in $($Location_Dropdown.Text)"
     })
 
-$Equipment_Dropdown.Add_SelectedValueChanged( { Check-DuplicateIssue })
+$Equipment_Dropdown.Add_SelectedValueChanged( { 
+    Check-DuplicateIssue 
+})
 
 $Submit_Button.Add_MouseUp( { 
         Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' 
