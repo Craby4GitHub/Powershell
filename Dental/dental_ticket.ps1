@@ -34,12 +34,12 @@ function Get-File($filePath, $fileName) {
 }
 
 function Update-CurrentIssues {
-    $Issue_History.Rows.Clear()
+    $Current_Issues.Rows.Clear()
 
     foreach ($issue in Get-File -filePath $TicketPath -fileName "Tickets") {
         if (($Location_Dropdown.Text -eq $issue.Location) -and ($issue.status -eq '')) {
             try {
-                [void]$Issue_History.Rows.Add(
+                [void]$Current_Issues.Rows.Add(
                     $($issue.'Equipment'), 
                     $($issue.'Issue Description'),
                     $([datetime]$issue.'TimeStamp'))
@@ -52,7 +52,7 @@ function Update-CurrentIssues {
         }  
     }
     # Sort the issues by most recent
-    $Issue_History.Sort($Issue_History.Columns[2], [System.ComponentModel.ListSortDirection]::Descending)
+    $Current_Issues.Sort($Current_Issues.Columns[2], [System.ComponentModel.ListSortDirection]::Descending)
 }
 
 function Update-CurrentEquipment {
@@ -182,7 +182,7 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
 }
 
 function Check-DuplicateIssue {
-    foreach ($row in $Issue_History.Rows) {
+    foreach ($row in $Current_Issues.Rows) {
         if ($Equipment_Dropdown.Text -eq 'Other') {
             break
         }
