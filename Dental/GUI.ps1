@@ -86,6 +86,15 @@ $Submit_Button.text = "Submit"
 $Submit_Button.Dock = 'Fill'
 $Submit_Button.Anchor = 'Left,Right'
 
+$Feedback_Button = New-Object system.Windows.Forms.Button
+$Feedback_Button.Dock = 'Right'
+$Feedback_Button.Anchor = 'Right'
+
+$FeedBack_Tooltip = New-Object system.Windows.Forms.ToolTip
+$FeedBack_Tooltip.ToolTipTitle = "Repair Form Feedback"
+$FeedBack_Tooltip.isBalloon = $true
+$FeedBack_Tooltip.SetToolTip($Feedback_Button, "Submit feedback about this ticket program")
+
 $Form.AcceptButton = $Submit_Button
 
 $Form.controls.Add($LayoutPanel)
@@ -103,17 +112,19 @@ $LayoutPanel.Controls.Add($Current_Issues_Group, 1, 2)
 $LayoutPanel.SetColumnSpan($Current_Issues_Group, 5)
 
 $LayoutPanel.Controls.Add($Submit_Button, 3, 3)
+$LayoutPanel.Controls.Add($Feedback_Button, 5, 3)
+
 #endregion
 
 #region UI Theme
 $Theme = Get-Content -Path $PSScriptRoot\theme.json | ConvertFrom-Json
-$Form.Font =  $Theme.Form.Font
+$Form.Font = $Theme.Form.Font
 
 if ($null -eq $Theme.LayoutPanel.BackColor) {
     $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $PSScriptRoot\$($Theme.LayoutPanel.BackgroundImage)))
     $LayoutPanel.BackgroundImageLayout = 'Stretch'
 }
-else{
+else {
     $LayoutPanel.BackColor = $Theme.LayoutPanel.BackColor
 }
 
@@ -126,112 +137,112 @@ if ($null -eq $Theme.ID_Num_Text.BackColor) {
     $ID_Num_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Text.BackgroundImage)))
     $ID_Num_Text.BackgroundImageLayout = 'Stretch'
 }
-else{
+else {
     $ID_Num_Text.BackColor = $Theme.ID_Num_Text.BackColor
 }
 
-$ID_Num_Group.Font =  $Theme.ID_Num_Group.Font
-$ID_Num_Group.ForeColor =  $Theme.ID_Num_Group.ForeColor
+$ID_Num_Group.Font = $Theme.ID_Num_Group.Font
+$ID_Num_Group.ForeColor = $Theme.ID_Num_Group.ForeColor
 if ($null -eq $Theme.ID_Num_Group.BackColor) {
     $ID_Num_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Group.BackgroundImage)))
     $ID_Num_Group.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $ID_Num_Group.BackColor =  $Theme.ID_Num_Group.BackColor
+else {
+    $ID_Num_Group.BackColor = $Theme.ID_Num_Group.BackColor
 }
 
-$Location_Dropdown.Font =  $Theme.Location_Dropdown.Font
+$Location_Dropdown.Font = $Theme.Location_Dropdown.Font
 $Location_Dropdown.ForeColor = $Theme.Location_Dropdown.ForeColor
 $Location_Dropdown.FlatStyle = 0
 if ($null -eq $Theme.Location_Dropdown.BackColor) {
     $Location_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Dropdown.BackgroundImage)))
     $Location_Dropdown.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Location_Dropdown.BackColor =  $Theme.Location_Dropdown.BackColor
+else {
+    $Location_Dropdown.BackColor = $Theme.Location_Dropdown.BackColor
 }
 
-$Location_Group.Font =  $Theme.Location_Group.Font
+$Location_Group.Font = $Theme.Location_Group.Font
 $Location_Group.ForeColor = $Theme.Location_Group.ForeColor
 if ($null -eq $Theme.Location_Group.BackColor) {
     $Location_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Group.BackgroundImage)))
     $Location_Group.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Location_Group.BackColor =  $Theme.Location_Group.BackColor
+else {
+    $Location_Group.BackColor = $Theme.Location_Group.BackColor
 }
 
-$Equipment_Dropdown.Font =  $Theme.Equipment_Dropdown.Font
+$Equipment_Dropdown.Font = $Theme.Equipment_Dropdown.Font
 $Equipment_Dropdown.ForeColor = $Theme.Equipment_Dropdown.ForeColor
 $Equipment_Dropdown.FlatStyle = 0
 if ($null -eq $Theme.Equipment_Dropdown.BackColor) {
     $Equipment_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Dropdown.BackgroundImage)))
     $Equipment_Dropdown.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Equipment_Dropdown.BackColor =  $Theme.Equipment_Dropdown.BackColor
+else {
+    $Equipment_Dropdown.BackColor = $Theme.Equipment_Dropdown.BackColor
 }
 
-$Equipment_Group.Font =  $Theme.Equipment_Group.Font
+$Equipment_Group.Font = $Theme.Equipment_Group.Font
 $Equipment_Group.ForeColor = $Theme.Equipment_Group.ForeColor
 if ($null -eq $Theme.Equipment_Group.BackColor) {
     $Equipment_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Group.BackgroundImage)))
     $Equipment_Group.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Equipment_Group.BackColor =  $Theme.Equipment_Group.BackColor
+else {
+    $Equipment_Group.BackColor = $Theme.Equipment_Group.BackColor
 }
 
-$Desc_Text.Font =  $Theme.Desc_Text.Font
+$Desc_Text.Font = $Theme.Desc_Text.Font
 $Desc_Text.ForeColor = $Theme.Desc_Text.ForeColor
 $Desc_Text.BorderStyle = 1
 if ($null -eq $Theme.Desc_Text.BackColor) {
     $Desc_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Text.BackgroundImage)))
     $Desc_Text.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Desc_Text.BackColor =  $Theme.Desc_Text.BackColor
+else {
+    $Desc_Text.BackColor = $Theme.Desc_Text.BackColor
 }
 
-$Desc_Group.Font =  $Theme.Desc_Group.Font
+$Desc_Group.Font = $Theme.Desc_Group.Font
 $Desc_Group.ForeColor = $Theme.Desc_Group.ForeColor
 if ($null -eq $Theme.Desc_Group.BackColor) {
     $Desc_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Group.BackgroundImage)))
     $Desc_Group.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Desc_Group.BackColor =  $Theme.Desc_Group.BackColor
+else {
+    $Desc_Group.BackColor = $Theme.Desc_Group.BackColor
 }
 
-$Current_Issues.Font =  $Theme.Current_Issues.Font
+$Current_Issues.Font = $Theme.Current_Issues.Font
 $Current_Issues.ForeColor = $Theme.Current_Issues.ForeColor
 if ($null -eq $Theme.Current_Issues.BackColor) {
     $Current_Issues.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Current_Issues.BackgroundImage)))
     $Current_Issues.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Current_Issues.BackColor =  $Theme.Current_Issues.BackColor
+else {
+    $Current_Issues.BackColor = $Theme.Current_Issues.BackColor
 }
 $Current_Issues.GridColor = $Theme.Current_Issues.GridColor
-$Current_Issues.RowsDefaultCellStyle.Backcolor  = $Theme.Current_Issues.RowsDefaultCellStyleBackcolor
+$Current_Issues.RowsDefaultCellStyle.Backcolor = $Theme.Current_Issues.RowsDefaultCellStyleBackcolor
 $Current_Issues.RowsDefaultCellStyle.Forecolor = $Theme.Current_Issues.RowsDefaultCellStyleForecolor
 
-$Current_Issues.ColumnHeadersDefaultCellStyle.Backcolor  = $Theme.Current_Issues.ColumnHeadersDefaultCellStyleBackcolor
+$Current_Issues.ColumnHeadersDefaultCellStyle.Backcolor = $Theme.Current_Issues.ColumnHeadersDefaultCellStyleBackcolor
 $Current_Issues.ColumnHeadersDefaultCellStyle.Forecolor = $Theme.Current_Issues.ColumnHeadersDefaultCellStyleForecolor
 $Current_Issues.EnableHeadersVisualStyles = $false
 #$Current_Issues.ColumnHeadersBorderStyle = "1"  
 
-$Current_Issues_Group.Font =  $Theme.Current_Issues_Group.Font
+$Current_Issues_Group.Font = $Theme.Current_Issues_Group.Font
 $Current_Issues_Group.ForeColor = $Theme.Current_Issues_Group.ForeColor
 if ($null -eq $Theme.Current_Issues_Group.BackColor) {
     $Current_Issues_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Current_Issues_Group.BackgroundImage)))
     $Current_Issues_Group.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Current_Issues_Group.BackColor =  $Theme.Current_Issues_Group.BackColor
+else {
+    $Current_Issues_Group.BackColor = $Theme.Current_Issues_Group.BackColor
 }
 
-$Submit_Button.Font =  $Theme.Submit_Button.Font
+$Submit_Button.Font = $Theme.Submit_Button.Font
 $Submit_Button.ForeColor = $Theme.Submit_Button.ForeColor
 $Submit_Button.FlatStyle = 1
 $Submit_Button.FlatAppearance.BorderSize = 0
@@ -239,7 +250,7 @@ if ($null -eq $Theme.Submit_Button.BackColor) {
     $Submit_Button.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Submit_Button.BackgroundImage)))
     $Submit_Button.BackgroundImageLayout = 'Stretch'
 }
-else{
-    $Submit_Button.BackColor =  $Theme.Submit_Button.BackColor
+else {
+    $Submit_Button.BackColor = $Theme.Submit_Button.BackColor
 }
 #endregion
