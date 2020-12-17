@@ -51,12 +51,14 @@ ForEach ($object in Get-File) {
 #endregion
 
 'Loading AD Computers'
-#region Import from AD
+#region Import from AD and JAMF
 Write-progress -Activity 'Getting computers from EDU and PCC Domain...'
 $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server PCC-Domain.pima.edu).Name
   
 $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server EDU-Domain.pima.edu).Name
 
+. (Join-Path $PSSCRIPTROOT "Get-JamfComputers.ps1")
+$JAMF = Get-JamfComputers
 #endregion
 
 #region Regex
@@ -81,8 +83,8 @@ $VM = [regex]"[vV]\d{0,}$"
 'Comparing AD Computers to PCC naming convention standards'
 #region Compare all computer names to PCC Standard
 $i = 0
-foreach ($singleComputer in ($EDUArray + $PCCArray)) {
-    [int]$pct = ($i/($EDUArray + $PCCArray).count)*100
+foreach ($singleComputer in ($EDUArray + $PCCArray + $JAMF)) {
+    [int]$pct = ($i/($EDUArray + $PCCArray + $JAMF).count)*100
     # Naming convention
     # https://docs.google.com/spreadsheets/d/1gLkgjxNlxwbNizH_EsQY_-ARmaStVOYra1pwcxIQvgM/edit#gid=0
     Write-progress -Activity 'Comparing computer names to PCC naming convention...' -PercentComplete $pct -status "$pct% Complete"
