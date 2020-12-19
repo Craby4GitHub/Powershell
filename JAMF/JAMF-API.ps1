@@ -1,3 +1,5 @@
+
+
 function Get-JamfAuthClassic {
     $Creds = Get-Credential
     $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
@@ -24,6 +26,23 @@ function Get-JamfMobileDeviceEnrollmentProfiles {
     return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledeviceenrollmentprofiles" -Method 'GET' -Headers $Headers -ContentType application/json).mobile_device_enrollment_profiles.mobile_device_enrollment_profile
 }
 
+function Get-JamfLicensedSoftware {
+    $Headers = Get-JamfAuthClassic
+    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/licensedsoftware" -Method 'GET' -Headers $Headers -ContentType application/json).licensed_software.licensed_software
+}
+
+function Find-JamfLicensedSoftware($SearchTerm) {
+    # Find by name or ID
+    $Headers = Get-JamfAuthClassic
+
+    if ($SearchTerm -match '^\d{1,}$') {
+        return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/licensedsoftware/id/$SearchTerm" -Method 'GET' -Headers $Headers -ContentType application/json).licensed_software.licenses.license
+    }
+    else {
+        return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/licensedsoftware/name/$SearchTerm" -Method 'GET' -Headers $Headers -ContentType application/json).licensed_software.licenses.license
+    }
+}
+
 function Get-JamfMobileDevicePreStage {
     $auth = Get-JamfAuthPro
     return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages?page=0&page-size=1000&sort=id%3Adesc" -Method 'GET' -Headers $auth -ContentType application/json).results
@@ -36,5 +55,14 @@ function Get-JamfMobileDevicePreStageScopeByID($ID) {
 
 function Get-JamfMobileDevicePreStageScope {
     $auth = Get-JamfAuthPro
-    return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/scope" -Method 'GET' -Headers $auth -ContentType application/json
+    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/scope" -Method 'GET' -Headers $auth -ContentType application/json).serialsByPrestageId
+}
+
+function Remove-JamfMobileDeviceFromPreStageScope($ID, $SerialNumbers) {
+    $params = @{
+        "serialNumbers" = $SerialNumbers;
+        "versionLock"   = "1";
+    } | ConvertTo-Json
+    $auth = Get-JamfAuthPro
+    return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope/delete-multiple" -Method 'POST' -Headers $auth -Body $params -ContentType application/json
 }
