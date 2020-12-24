@@ -53,9 +53,13 @@ function Get-JamfMobileDevicePreStage {
     return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages?page=0&page-size=1000&sort=id%3Adesc" -Method 'GET' -Headers $auth -ContentType application/json).results
 }
 
+function Get-JamfMobileDevicePreStageByID($ID) {
+    $auth = Get-JamfAuthPro
+    return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID" -Method 'GET' -Headers $auth -ContentType application/json
+}
 function Get-JamfMobileDevicePreStageScopeByID($ID) {
     $auth = Get-JamfAuthPro
-    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'GET' -Headers $auth -ContentType application/json).assignments
+    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'GET' -Headers $auth -ContentType application/json).assignments.serialnumber
 }
 
 function Get-JamfMobileDevicePreStageScope {
@@ -64,10 +68,12 @@ function Get-JamfMobileDevicePreStageScope {
 }
 
 function Update-JamfMobileDeviceFromPreStageScope($ID, $SerialNumbers) {
+    $versionLock = (Get-JamfMobileDevicePreStageByID -ID $ID).versionLock
     $params = @{
         "serialNumbers" = $SerialNumbers;
-        "versionLock"   = "1";
+        "versionLock"   = $versionLock;
     } | ConvertTo-Json
+
     $auth = Get-JamfAuthPro
-    return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'PUT' -Headers $auth -Body $params -ContentType application/json
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'PUT' -Headers $auth -Body $params -ContentType application/json
 }

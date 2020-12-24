@@ -57,7 +57,7 @@ $PCCArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*
   
 $EDUArray = (Get-ADComputer -Filter {(OperatingSystem -notlike '*windows*server*')} -Properties OperatingSystem -Server EDU-Domain.pima.edu).Name
 
-. (Join-Path $PSSCRIPTROOT "Get-JamfComputers.ps1")
+. (Join-Path $PSSCRIPTROOT "JAMF\Get-JamfComputers.ps1")
 $JAMF = Get-JamfComputers
 #endregion
 
