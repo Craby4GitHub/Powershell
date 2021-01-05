@@ -67,13 +67,32 @@ function Get-JamfMobileDevicePreStageScope {
     return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/scope" -Method 'GET' -Headers $auth -ContentType application/json
 }
 
-function Update-JamfMobileDeviceFromPreStageScope($ID, $SerialNumbers) {
+function Update-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
     $versionLock = (Get-JamfMobileDevicePreStageByID -ID $ID).versionLock
     $params = @{
         "serialNumbers" = $SerialNumbers;
         "versionLock"   = $versionLock;
     } | ConvertTo-Json
-
     $auth = Get-JamfAuthPro
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'PUT' -Headers $auth -Body $params -ContentType application/json
+}
+
+function Remove-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
+    $versionLock = (Get-JamfMobileDevicePreStageByID -ID $ID).versionLock
+    $params = @{
+        "serialNumbers" = $SerialNumbers;
+        "versionLock"   = $versionLock;
+    } | ConvertTo-Json
+    $auth = Get-JamfAuthPro
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope/delete-multiple" -Method 'POST' -Headers $auth -Body $params -ContentType application/json
+}
+
+function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
+    $versionLock = (Get-JamfMobileDevicePreStageByID -ID $ID).versionLock
+    $params = @{
+        "serialNumbers" = $SerialNumbers;
+        "versionLock"   = $versionLock;
+    } | ConvertTo-Json
+    $auth = Get-JamfAuthPro
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'POST' -Headers $auth -Body $params -ContentType application/json
 }
