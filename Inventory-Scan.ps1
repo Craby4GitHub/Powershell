@@ -274,19 +274,20 @@ Function Find-Asset {
     try {
         Write-Log -Message "Getting Inventory Table element for $($PCCNumber). $($Campus): $($Room) Page: $($Page)"
         $InventoryTable = Get-SeElement -Driver $driver -XPath '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody'
+        
+        $InventoryTableAssests = $InventoryTable.FindElementsByTagName('tr')
+        $PCCNumberFront_xpath = '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody/tr['
+        $PCCNumberBack_xpath = ']/td[2]'
+    
+        for ($i = 1; $i -le $InventoryTableAssests.Count; $i++) {
+            if ($InventoryTable.FindElementByXPath($PCCNumberFront_xpath + $i + $PCCNumberBack_xpath).text -eq $pccnumber) {
+                return $i
+                break
+            }
+        }
     }
     catch {
         Write-Log -Message "Unable to get Inventory Table element for $($PCCNumber). $($Campus): $($Room) Page: $($Page)" -LogError $_.Exception.Message -Level ERROR
-    }
-    $InventoryTableAssests = $InventoryTable.FindElementsByTagName('tr')
-    $PCCNumberFront_xpath = '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody/tr['
-    $PCCNumberBack_xpath = ']/td[2]'
-
-    for ($i = 1; $i -le $InventoryTableAssests.Count; $i++) {
-        if ($InventoryTable.FindElementByXPath($PCCNumberFront_xpath + $i + $PCCNumberBack_xpath).text -eq $pccnumber) {
-            return $i
-            break
-        }
     }
 }
 function Update-Asset {
@@ -341,6 +342,7 @@ function Update-Asset {
     try {
         Write-Log -Message "Clicking edit for asset for $PCCNumber"
         #NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
+        # Also script will fail if it can not find the pcc number in ITAM
         Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a' | Invoke-SeClick
     }
     catch {
@@ -500,23 +502,23 @@ function Confirm-Asset {
                     Write-Log -Message 'Could not get asset page dropdown and select next page' -LogError $_.Exception.Message -Level ERROR
                 }
 
-                $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room -Page $page
+                $AssestIndex = Find-Asset $PCCNumber $Campus $Room $page
                 if ($AssestIndex) {
                     $StatusBar.Text = "$PCCNumber Found!"
                     try {
                         Write-Log -Message 'Clicking Verify and Submit button'
                         Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
                         Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+
+                        $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                        Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                        Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
+                        $PCC_TextBox.Select()
+                        break
                     }
                     catch {
                         Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
                     }
-    
-                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
-
-                    break
                 }
                 if ($page -eq $PageDropdownOptions.Count - 1) {
                     $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
@@ -529,21 +531,22 @@ function Confirm-Asset {
     }
     else {
         do {
-            $AssestIndex = Find-Asset -PCCNumber $PCCNumber -Campus $Campus -Room $Room
+            $AssestIndex = Find-Asset $PCCNumber $Campus $Room
             if ($AssestIndex) {
                 $StatusBar.Text = "$PCCNumber Found!"
                 try {
                     Write-Log -Message 'Clicking Verify and Submit button'
                     Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
                     Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+
+                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
+                    $PCC_TextBox.Select()
                 }
                 catch {
                     Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
                 }
-
-                $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber.$Campus.$Room"
             }
             else {
                 $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
@@ -723,7 +726,7 @@ $LayoutPanel.Add_MouseUp( { $global:dragging = $false })
 $ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
 $Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
 
-$Driver = Start-SeFirefox -PrivateBrowsing -Headless
+$Driver = Start-SeFirefox -PrivateBrowsing #-Headless
 
 Open-SeUrl -Driver $Driver -Url $Inventory_URL
 
