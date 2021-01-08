@@ -14,33 +14,41 @@ $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
 $Form.text = "ITAM - Inventory Automation"
-$Form.Font = 'Segoe UI, 8pt'
+$Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#303841'
 $Form.ForeColor = '#eeeeee' 
 $Form.FormBorderStyle = 'None'
-$Form.AutoSize = $true
+$Form.ClientSize = New-Object System.Drawing.Point(378,659)
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
-$Campus_Dropdown.DropDownHeight = $Campus_Dropdown.ItemHeight * 5
+#$Campus_Dropdown.DropDownHeight = $Campus_Dropdown.ItemHeight * 5
+$Campus_Dropdown.ItemHeight = 3000
+@('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $Campus_Dropdown.Items.Add($_)}
 $Campus_Dropdown.Text = 'Select Campus'
-$Campus_Dropdown.Font = 'Segoe UI, 8pt'
+#$Campus_Dropdown.Font = 'Segoe UI, 18pt'
 $Campus_Dropdown.BackColor = '#3a4750'
 $Campus_Dropdown.ForeColor = '#eeeeee' 
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.TabIndex = 1
-$Campus_Dropdown.Dock = "Fill"
+#$Campus_Dropdown.Dock = "Fill"
 $Campus_Dropdown.FlatStyle = 0
-$Campus_Dropdown.Anchor = 'Left,Right'
+$Campus_Dropdown.Anchor = 'left, Right'
 
+$Room_Label = New-Object system.Windows.Forms.Label
+$Room_Label.text = "Room:" 
+#$Room_Label.Font = 'Segoe UI, 10pt, style=Bold'
+$Room_Label.AutoSize = $true
+$Room_Label.Dock = 'Bottom'
+$Room_Label.Anchor = 'Left,Right,Bottom'
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
 $Room_Dropdown.DropDownHeight = $Room_Dropdown.ItemHeight * 5
 $Room_Dropdown.Text = 'Select Room'
-$Room_Dropdown.Font = 'Segoe UI, 8pt'
+#$Room_Dropdown.Font = 'Segoe UI, 18pt'
 $Room_Dropdown.BackColor = '#3a4750'
 $Room_Dropdown.ForeColor = '#eeeeee' 
 $Room_Dropdown.AutoCompleteMode = 'SuggestAppend'
@@ -52,15 +60,15 @@ $Room_Dropdown.FlatStyle = 0
 $Room_Dropdown.Anchor = 'Left,Right'
 
 $PCC_Label = New-Object system.Windows.Forms.Label
-$PCC_Label.text = "PCC Number :"
-$PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
+$PCC_Label.text = "PCC Number:"
+#$PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $PCC_Label.AutoSize = $true
 $PCC_Label.Dock = 'Bottom'
 $PCC_Label.Anchor = 'Bottom'
 
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
-$PCC_TextBox.Font = 'Segoe UI, 8pt'
+#$PCC_TextBox.Font = 'Segoe UI, 15pt'
 $PCC_TextBox.BackColor = '#3a4750'
 $PCC_TextBox.ForeColor = '#eeeeee' 
 $PCC_TextBox.Dock = 'Fill'
@@ -74,7 +82,7 @@ $Search_Button.Dock = 'Fill'
 $Search_Button.TabIndex = 4
 $Search_Button.BackColor = '#00adb5'
 $Search_Button.ForeColor = '#eeeeee' 
-$Search_Button.Font = 'Segoe UI, 10pt, style=Bold'
+#$Search_Button.Font = 'Segoe UI, 18pt, style=Bold'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
@@ -83,7 +91,7 @@ $Close_Button = New-Object system.Windows.Forms.Button
 $Close_Button.text = "X"
 $Close_Button.Dock = 'Fill'
 $Close_Button.BackColor = '#303841'
-$Close_Button.Font = 'Segoe UI, 8pt, style=Bold'
+#$Close_Button.Font = 'Segoe UI, 8pt, style=Bold'
 $Close_Button.FlatStyle = 0
 $Close_Button.FlatAppearance.BorderSize = 1
 $Close_Button.FlatAppearance.BorderColor = '#3a4750'
@@ -98,30 +106,23 @@ $StatusBar.BackColor = '#3a4750'
 #Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
-$LayoutPanel.ColumnCount = 5
-$LayoutPanel.RowCount = 7
+$LayoutPanel.ColumnCount = 3
+$LayoutPanel.RowCount = 6
 $LayoutPanel.CellBorderStyle = 1
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 3)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
 
-$LayoutPanel.Controls.Add($Close_Button, 4, 0)
-$LayoutPanel.Controls.Add($Campus_Dropdown, 1, 1)
-$LayoutPanel.Controls.Add($Room_Dropdown, 1, 3)
-$LayoutPanel.Controls.Add($PCC_Label, 1, 4)
-$LayoutPanel.Controls.Add($PCC_TextBox, 1, 5)
-$LayoutPanel.Controls.Add($Search_Button, 3, 2)
-$LayoutPanel.SetRowSpan($Search_Button, 2)
-
-$Form.controls.AddRange(@($LayoutPanel, $StatusBar))
 #EndRegion 
 
 #region Assest Update Popup
@@ -210,7 +211,21 @@ $LayoutPanel_Popup.Controls.Add($Status_DropdownLabel_Popup, 0, 0)
 $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
 
-$AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
+#$AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
+
+$LayoutPanel.Controls.Add($Close_Button, 4, 0)
+$LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
+#$LayoutPanel.Controls.Add($Room_Label, 3,0 )
+$LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
+$LayoutPanel.Controls.Add($PCC_Label, 1, 2)
+$LayoutPanel.Controls.Add($LayoutPanel_Popup, 1, 5)
+$LayoutPanel.Controls.Add($PCC_TextBox, 1, 3)
+#$LayoutPanel.SetColumnSpan($PCC_TextBox, 2)
+$LayoutPanel.Controls.Add($Search_Button, 1, 4)
+#$LayoutPanel.SetRowSpan($Search_Button, 2)
+#$LayoutPanel.SetColumnSpan($Search_Button, 3)
+
+$Form.controls.AddRange(@($LayoutPanel, $StatusBar))
 
 $Search_Button.Add_MouseUp( {
         $AssetUpdate_Popup.ShowDialog()
