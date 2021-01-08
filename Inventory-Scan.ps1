@@ -223,34 +223,34 @@ function Login_ITAM {
     
 
     
-        if ($FirstLogin) {
-            $global:Credentials = Get-Credential
-        }
+    if ($FirstLogin) {
+        $global:Credentials = Get-Credential
+    }
 
-        Write-Log -Message "$($Credentials.UserName) attempting to login"
+    Write-Log -Message "$($Credentials.UserName) attempting to login"
     
-        try {
-            Write-Log -Message "Getting Username and Password elements"
-            $usernameElement = Get-SeElement -Driver $Driver -Wait -Id 'P101_USERNAME'
-            $passwordElement = Get-SeElement -Driver $Driver -Id 'P101_PASSWORD'
-        }
-        catch {
-            Write-Log -Message "Unable to get Username and Password elements" -LogError $_.Exception.Message -Level FATAL
-        }
+    try {
+        Write-Log -Message "Getting Username and Password elements"
+        $usernameElement = Get-SeElement -Driver $Driver -Wait -Id 'P101_USERNAME'
+        $passwordElement = Get-SeElement -Driver $Driver -Id 'P101_PASSWORD'
+    }
+    catch {
+        Write-Log -Message "Unable to get Username and Password elements" -LogError $_.Exception.Message -Level FATAL
+    }
 
 
-        $usernameElement.Clear()
-        $passwordElement.Clear()
+    $usernameElement.Clear()
+    $passwordElement.Clear()
 
-        try {
-            Write-Log -Message "Entering Username and Password into elements"
-            Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
-            Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
-            Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
-        }
-        catch {
-            Write-Log -Message "Could not enter credentials into website" -Level WARN
-        }
+    try {
+        Write-Log -Message "Entering Username and Password into elements"
+        Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
+        Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
+        Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
+    }
+    catch {
+        Write-Log -Message "Could not enter credentials into website" -Level WARN
+    }
          
     
 }
@@ -363,6 +363,7 @@ function Update-Asset {
     }
 
     $OK_Button_Popup.Add_MouseUp( {
+        
             $Global:Cancelled = $false
             Write-Log -Message "Updating $($PCCNumber) to Campus: $($Campus) and Room: $($RoomNumber)"
       
@@ -430,8 +431,10 @@ function Update-Asset {
             catch {
                 Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
             }
-            $StatusBar.Text = 'Ready'
+            write-host 'looop'
             $AssetUpdate_Popup.Close()
+            $StatusBar.Text = 'Ready'
+            return
         })
 
     $Cancel_Button_Popup.Add_MouseUp( {
