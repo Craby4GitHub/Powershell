@@ -1,14 +1,2 @@
-<<<<<<< Updated upstream
-
-Tickets.csv
-Equipment and Locations.csv
-errors.csv
-=======
-Equipment and Locations.csv
-errors.csv
-log.csv
-Tickets.csv
->>>>>>> Stashed changes
-log.csv
-debug.log
-log.csv
+Dental/tickets.csv
+Dental/errors.csv
