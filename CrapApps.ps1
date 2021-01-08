@@ -1,9 +1,8 @@
 #This script was modified by Kent DuBack II on September 3rd 2020.
 
-$ErrorActionPreference= 'silentlycontinue'
+$ErrorActionPreference = 'silentlycontinue'
 
-If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator))
-{
+If (-NOT ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator)) {
   Write-Host "Please execute this script from an elevated Powershell after logging into a User account with Administrator Credentials" -ForegroundColor Red -BackgroundColor White `n
   Start-Sleep 10
   exit
@@ -65,12 +64,12 @@ $applications = @(
   ("*Xbox*"),
   ("*zune*"),
   ("*zunemusic*"),
-    # For specific App Names:
-    ("Microsoft.Getstarted")
+  # For specific App Names:
+  ("Microsoft.Getstarted")
 )
 
 foreach ($application in $applications) {
-    Get-AppxPackage -allusers $application | Remove-AppxPackage
-    Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $application | Remove-AppxProvisionedPackage -Online
-    Write-Host "Currently cleaning $application, please wait" -ForegroundColor Yellow -BackgroundColor Darkcyan `n
+  Get-AppxPackage -allusers $application | Remove-AppxPackage
+  Get-AppxProvisionedPackage -Online | Where-Object DisplayName -like $application | Remove-AppxProvisionedPackage -Online
+  Write-Host "Currently cleaning $application, please wait" -ForegroundColor Yellow -BackgroundColor Darkcyan `n
 }

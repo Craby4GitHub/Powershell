@@ -64,7 +64,7 @@ function Get-JamfMobileDevicePreStageScopeByID($ID) {
 
 function Get-JamfMobileDevicePreStageScope {
     $auth = Get-JamfAuthPro
-    return Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/scope" -Method 'GET' -Headers $auth -ContentType application/json
+    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/scope" -Method 'GET' -Headers $auth -ContentType application/json).serialsByPrestageId
 }
 
 function Update-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
