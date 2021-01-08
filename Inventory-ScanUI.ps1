@@ -52,7 +52,7 @@ $Room_Dropdown.FlatStyle = 0
 $Room_Dropdown.Anchor = 'Left,Right'
 
 $PCC_Label = New-Object system.Windows.Forms.Label
-$PCC_Label.text = "PCC Number:"
+$PCC_Label.text = "PCC Number :"
 $PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $PCC_Label.AutoSize = $true
 $PCC_Label.Dock = 'Bottom'
@@ -99,26 +99,26 @@ $StatusBar.BackColor = '#3a4750'
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 5
-$LayoutPanel.RowCount = 6
-#$LayoutPanel.CellBorderStyle = 1
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+$LayoutPanel.RowCount = 7
+$LayoutPanel.CellBorderStyle = 1
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 3)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 
 $LayoutPanel.Controls.Add($Close_Button, 4, 0)
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 1)
-$LayoutPanel.Controls.Add($Room_Dropdown, 3, 1)
-$LayoutPanel.Controls.Add($PCC_Label, 1, 3)
-$LayoutPanel.Controls.Add($PCC_TextBox, 1, 4)
-$LayoutPanel.Controls.Add($Search_Button, 3, 3)
+$LayoutPanel.Controls.Add($Room_Dropdown, 1, 3)
+$LayoutPanel.Controls.Add($PCC_Label, 1, 4)
+$LayoutPanel.Controls.Add($PCC_TextBox, 1, 5)
+$LayoutPanel.Controls.Add($Search_Button, 3, 2)
 $LayoutPanel.SetRowSpan($Search_Button, 2)
 
 $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
