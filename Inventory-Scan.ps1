@@ -52,7 +52,7 @@ $Room_Dropdown.FlatStyle = 0
 $Room_Dropdown.Anchor = 'Left,Right'
 
 $PCC_Label = New-Object system.Windows.Forms.Label
-$PCC_Label.text = "PCC Number:"
+$PCC_Label.text = "PCC Number :"
 $PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $PCC_Label.AutoSize = $true
 $PCC_Label.Dock = 'Bottom'
@@ -77,6 +77,7 @@ $Search_Button.ForeColor = '#eeeeee'
 $Search_Button.Font = 'Segoe UI, 10pt, style=Bold'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
+$Form.AcceptButton = $Search_Button
 
 $Close_Button = New-Object system.Windows.Forms.Button
 $Close_Button.text = "X"
@@ -92,31 +93,32 @@ $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
 $StatusBar.Dock = 'Bottom'
 $StatusBar.BackColor = '#3a4750'
+#$StatusBar.ForeColor = '#eeeeee'
 
 #Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 5
-$LayoutPanel.RowCount = 6
+$LayoutPanel.RowCount = 7
 #$LayoutPanel.CellBorderStyle = 1
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 2)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 11)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 3)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 3)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 4)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 
-$LayoutPanel.Controls.Add($Close_Button, 4, 0)
+$LayoutPanel.Controls.Add($Close_Button, 6, 0)
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 1)
-$LayoutPanel.Controls.Add($Room_Dropdown, 3, 1)
-$LayoutPanel.Controls.Add($PCC_Label, 1, 3)
-$LayoutPanel.Controls.Add($PCC_TextBox, 1, 4)
-$LayoutPanel.Controls.Add($Search_Button, 3, 3)
+$LayoutPanel.Controls.Add($Room_Dropdown, 1, 3)
+$LayoutPanel.Controls.Add($PCC_Label, 1, 4)
+$LayoutPanel.Controls.Add($PCC_TextBox, 1, 5)
+$LayoutPanel.Controls.Add($Search_Button, 3, 2)
 $LayoutPanel.SetRowSpan($Search_Button, 2)
 
 $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
@@ -220,7 +222,7 @@ function Login_ITAM {
     )
     
 
-    do {
+    
         if ($FirstLogin) {
             $global:Credentials = Get-Credential
         }
@@ -229,7 +231,7 @@ function Login_ITAM {
     
         try {
             Write-Log -Message "Getting Username and Password elements"
-            $usernameElement = Get-SeElement -Driver $Driver -Wait -Timeout 10 -Id 'P101_USERNAME'
+            $usernameElement = Get-SeElement -Driver $Driver -Wait -Id 'P101_USERNAME'
             $passwordElement = Get-SeElement -Driver $Driver -Id 'P101_PASSWORD'
         }
         catch {
@@ -249,18 +251,7 @@ function Login_ITAM {
         catch {
             Write-Log -Message "Could not enter credentials into website" -Level WARN
         }
-    
-        try {
-            Write-Log -Message "Verifying login"
-            $LoginCheck = Get-SeElement -Driver $Driver -ClassName 'userBlock'
-        }
-        catch { 
-            Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
-        }
-        if ($null -eq $LoginCheck) {
-            Start-Sleep -Seconds 5
-        }
-    } until ($LoginCheck.Enabled)
+         
     
 }
 Function Find-Asset {
@@ -502,12 +493,12 @@ function Confirm-Asset {
                     Write-Log -Message 'Could not get asset page dropdown and select next page' -LogError $_.Exception.Message -Level ERROR
                 }
 
-                $AssestIndex = Find-Asset $PCCNumber $Campus $Room $page
-                if ($AssestIndex) {
+                $AssetIndex = Find-Asset $PCCNumber $Campus $Room $page
+                if ($AssetIndex) {
                     $StatusBar.Text = "$PCCNumber Found!"
                     try {
                         Write-Log -Message 'Clicking Verify and Submit button'
-                        Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
+                        Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
                         Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
 
                         $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
@@ -525,18 +516,17 @@ function Confirm-Asset {
                     Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
                     Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
                 }
-
             }
-        } until (($null -ne $AssestIndex) -or $Global:Cancelled)
+        } until (($null -ne $AssetIndex) -or $Global:Cancelled)
     }
     else {
         do {
-            $AssestIndex = Find-Asset $PCCNumber $Campus $Room
-            if ($AssestIndex) {
+            $AssetIndex = Find-Asset $PCCNumber $Campus $Room
+            if ($AssetIndex) {
                 $StatusBar.Text = "$PCCNumber Found!"
                 try {
                     Write-Log -Message 'Clicking Verify and Submit button'
-                    Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssestIndex)_0001" | Invoke-SeClick
+                    Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
                     Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
 
                     $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
@@ -553,7 +543,7 @@ function Confirm-Asset {
                 Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
                 Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
             }
-        } until (($null -ne $AssestIndex) -or $Global:Cancelled) 
+        } until (($null -ne $AssetIndex) -or $Global:Cancelled) 
     }
 }
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
@@ -664,7 +654,7 @@ $Search_Button.Add_MouseUp( {
 
             try {
                 Write-Log -Message 'Reloading Inventory page so data is always updated'
-                Open-SeUrl -Driver $Driver -Url ($Inventory_URL + ":1:$($loginInstance)::NO:RP::")
+                #Open-SeUrl -Driver $Driver -Url ($Inventory_URL + ":1:$($loginInstance)::NO:RP::")
             }
             catch {
                 Write-Log -Message 'Could not reload Inventory Page' -LogError $_.Exception.Message -Level ERROR
