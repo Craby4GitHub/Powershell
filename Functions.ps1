@@ -14,12 +14,10 @@ function Add-ComputersToSecurityGroupFromOU($SecurityGroup) {
 
 }
 
-
 function Get-ADComputers($ComputerName) {
     Import-Module activedirectory
     return (Get-ADComputer -filter { Name -like $ComputerName }).Name
 }
-
 
 function Get-MappedDrives($ComputerName) {
     #Ping remote machine, continue if available
