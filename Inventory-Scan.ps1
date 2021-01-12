@@ -440,9 +440,7 @@ function Update-Asset {
             catch {
                 Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
             }
-            write-host 'looop'
-            $LayoutPanel_Popup.Enabled = $false
-            #$AssetUpdate_Popup.Close()
+            $AssetUpdate_Popup.Close()
             $StatusBar.Text = 'Ready'
         })
 
@@ -470,8 +468,7 @@ function Update-Asset {
             }
 
             $Global:Cancelled = $true
-            $LayoutPanel_Popup.Enabled = $false
-            #$AssetUpdate_Popup.Close()
+            $AssetUpdate_Popup.Close()
             $StatusBar.Text = 'Ready'
         })
     [void]$AssetUpdate_Popup.ShowDialog()
