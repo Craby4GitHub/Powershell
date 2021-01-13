@@ -1,5 +1,4 @@
 #region GUI
-#https://colorhunt.co/
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
@@ -64,36 +63,27 @@ $Desc_Group.text = "Description of Issue"
 $Desc_Group.Dock = 'Fill'
 $Desc_Group.Controls.Add($Desc_Text)
 
-$Current_Issues = New-Object system.Windows.Forms.DataGridView
-$Current_Issues.ScrollBars = "Vertical"
-$Current_Issues.AutoSizeColumnsMode = 'Fill'
-$Current_Issues.RowHeadersVisible = $false
-$Current_Issues.ColumnCount = 3
-$Current_Issues.Columns[0].Name = 'Equipment'
-$Current_Issues.Columns[1].Name = 'Issue'
-$Current_Issues.Columns[2].Name = 'Submitted'
-$Current_Issues.Columns[2].DefaultCellStyle.Format = "ddMMMyy hh:mm tt"
-$Current_Issues.TabStop = $false
-$Current_Issues.Dock = 'Fill'
-$Current_Issues.Anchor = 'Left,Right'
-$Current_Issues_Group = New-Object system.Windows.Forms.Groupbox
-$Current_Issues_Group.text = "Current Issues"
-$Current_Issues_Group.Dock = 'Fill'
-$Current_Issues_Group.Controls.Add($Current_Issues)
+$Issue_History = New-Object system.Windows.Forms.DataGridView
+$Issue_History.ScrollBars = "Vertical"
+$Issue_History.AutoSizeColumnsMode = 'Fill'
+$Issue_History.RowHeadersVisible = $false
+$Issue_History.ColumnCount = 3
+$Issue_History.Columns[0].Name = 'Equipment'
+$Issue_History.Columns[1].Name = 'Issue'
+$Issue_History.Columns[2].Name = 'Submitted'
+$Issue_History.Columns[2].DefaultCellStyle.Format = "ddMMMyy hh:mm tt"
+$Issue_History.TabStop = $false
+$Issue_History.Dock = 'Fill'
+$Issue_History.Anchor = 'Left,Right'
+$Issue_History_Group = New-Object system.Windows.Forms.Groupbox
+$Issue_History_Group.text = "Current Issues"
+$Issue_History_Group.Dock = 'Fill'
+$Issue_History_Group.Controls.Add($Issue_History)
 
 $Submit_Button = New-Object system.Windows.Forms.Button
 $Submit_Button.text = "Submit"
 $Submit_Button.Dock = 'Fill'
 $Submit_Button.Anchor = 'Left,Right'
-
-$Feedback_Button = New-Object system.Windows.Forms.Button
-$Feedback_Button.Dock = 'Right'
-$Feedback_Button.Anchor = 'Right'
-
-$FeedBack_Tooltip = New-Object system.Windows.Forms.ToolTip
-$FeedBack_Tooltip.ToolTipTitle = "Repair Form Feedback"
-$FeedBack_Tooltip.isBalloon = $true
-$FeedBack_Tooltip.SetToolTip($Feedback_Button, "Submit feedback about this ticket program")
 
 $Form.AcceptButton = $Submit_Button
 
@@ -108,23 +98,22 @@ $LayoutPanel.Controls.Add($Equipment_Group, 5, 0)
 $LayoutPanel.Controls.Add($Desc_Group, 1, 1)
 $LayoutPanel.SetColumnSpan($Desc_Group, 5)
 
-$LayoutPanel.Controls.Add($Current_Issues_Group, 1, 2)
-$LayoutPanel.SetColumnSpan($Current_Issues_Group, 5)
+$LayoutPanel.Controls.Add($Issue_History_Group, 1, 2)
+$LayoutPanel.SetColumnSpan($Issue_History_Group, 5)
 
 $LayoutPanel.Controls.Add($Submit_Button, 3, 3)
-$LayoutPanel.Controls.Add($Feedback_Button, 5, 3)
-
 #endregion
 
 #region UI Theme
-$Theme = Get-Content -Path $PSScriptRoot\theme.json | ConvertFrom-Json
-$Form.Font = $Theme.Form.Font
+$Theme = Get-Content -Path .\theme.json | ConvertFrom-Json
 
-if ($null -eq $Theme.LayoutPanel.BackColor) {
-    $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $PSScriptRoot\$($Theme.LayoutPanel.BackgroundImage)))
+$Form.Font =  $Theme.Form.Font
+
+if ($Theme.LayoutPanel.BackgroundImage.Length -ge $Theme.LayoutPanel.BackColor.Length) {
+    $LayoutPanel.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.LayoutPanel.BackgroundImage)))
     $LayoutPanel.BackgroundImageLayout = 'Stretch'
 }
-else {
+else{
     $LayoutPanel.BackColor = $Theme.LayoutPanel.BackColor
 }
 
@@ -133,124 +122,125 @@ else {
 $ID_Num_Text.Font = $Theme.ID_Num_Text.Font
 $ID_Num_Text.ForeColor = $Theme.ID_Num_Text.ForeColor
 $ID_Num_Text.BorderStyle = 1
-if ($null -eq $Theme.ID_Num_Text.BackColor) {
+if ($Theme.ID_Num_Text.BackgroundImage.Length -ge $Theme.ID_Num_Text.BackColor.Length) {
     $ID_Num_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Text.BackgroundImage)))
     $ID_Num_Text.BackgroundImageLayout = 'Stretch'
 }
-else {
+else{
     $ID_Num_Text.BackColor = $Theme.ID_Num_Text.BackColor
 }
 
-$ID_Num_Group.Font = $Theme.ID_Num_Group.Font
-$ID_Num_Group.ForeColor = $Theme.ID_Num_Group.ForeColor
-if ($null -eq $Theme.ID_Num_Group.BackColor) {
+$ID_Num_Group.Font =  $Theme.ID_Num_Group.Font
+$ID_Num_Group.ForeColor =  $Theme.ID_Num_Group.ForeColor
+if ($Theme.ID_Num_Group.BackgroundImage.Length -ge $Theme.ID_Num_Group.BackColor.Length) {
     $ID_Num_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.ID_Num_Group.BackgroundImage)))
     $ID_Num_Group.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $ID_Num_Group.BackColor = $Theme.ID_Num_Group.BackColor
+else{
+    $ID_Num_Group.BackColor =  $Theme.ID_Num_Group.BackColor
 }
 
-$Location_Dropdown.Font = $Theme.Location_Dropdown.Font
+$Location_Dropdown.Font =  $Theme.Location_Dropdown.Font
 $Location_Dropdown.ForeColor = $Theme.Location_Dropdown.ForeColor
 $Location_Dropdown.FlatStyle = 0
-if ($null -eq $Theme.Location_Dropdown.BackColor) {
+if ($Theme.Location_Dropdown.BackgroundImage.Length -ge $Theme.Location_Dropdown.BackColor.Length) {
     $Location_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Dropdown.BackgroundImage)))
     $Location_Dropdown.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Location_Dropdown.BackColor = $Theme.Location_Dropdown.BackColor
+else{
+    $Location_Dropdown.BackColor =  $Theme.Location_Dropdown.BackColor
 }
 
-$Location_Group.Font = $Theme.Location_Group.Font
+$Location_Group.Font =  $Theme.Location_Group.Font
 $Location_Group.ForeColor = $Theme.Location_Group.ForeColor
-if ($null -eq $Theme.Location_Group.BackColor) {
+if ($Theme.Location_Group.BackgroundImage.Length -ge $Theme.Location_Group.BackColor.Length) {
     $Location_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Location_Group.BackgroundImage)))
     $Location_Group.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Location_Group.BackColor = $Theme.Location_Group.BackColor
+else{
+    $Location_Group.BackColor =  $Theme.Location_Group.BackColor
 }
 
-$Equipment_Dropdown.Font = $Theme.Equipment_Dropdown.Font
+$Equipment_Dropdown.Font =  $Theme.Equipment_Dropdown.Font
 $Equipment_Dropdown.ForeColor = $Theme.Equipment_Dropdown.ForeColor
 $Equipment_Dropdown.FlatStyle = 0
-if ($null -eq $Theme.Equipment_Dropdown.BackColor) {
+if ($Theme.Equipment_Dropdown.BackgroundImage.Length -ge $Theme.Equipment_Dropdown.BackColor.Length) {
     $Equipment_Dropdown.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Dropdown.BackgroundImage)))
     $Equipment_Dropdown.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Equipment_Dropdown.BackColor = $Theme.Equipment_Dropdown.BackColor
+else{
+    $Equipment_Dropdown.BackColor =  $Theme.Equipment_Dropdown.BackColor
 }
 
-$Equipment_Group.Font = $Theme.Equipment_Group.Font
+$Equipment_Group.Font =  $Theme.Equipment_Group.Font
 $Equipment_Group.ForeColor = $Theme.Equipment_Group.ForeColor
-if ($null -eq $Theme.Equipment_Group.BackColor) {
+if ($Theme.Equipment_Group.BackgroundImage.Length -ge $Theme.Equipment_Group.BackColor.Length) {
     $Equipment_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Equipment_Group.BackgroundImage)))
     $Equipment_Group.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Equipment_Group.BackColor = $Theme.Equipment_Group.BackColor
+else{
+    $Equipment_Group.BackColor =  $Theme.Equipment_Group.BackColor
 }
 
-$Desc_Text.Font = $Theme.Desc_Text.Font
+$Desc_Text.Font =  $Theme.Desc_Text.Font
 $Desc_Text.ForeColor = $Theme.Desc_Text.ForeColor
 $Desc_Text.BorderStyle = 1
-if ($null -eq $Theme.Desc_Text.BackColor) {
+if ($Theme.Desc_Text.BackgroundImage.Length -ge $Theme.Desc_Text.BackColor.Length) {
     $Desc_Text.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Text.BackgroundImage)))
     $Desc_Text.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Desc_Text.BackColor = $Theme.Desc_Text.BackColor
+else{
+    $Desc_Text.BackColor =  $Theme.Desc_Text.BackColor
 }
 
-$Desc_Group.Font = $Theme.Desc_Group.Font
+$Desc_Group.Font =  $Theme.Desc_Group.Font
 $Desc_Group.ForeColor = $Theme.Desc_Group.ForeColor
-if ($null -eq $Theme.Desc_Group.BackColor) {
+if ($Theme.Desc_Group.BackgroundImage.Length -ge $Theme.Desc_Group.BackColor.Length) {
     $Desc_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Desc_Group.BackgroundImage)))
     $Desc_Group.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Desc_Group.BackColor = $Theme.Desc_Group.BackColor
+else{
+    $Desc_Group.BackColor =  $Theme.Desc_Group.BackColor
 }
 
-$Current_Issues.Font = $Theme.Current_Issues.Font
-$Current_Issues.ForeColor = $Theme.Current_Issues.ForeColor
-if ($null -eq $Theme.Current_Issues.BackColor) {
-    $Current_Issues.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Current_Issues.BackgroundImage)))
-    $Current_Issues.BackgroundImageLayout = 'Stretch'
+$Issue_History.Font =  $Theme.Issue_History.Font
+$Issue_History.ForeColor = $Theme.Issue_History.ForeColor
+if ($Theme.Issue_History.BackgroundImage.Length -ge $Theme.Issue_History.BackColor.Length) {
+    $Issue_History.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History.BackgroundImage)))
+    $Issue_History.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Current_Issues.BackColor = $Theme.Current_Issues.BackColor
+else{
+    $Issue_History.BackColor =  $Theme.Issue_History.BackColor
 }
-$Current_Issues.GridColor = $Theme.Current_Issues.GridColor
-$Current_Issues.RowsDefaultCellStyle.Backcolor = $Theme.Current_Issues.RowsDefaultCellStyleBackcolor
-$Current_Issues.RowsDefaultCellStyle.Forecolor = $Theme.Current_Issues.RowsDefaultCellStyleForecolor
+$Issue_History.GridColor = $Theme.Issue_History.GridColor
+$Issue_History.RowsDefaultCellStyle.Backcolor  = $Theme.Issue_History.RowsDefaultCellStyleBackcolor
+$Issue_History.RowsDefaultCellStyle.Forecolor = $Theme.Issue_History.RowsDefaultCellStyleForecolor
 
-$Current_Issues.ColumnHeadersDefaultCellStyle.Backcolor = $Theme.Current_Issues.ColumnHeadersDefaultCellStyleBackcolor
-$Current_Issues.ColumnHeadersDefaultCellStyle.Forecolor = $Theme.Current_Issues.ColumnHeadersDefaultCellStyleForecolor
-$Current_Issues.EnableHeadersVisualStyles = $false
-#$Current_Issues.ColumnHeadersBorderStyle = "1"  
+$Issue_History.ColumnHeadersDefaultCellStyle.Backcolor  = $Theme.Issue_History.ColumnHeadersDefaultCellStyleBackcolor
+$Issue_History.ColumnHeadersDefaultCellStyle.Forecolor = $Theme.Issue_History.ColumnHeadersDefaultCellStyleForecolor
+$Issue_History.EnableHeadersVisualStyles = $false
+#$Issue_History.ColumnHeadersBorderStyle = "1"  
 
-$Current_Issues_Group.Font = $Theme.Current_Issues_Group.Font
-$Current_Issues_Group.ForeColor = $Theme.Current_Issues_Group.ForeColor
-if ($null -eq $Theme.Current_Issues_Group.BackColor) {
-    $Current_Issues_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Current_Issues_Group.BackgroundImage)))
-    $Current_Issues_Group.BackgroundImageLayout = 'Stretch'
+$Issue_History_Group.Font =  $Theme.Issue_History_Group.Font
+$Issue_History_Group.ForeColor = $Theme.Issue_History_Group.ForeColor
+if ($Theme.Issue_History_Group.BackgroundImage.Length -ge $Theme.Issue_History_Group.BackColor.Length) {
+    $Issue_History_Group.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Issue_History_Group.BackgroundImage)))
+    $Issue_History_Group.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Current_Issues_Group.BackColor = $Theme.Current_Issues_Group.BackColor
+else{
+    $Issue_History_Group.BackColor =  $Theme.Issue_History_Group.BackColor
 }
 
-$Submit_Button.Font = $Theme.Submit_Button.Font
+$Submit_Button.Font =  $Theme.Submit_Button.Font
 $Submit_Button.ForeColor = $Theme.Submit_Button.ForeColor
 $Submit_Button.FlatStyle = 1
 $Submit_Button.FlatAppearance.BorderSize = 0
-if ($null -eq $Theme.Submit_Button.BackColor) {
+if ($Theme.Submit_Button.BackgroundImage.Length -ge $Theme.Submit_Button.BackColor.Length) {
     $Submit_Button.BackgroundImage = [System.Drawing.Image]::Fromfile((get-item $($Theme.Submit_Button.BackgroundImage)))
     $Submit_Button.BackgroundImageLayout = 'Stretch'
 }
-else {
-    $Submit_Button.BackColor = $Theme.Submit_Button.BackColor
+else{
+    $Submit_Button.BackColor =  $Theme.Submit_Button.BackColor
 }
 #endregion
+$form.ShowDialog()
