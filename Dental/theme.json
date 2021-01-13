@@ -1,76 +1,81 @@
 {
+    "Form": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "Font": "Segoe UI, 8pt"
+    },
     "LayoutPanel": {
         "BackgroundImage": "",
-        "BackColor": "#204051"
+        "BackColor": "#ffd57e"
     },
     "ID_Num_Text": {
         "BackgroundImage": "",
-        "BackColor": "#e4e3e3",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "ID_Num_Group": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Location_Dropdown": {
         "BackgroundImage": "",
-        "BackColor": "#e4e3e3",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Location_Group": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Equipment_Dropdown": {
         "BackgroundImage": "",
-        "BackColor": "#e4e3e3",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Equipment_Group": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Desc_Text": {
         "BackgroundImage": "",
-        "BackColor": "#e4e3e3",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Desc_Group": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
-    "Current_Issues": {
+    "Issue_History": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
-        "ForeColor": "#000000",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#ffd57e",
         "Font": "Segoe UI, 8pt",
-        "GridColor":"#3b6978",
-        "RowsDefaultCellStyleBackcolor":"#e4e3e3",
+        "GridColor":"#ffd57e",
+        "RowsDefaultCellStyleBackcolor":"#ffd57e",
         "RowsDefaultCellStyleForecolor":"#000000",
-        "ColumnHeadersDefaultCellStyleBackcolor": "#e4e3e3",
-        "ColumnHeadersDefaultCellStyleForecolor": "#000000"
+        "ColumnHeadersDefaultCellStyleBackcolor": "#ffd57e",
+        "ColumnHeadersDefaultCellStyleForecolor": "#ffd57e"
     },
-    "Current_Issues_Group": {
+    "Issue_History_Group": {
         "BackgroundImage": "",
-        "BackColor": "#84a9ac",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     },
     "Submit_Button": {
         "BackgroundImage": "",
-        "BackColor": "#e4e3e3",
+        "BackColor": "#ffd57e",
         "ForeColor": "#000000",
         "Font": "Segoe UI, 8pt"
     }
