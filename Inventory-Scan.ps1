@@ -207,7 +207,6 @@ $LayoutPanel_Popup.Controls.Add($Assigneduser_TextBoxLabel_Popup, 1, 0)
 $LayoutPanel_Popup.Controls.Add($Status_DropdownLabel_Popup, 0, 0)
 $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
-$LayoutPanel_Popup.Enabled = $false
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
 
 $LayoutPanel.Controls.Add($Close_Button, 4, 0)
@@ -425,6 +424,7 @@ function Update-Asset {
                 Write-Log -Message 'Opening Inventory site'
                 Open-SeUrl -Driver $Driver -Url $Inventory_URL
                 Login_ITAM
+                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
             }
             catch {
                 Write-Log -Message 'Could not open Inventory ITAM site' -LogError $_.Exception.Message -Level FATAL
@@ -451,6 +451,7 @@ function Update-Asset {
                 Write-Log -Message 'Opening Inventory site'
                 Open-SeUrl -Driver $Driver -Url $Inventory_URL
                 Login_ITAM
+                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
             }
             catch {
                 Write-Log -Message 'Could not open Inventory ITAM site' -LogError $_.Exception.Message -Level FATAL
@@ -507,7 +508,7 @@ function Confirm-Asset {
         Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
         Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room,'Update'"
         $PCC_TextBox.Select()
-        #Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
+        Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
     }
 }
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
@@ -636,8 +637,8 @@ $Campus_Dropdown_SelectedIndexChanged = {
     try {
         $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION"
         Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
-        $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-        $RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
+        $RoomDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM").text.split("`n")
+        #$RoomDropDownOptions_Element = Get-SeSelectionOption -Element $RoomDropDown_Element -ListOptionText
     }
     catch {
         Write-Log -Message 'Could not load campus/room for UI dropdowns' -LogError $_.Exception.Message -Level ERROR
@@ -645,7 +646,7 @@ $Campus_Dropdown_SelectedIndexChanged = {
 
     $Room_Dropdown.Text = 'Select Room'
     $Room_Dropdown.Items.Clear()
-    $Room_Dropdown.Items.AddRange($RoomDropDownOptions_Element)
+    $Room_Dropdown.Items.AddRange($RoomDropDown_Element)
     $Room_Dropdown.Enabled = $true
 }
 $Campus_Dropdown.add_SelectedIndexChanged($Campus_Dropdown_SelectedIndexChanged)
