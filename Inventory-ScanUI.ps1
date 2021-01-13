@@ -64,7 +64,7 @@ $PCC_TextBox.multiline = $false
 #$PCC_TextBox.Font = 'Segoe UI, 15pt'
 $PCC_TextBox.backcolor = '#1b3666'
 $PCC_TextBox.Text = 'PCC Number'
-$PCC_TextBox.ForeColor = '#8c8c8c' 
+$PCC_TextBox.ForeColor = '#a3a3a3' 
 $PCC_TextBox.Dock = 'Fill'
 $PCC_TextBox.TabIndex = 3
 $PCC_TextBox.BorderStyle = 1
@@ -86,7 +86,7 @@ $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
 $StatusBar.Font = 'Segoe UI, 12pt'
 $StatusBar.Dock = 'Bottom'
-$StatusBar.backcolor = '#3ba36d'
+$StatusBar.backcolor = '#1b3666'
 #$StatusBar.ForeColor = '#eeeeee'
 
 #Region Panel
@@ -96,14 +96,14 @@ $LayoutPanel.ColumnCount = 3
 $LayoutPanel.RowCount = 5
 $LayoutPanel.CellBorderStyle = 1
 
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 2)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, .25)))
 
 
 #EndRegion 
@@ -111,10 +111,10 @@ $LayoutPanel.CellBorderStyle = 1
 #region Assest Update Popup
 $AssetUpdate_Popup = New-Object system.Windows.Forms.Form
 $AssetUpdate_Popup.Text = 'Asset Update'
-$AssetUpdate_Popup.BackColor = '#303841'
+$AssetUpdate_Popup.BackColor = '#324e7a'
 $AssetUpdate_Popup.ForeColor = '#eeeeee' 
 $AssetUpdate_Popup.FormBorderStyle = "FixedDialog"
-$AssetUpdate_Popup.ClientSize = "250,100"
+$AssetUpdate_Popup.ClientSize = "396,220"
 $AssetUpdate_Popup.TopMost = $true
 $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
@@ -129,15 +129,15 @@ $Status_DropdownLabel_Popup.Dock = 'Bottom'
 $Status_Dropdown_Popup = New-Object System.Windows.Forms.ComboBox
 $Status_Dropdown_Popup.DropDownStyle = 'DropDown'
 $Status_Dropdown_Popup.text = "Status"
-$Status_Dropdown_Popup.backcolor = '#3ba36d'
+$Status_Dropdown_Popup.backcolor = '#1b3666'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
 $Status_Dropdown_Popup.TabIndex = 1
 $Status_Dropdown_Popup.Dock = "Fill"
 $Status_Dropdown_Popup.FlatStyle = 0
-$Status_Dropdown_Popup.Anchor = 'Left,Right'
-$Status_Dropdown_Popup.Font = 'Segoe UI, 10pt'
+$Status_Dropdown_Popup.Anchor = 'Top, Left, Right'
+$Status_Dropdown_Popup.Font = 'Segoe UI, 18pt'
 
 $Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
 $Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
@@ -149,8 +149,9 @@ $Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
 $Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
 $Assigneduser_TextBox_Popup.multiline = $false
 $Assigneduser_TextBox_Popup.text = "Assigned User"
-$Assigneduser_TextBox_Popup.backcolor = '#3ba36d'
-$Assigneduser_TextBox_Popup.ForeColor = '#616161' 
+$Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
+$Assigneduser_TextBox_Popup.backcolor = '#1b3666'
+$Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
 $Assigneduser_TextBox_Popup.Dock = 'Top'
 $Assigneduser_TextBox_Popup.TabIndex = 2
 $Assigneduser_TextBox_Popup.BorderStyle = 1
@@ -158,7 +159,7 @@ $Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.text = "OK"
-$OK_Button_Popup.BackColor = '#00adb5'
+$OK_Button_Popup.BackColor = '#616161'
 $OK_Button_Popup.ForeColor = '#eeeeee' 
 $OK_Button_Popup.Dock = 'Fill'
 $OK_Button_Popup.TabIndex = 3
@@ -170,7 +171,7 @@ $AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
 $Cancel_Button_Popup.text = "Cancel"
 $Cancel_Button_Popup.Font = 'Segoe UI, 18pt'
-$Cancel_Button_Popup.backcolor = '#3ba36d'
+$Cancel_Button_Popup.backcolor = '#1b3666'
 $Cancel_Button_Popup.ForeColor = '#eeeeee' 
 $Cancel_Button_Popup.Dock = 'Fill'
 $Cancel_Button_Popup.TabIndex = 4
@@ -179,21 +180,25 @@ $Cancel_Button_Popup.FlatAppearance.BorderSize = 0
 
 $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
-$LayoutPanel_Popup.ColumnCount = 2
-$LayoutPanel_Popup.RowCount = 3
+$LayoutPanel_Popup.ColumnCount = 4
+$LayoutPanel_Popup.RowCount = 4
 $LayoutPanel_Popup.CellBorderStyle = 1
-[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
+[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
-$LayoutPanel_Popup.Controls.Add($Assigneduser_TextBox_Popup, 0, 0)
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+
+$LayoutPanel_Popup.Controls.Add($Assigneduser_TextBox_Popup, 1, 0)
 $LayoutPanel_Popup.SetColumnSpan($Assigneduser_TextBox_Popup, 2)
-$LayoutPanel_Popup.Controls.Add($Status_Dropdown_Popup, 0, 1)
+$LayoutPanel_Popup.Controls.Add($Status_Dropdown_Popup, 1, 1)
 $LayoutPanel_Popup.SetColumnSpan($Status_Dropdown_Popup, 2)
-$LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
-$LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
+$LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 1, 2)
+$LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 2, 2)
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
 
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
@@ -204,7 +209,7 @@ $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
 
 @('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Room_Dropdown.Items.Add($_) }
 @('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Campus_Dropdown.Items.Add($_) }
-
+@('1', '2', '3', '4', '5') | ForEach-Object { [void] $Status_Dropdown_Popup.Items.Add($_) }
 $Search_Button.Add_MouseUp( {
         $AssetUpdate_Popup.ShowDialog()
     })
