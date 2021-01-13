@@ -18,22 +18,13 @@ $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
 $Form.ForeColor = '#eeeeee' 
-$Form.FormBorderStyle = 'None'
-$Form.ClientSize = New-Object System.Drawing.Point(378,659)
-
-$Titlebar = New-Object System.Windows.Forms.
-$StatusBar.Text = "ITAM"
-$StatusBar.SizingGrip = $false
-$StatusBar.Font = 'Segoe UI, 12pt'
-$StatusBar.Dock = 'Bottom'
-$StatusBar.backcolor = '#3ba36d'
-#$StatusBar.ForeColor = '#eeeeee'
+$Form.FormBorderStyle = 'SizableToolWindow'
+$Form.ClientSize = New-Object System.Drawing.Point(378, 659)
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
 #$Campus_Dropdown.DropDownHeight = $Campus_Dropdown.ItemHeight * 5
 $Campus_Dropdown.ItemHeight = 3000
-@('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $Campus_Dropdown.Items.Add($_)}
 $Campus_Dropdown.Text = 'Select Campus'
 #$Campus_Dropdown.Font = 'Segoe UI, 18pt'
 $Campus_Dropdown.backcolor = '#1b3666'
@@ -56,7 +47,6 @@ $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
 #$Room_Dropdown.DropDownHeight = $Room_Dropdown.ItemHeight * 5
 $Room_Dropdown.ItemHeight = 3000
-@('1','2','3','4','5','6','7','8','9','10','11','12','13','14','15') | ForEach-Object {[void] $Room_Dropdown.Items.Add($_)}
 $Room_Dropdown.Text = 'Select Room'
 #$Room_Dropdown.Font = 'Segoe UI, 18pt'
 $Room_Dropdown.backcolor = '#1b3666'
@@ -68,13 +58,6 @@ $Room_Dropdown.Dock = "Fill"
 #$Room_Dropdown.Enabled = $false
 $Room_Dropdown.FlatStyle = 0
 $Room_Dropdown.Anchor = 'Left,Right'
-
-#$PCC_Label = New-Object system.Windows.Forms.Label
-$PCC_Label.text = "PCC Number:"
-#$PCC_Label.Font = 'Segoe UI, 10pt, style=Bold'
-$PCC_Label.AutoSize = $true
-$PCC_Label.Dock = 'Bottom'
-$PCC_Label.Anchor = 'Bottom'
 
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
@@ -98,15 +81,6 @@ $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
 
-$Close_Button = New-Object system.Windows.Forms.Button
-$Close_Button.text = "X"
-$Close_Button.Dock = 'Fill'
-$Close_Button.BackColor = '#303841'
-#$Close_Button.Font = 'Segoe UI, 8pt, style=Bold'
-$Close_Button.FlatStyle = 0
-$Close_Button.FlatAppearance.BorderSize = 1
-$Close_Button.FlatAppearance.BorderColor = '#3a4750'
-
 $StatusBar = New-Object System.Windows.Forms.StatusBar
 $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
@@ -115,7 +89,7 @@ $StatusBar.Dock = 'Bottom'
 $StatusBar.backcolor = '#3ba36d'
 #$StatusBar.ForeColor = '#eeeeee'
 
-Region Panel
+#Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 3
@@ -163,7 +137,7 @@ $Status_Dropdown_Popup.TabIndex = 1
 $Status_Dropdown_Popup.Dock = "Fill"
 $Status_Dropdown_Popup.FlatStyle = 0
 $Status_Dropdown_Popup.Anchor = 'Left,Right'
-$Status_Dropdown_Popup.Font = 'Segoe UI, 18pt'
+$Status_Dropdown_Popup.Font = 'Segoe UI, 10pt'
 
 $Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
 $Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
@@ -211,33 +185,25 @@ $LayoutPanel_Popup.CellBorderStyle = 1
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 [void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
 [void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
 
-$LayoutPanel_Popup.Controls.Add($Assigneduser_TextBox_Popup, 0, 1)
-$LayoutPanel_Popup.Controls.Add($Status_Dropdown_Popup, 0, 0)
-$LayoutPanel.SetRowSpan($Assigneduser_TextBox_Popup, 1)
-$LayoutPanel.SetRowSpan($Status_Dropdown_Popup, 1)
-#$LayoutPanel_Popup.Controls.Add($Assigneduser_TextBoxLabel_Popup, 1, 0)
-#$LayoutPanel_Popup.Controls.Add($Status_DropdownLabel_Popup, 0, 0)
+$LayoutPanel_Popup.Controls.Add($Assigneduser_TextBox_Popup, 0, 0)
+$LayoutPanel_Popup.SetColumnSpan($Assigneduser_TextBox_Popup, 2)
+$LayoutPanel_Popup.Controls.Add($Status_Dropdown_Popup, 0, 1)
+$LayoutPanel_Popup.SetColumnSpan($Status_Dropdown_Popup, 2)
 $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 0, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 1, 2)
-
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
 
-$LayoutPanel.Controls.Add($Close_Button, 4, 0)
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
-#$LayoutPanel.Controls.Add($Room_Label, 3,0 )
 $LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
-#$LayoutPanel.Controls.Add($PCC_Label, 1, 2)
-#$LayoutPanel.Controls.Add($LayoutPanel_Popup, 1, 4)
 $LayoutPanel.Controls.Add($PCC_TextBox, 1, 2)
-#$LayoutPanel.SetColumnSpan($PCC_TextBox, 2)
 $LayoutPanel.Controls.Add($Search_Button, 1, 3)
-#$LayoutPanel.SetRowSpan($Search_Button, 2)
-#$LayoutPanel.SetColumnSpan($Search_Button, 3)
-
 $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
+
+@('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Room_Dropdown.Items.Add($_) }
+@('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Campus_Dropdown.Items.Add($_) }
 
 $Search_Button.Add_MouseUp( {
         $AssetUpdate_Popup.ShowDialog()
@@ -247,30 +213,12 @@ $OK_Button_Popup.Add_MouseUp( {
         $AssetUpdate_Popup.Close()
     })
 
-
-$Close_Button.Add_MouseUp( {
-        $Form.Close()
-    })
-#region Window Drag
-$global:dragging = $false
-$global:mouseDragX = 0
-$global:mouseDragY = 0
-
-$LayoutPanel.Add_MouseDown( { 
-        $global:dragging = $true
-        $global:mouseDragX = [System.Windows.Forms.Cursor]::Position.X - $form.Left
-        $global:mouseDragY = [System.Windows.Forms.Cursor]::Position.Y - $form.Top
+$PCC_TextBox.Add_MouseDown( {
+        $PCC_TextBox.clear()
     })
 
-$LayoutPanel.Add_MouseMove( { if ($global:dragging) {
-            $screen = [System.Windows.Forms.Screen]::PrimaryScreen.WorkingArea
-            $currentX = [System.Windows.Forms.Cursor]::Position.X
-            $currentY = [System.Windows.Forms.Cursor]::Position.Y
-            [int]$newX = [Math]::Min($currentX - $global:mouseDragX, $screen.Right - $form.Width)
-            [int]$newY = [Math]::Min($currentY - $global:mouseDragY, $screen.Bottom - $form.Height)
-            $form.Location = New-Object System.Drawing.Point($newX, $newY)
-        } })
+$Assigneduser_TextBox_Popup.Add_MouseDown( {
+        $Assigneduser_TextBox_Popup.clear()
+    })
 
-$LayoutPanel.Add_MouseUp( { $global:dragging = $false })
-#endregion
 [void]$Form.ShowDialog()
