@@ -220,10 +220,12 @@ $OK_Button_Popup.Add_MouseUp( {
 
 $PCC_TextBox.Add_MouseDown( {
         $PCC_TextBox.clear()
+        $PCC_TextBox.Forecolor = '#eeeeee'
     })
 
 $Assigneduser_TextBox_Popup.Add_MouseDown( {
         $Assigneduser_TextBox_Popup.clear()
+        $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
     })
 
 [void]$Form.ShowDialog()
