@@ -47,6 +47,12 @@ function Get-MappedDrives($ComputerName) {
     else { "Can't connect to $($ComputerName)" }
 }
 
+function Get-Module($ModuleName) {
+  If (-not(Get-InstalledModule $ModuleName -ErrorAction silentlycontinue)) {
+      Install-Module $ModuleName -Confirm:$False -Force -Scope CurrentUser
+  }
+}
+
 function Start-SCCMClientInventories {
 
 # This function automatically runs the SCCM task sequences 500 times every 20 seconds.
