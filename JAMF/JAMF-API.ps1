@@ -47,6 +47,24 @@ function Remove-JamfComputer($ID) {
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/computers/id/$ID" -Method 'DELETE' -Headers $Headers -ContentType application/json
 }
 
+function Get-JamfMobileGroups {
+    $Headers = Get-JamfAuthClassic
+    (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledevicegroups" -Method 'GET' -Headers $Headers -ContentType application/json).mobile_device_groups.mobile_device_group
+}
+
+function Get-JamfMobileGroupsByID($ID) {
+    $Headers = Get-JamfAuthClassic
+    (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledevicegroups/id/$ID" -Method 'GET' -Headers $Headers -ContentType application/json).mobile_device_group
+}
+
+function Update-JamfMobileGroups($ID, [array]$SerialNumbers) {
+    $Headers = Get-JamfAuthClassic
+
+    $body = @"
+    <mobile_device_additions>key</mobile_device_additions>
+"@
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledevicegroups/id/$ID" -Method 'PUT' -Headers $Headers -Body $body -ContentType application/xml
+}
 
 function Get-JamfMobileDevicePreStage {
     $auth = Get-JamfAuthPro
