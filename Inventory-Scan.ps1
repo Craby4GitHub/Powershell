@@ -1,7 +1,7 @@
-# https://www.powershellgallery.com/packages/Selenium/3.0.0
-
 #Requires -Modules Selenium
-#Install-Module -Name Selenium -RequiredVersion 3.0.0
+If (-not(Get-InstalledModule Selenium -ErrorAction silentlycontinue)) {
+    Install-Module Selenium -Confirm:$False -Force -Scope CurrentUser
+}
 
 #region UI
 Add-Type -AssemblyName System.Windows.Forms
@@ -13,21 +13,19 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.text = 'ITAM - Inventory Automation'
+$Form.Text = 'Inventory Scanning'
+$Form.ClientSize = "200,330"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
 $Form.ForeColor = '#eeeeee' 
-$Form.FormBorderStyle = 'SizableToolWindow'
-$Form.ClientSize = New-Object System.Drawing.Point(378, 659)
+$Form.FormBorderStyle = 'Sizable'
 
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
-#$Campus_Dropdown.DropDownHeight = $Campus_Dropdown.ItemHeight * 5
-$Campus_Dropdown.ItemHeight = 3000
 $Campus_Dropdown.Text = 'Select Campus'
 #$Campus_Dropdown.Font = 'Segoe UI, 18pt'
-$Campus_Dropdown.backcolor = '#1b3666'
+$Campus_Dropdown.Backcolor = '#1b3666'
 $Campus_Dropdown.ForeColor = '#eeeeee' 
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
@@ -37,7 +35,7 @@ $Campus_Dropdown.FlatStyle = 0
 $Campus_Dropdown.Anchor = 'left, Right'
 
 $Room_Label = New-Object system.Windows.Forms.Label
-$Room_Label.text = "Room:" 
+$Room_Label.Text = "Room:" 
 #$Room_Label.Font = 'Segoe UI, 10pt, style=Bold'
 $Room_Label.AutoSize = $true
 $Room_Label.Dock = 'Bottom'
@@ -49,7 +47,7 @@ $Room_Dropdown.DropDownStyle = 'DropDown'
 $Room_Dropdown.ItemHeight = 3000
 $Room_Dropdown.Text = 'Select Room'
 #$Room_Dropdown.Font = 'Segoe UI, 18pt'
-$Room_Dropdown.backcolor = '#1b3666'
+$Room_Dropdown.Backcolor = '#1b3666'
 $Room_Dropdown.ForeColor = '#eeeeee' 
 $Room_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Room_Dropdown.AutoCompleteSource = 'ListItems'
@@ -62,7 +60,7 @@ $Room_Dropdown.Anchor = 'Left,Right'
 $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
 #$PCC_TextBox.Font = 'Segoe UI, 15pt'
-$PCC_TextBox.backcolor = '#1b3666'
+$PCC_TextBox.Backcolor = '#1b3666'
 $PCC_TextBox.Text = 'PCC Number'
 $PCC_TextBox.ForeColor = '#a3a3a3' 
 $PCC_TextBox.Dock = 'Fill'
@@ -71,10 +69,10 @@ $PCC_TextBox.BorderStyle = 1
 $PCC_TextBox.Anchor = 'Left,Right'
 
 $Search_Button = New-Object system.Windows.Forms.Button
-$Search_Button.text = "Search"
+$Search_Button.Text = "Search"
 $Search_Button.Dock = 'Fill'
 $Search_Button.TabIndex = 4
-$Search_Button.BackColor = '#616161'
+$Search_Button.Backcolor = '#616161'
 $Search_Button.ForeColor = '#eeeeee' 
 #$Search_Button.Font = 'Segoe UI, 18pt, style=Bold'
 $Search_Button.FlatStyle = 1
@@ -86,15 +84,14 @@ $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
 $StatusBar.Font = 'Segoe UI, 12pt'
 $StatusBar.Dock = 'Bottom'
-$StatusBar.backcolor = '#1b3666'
+$StatusBar.Backcolor = '#1b3666'
 #$StatusBar.ForeColor = '#eeeeee'
 
-#Region Panel
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 3
 $LayoutPanel.RowCount = 5
-$LayoutPanel.CellBorderStyle = 1
+#$LayoutPanel.CellBorderStyle = 1
 
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -106,15 +103,13 @@ $LayoutPanel.CellBorderStyle = 1
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, .25)))
 
 
-#EndRegion 
-
-#region Assest Update Popup
+#region Asset Update Popup
 $AssetUpdate_Popup = New-Object system.Windows.Forms.Form
 $AssetUpdate_Popup.Text = 'Asset Update'
-$AssetUpdate_Popup.BackColor = '#324e7a'
+$AssetUpdate_Popup.Backcolor = '#324e7a'
 $AssetUpdate_Popup.ForeColor = '#eeeeee' 
 $AssetUpdate_Popup.FormBorderStyle = "FixedDialog"
-$AssetUpdate_Popup.ClientSize = "396,220"
+$AssetUpdate_Popup.ClientSize = "400,220"
 $AssetUpdate_Popup.TopMost = $true
 $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
@@ -128,8 +123,8 @@ $Status_DropdownLabel_Popup.Dock = 'Bottom'
 
 $Status_Dropdown_Popup = New-Object System.Windows.Forms.ComboBox
 $Status_Dropdown_Popup.DropDownStyle = 'DropDown'
-$Status_Dropdown_Popup.text = "Status"
-$Status_Dropdown_Popup.backcolor = '#1b3666'
+$Status_Dropdown_Popup.Text = "Status"
+$Status_Dropdown_Popup.Backcolor = '#1b3666'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
@@ -140,7 +135,7 @@ $Status_Dropdown_Popup.Anchor = 'Top, Left, Right'
 $Status_Dropdown_Popup.Font = 'Segoe UI, 18pt'
 
 $Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
-$Assigneduser_TextBoxLabel_Popup.text = "Assigned User"
+$Assigneduser_TextBoxLabel_Popup.Text = "Assigned User"
 $Assigneduser_TextBoxLabel_Popup.Font = 'Segoe UI, 8pt'
 $Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
 $Assigneduser_TextBoxLabel_Popup.AutoSize = $true
@@ -148,9 +143,9 @@ $Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
 
 $Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
 $Assigneduser_TextBox_Popup.multiline = $false
-$Assigneduser_TextBox_Popup.text = "Assigned User"
+$Assigneduser_TextBox_Popup.Text = "Assigned User"
 $Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
-$Assigneduser_TextBox_Popup.backcolor = '#1b3666'
+$Assigneduser_TextBox_Popup.Backcolor = '#1b3666'
 $Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
 $Assigneduser_TextBox_Popup.Dock = 'Top'
 $Assigneduser_TextBox_Popup.TabIndex = 2
@@ -158,8 +153,8 @@ $Assigneduser_TextBox_Popup.BorderStyle = 1
 $Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
-$OK_Button_Popup.text = "OK"
-$OK_Button_Popup.BackColor = '#616161'
+$OK_Button_Popup.Text = "OK"
+$OK_Button_Popup.Backcolor = '#616161'
 $OK_Button_Popup.ForeColor = '#eeeeee' 
 $OK_Button_Popup.Dock = 'Fill'
 $OK_Button_Popup.TabIndex = 3
@@ -169,9 +164,9 @@ $OK_Button_Popup.FlatAppearance.BorderSize = 0
 $AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
 
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
-$Cancel_Button_Popup.text = "Cancel"
+$Cancel_Button_Popup.Text = "Cancel"
 $Cancel_Button_Popup.Font = 'Segoe UI, 18pt'
-$Cancel_Button_Popup.backcolor = '#1b3666'
+$Cancel_Button_Popup.Backcolor = '#1b3666'
 $Cancel_Button_Popup.ForeColor = '#eeeeee' 
 $Cancel_Button_Popup.Dock = 'Fill'
 $Cancel_Button_Popup.TabIndex = 4
@@ -182,7 +177,7 @@ $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
 $LayoutPanel_Popup.ColumnCount = 4
 $LayoutPanel_Popup.RowCount = 4
-$LayoutPanel_Popup.CellBorderStyle = 1
+#$LayoutPanel_Popup.CellBorderStyle = 1
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -206,7 +201,8 @@ $LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
 $LayoutPanel.Controls.Add($PCC_TextBox, 1, 2)
 $LayoutPanel.Controls.Add($Search_Button, 1, 3)
 $Form.controls.AddRange(@($LayoutPanel, $StatusBar))
-#EndRegion 
+#EndRegion
+#EndRegion
 
 #region Functions
 
@@ -242,9 +238,7 @@ function Login_ITAM {
     }
     catch {
         Write-Log -Message "Could not enter credentials into website" -Level WARN
-    }
-         
-    
+    }    
 }
 Function Find-Asset {
     param (
@@ -304,7 +298,7 @@ function Update-Asset {
         Get-SeElement -Driver $Driver -Id 'R3070613760137337_search_button' | Invoke-SeClick
     }
     catch {
-        Write-Log -Message "Had an issue navigating ITAm to search for $PCCNumber" -LogError $_.Exception.Message -Level ERROR
+        Write-Log -Message "Had an issue navigating ITAM to search for $PCCNumber" -LogError $_.Exception.Message -Level ERROR
     }
     
     try {
@@ -316,6 +310,30 @@ function Update-Asset {
     catch {
         Write-Log -Message 'Could not find or click edit option for asset' -LogError $_.Exception.Message -Level ERROR
         Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room,'Not in ITAM'"
+        $StatusBar.Text = "Could not find $PCCNumber in ITAM, saved data to log..."
+
+        try {
+            Write-Log -Message 'Opening Inventory site'
+            Open-SeUrl -Driver $Driver -Url $Inventory_URL
+            Login_ITAM
+            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
+        }
+        catch {
+            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
+        }
+    
+        try {
+            Write-Log -Message 'Setting Campus and Room in Inventory from UI'
+            $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
+            Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
+            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+            Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.SelectedItem #$RoomNumber
+        }
+        catch {
+            Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
+        }
+        $PCC_TextBox.Select()
+        return
     }
 
     try {
@@ -338,110 +356,7 @@ function Update-Asset {
     catch {
         Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR -Control $Assigneduser_TextBox_Popup.Text
     }
-    $OK_Button_Popup.Add_MouseUp( {
-        
-            $Global:Cancelled = $false
-            Write-Log -Message "Updating $($PCCNumber) to Campus: $($Campus) and Room: $($RoomNumber)"
-      
-            try {
-                Write-Log -Message 'Clearing room on ITAM and enter room from UI'
-                $AssetRoom_Element = Get-SeElement -Driver $Driver -Id 'P27_WAITAMBAST_ROOM'
-                $AssetRoom_Element.Clear()
-                Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.SelectedItem #$RoomNumber
-            }
-            catch {
-                Write-Log -Message 'Could not get Asset room element or clear/enter room' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            try {
-                Write-Log -Message 'Setting status on ITAM from UI'
-                $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
-                Get-SeSelectionOption -Element $AssetStatus_Element -ByValue $Status_Dropdown_Popup.Text
-            }
-            catch {
-                Write-Log -Message 'Could not get Asset status element or set the status' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            try {
-                Write-Log -Message "Setting Assigned User on ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
-                $AssetAssignedUser_Element.Clear()
-                Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
-            }
-            catch {
-                Write-Log -Message 'Could not clear or set Assigned user element' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            try {
-                Write-Log -Message 'Selecting ITAM campus from UI'
-                $AssetAssignedLocation_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_LOCATION"
-                Get-SeSelectionOption -Element $AssetAssignedLocation_Element -ByValue $Campus_Dropdown.SelectedItem
-            }
-            catch {
-                Write-Log -Message 'Could not get assigned campus or set assigned campus' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            try {
-                Write-Log -Message 'Clicking Apply Changes button'
-                Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[3]' | Invoke-SeClick
-            }
-            catch {
-                Write-Log -Message 'Could not get or click Apply Changes button' -LogError $_.Exception.Message -Level ERROR
-            }
-
-            try {
-                Write-Log -Message 'Opening Inventory site'
-                Open-SeUrl -Driver $Driver -Url $Inventory_URL
-                Login_ITAM
-                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-            }
-            catch {
-                Write-Log -Message 'Could not open Inventory ITAM site' -LogError $_.Exception.Message -Level FATAL
-            }
-
-            try {
-                Write-Log -Message 'Setting Campus and Room in Inventory from UI'
-                $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
-                Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
-                $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-                Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.SelectedItem #$RoomNumber
-            }
-            catch {
-                Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
-            }
-
-
-            $AssetUpdate_Popup.Close()
-            $StatusBar.Text = 'Ready'
-        })
-
-    $Cancel_Button_Popup.Add_MouseUp( {
-            Write-Log -Message "Canceling Asset update for $($PCCNumber) to Campus:$($Campus) and Room:$($RoomNumber)"
-
-            try {
-                Write-Log -Message 'Opening Inventory site'
-                Open-SeUrl -Driver $Driver -Url $Inventory_URL
-                Login_ITAM
-                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-            }
-            catch {
-                Write-Log -Message 'Could not open Inventory ITAM site' -LogError $_.Exception.Message -Level FATAL
-            }
-
-            try {
-                Write-Log -Message "Setting UI Campus and Room in UI"
-                $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
-                Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
-                $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
-                Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
-            }
-            catch {
-                Write-Log -Message "Issue with getting/setting Campus/Room for UI" -LogError $_.Exception.Message -Level ERROR
-            }
-
-            $Global:Cancelled = $true
-            $AssetUpdate_Popup.Close()
-            $StatusBar.Text = 'Ready'
-        })
+    
     [void]$AssetUpdate_Popup.ShowDialog()
 }
 function Confirm-Asset {
@@ -642,6 +557,112 @@ $Assigneduser_TextBox_Popup.Add_MouseDown( {
         $Assigneduser_TextBox_Popup.clear()
         $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
     })
+
+$OK_Button_Popup.Add_MouseUp( {
+
+        Write-Log -Message "Updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"
+    
+        try {
+            Write-Log -Message 'Clearing room on ITAM and enter room from UI'
+            $AssetRoom_Element = Get-SeElement -Driver $Driver -Id 'P27_WAITAMBAST_ROOM'
+            $AssetRoom_Element.Clear()
+            Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.SelectedItem #$RoomNumber
+        }
+        catch {
+            Write-Log -Message 'Could not get Asset room element or clear/enter room' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+        try {
+            Write-Log -Message 'Setting status on ITAM from UI'
+            $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
+            Get-SeSelectionOption -Element $AssetStatus_Element -ByValue $Status_Dropdown_Popup.Text
+        }
+        catch {
+            Write-Log -Message 'Could not get Asset status element or set the status' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+        try {
+            Write-Log -Message "Setting Assigned User on ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
+            $AssetAssignedUser_Element.Clear()
+            Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
+        }
+        catch {
+            Write-Log -Message 'Could not clear or set Assigned user element' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+        try {
+            Write-Log -Message 'Selecting ITAM campus from UI'
+            $AssetAssignedLocation_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_LOCATION"
+            Get-SeSelectionOption -Element $AssetAssignedLocation_Element -ByValue $Campus_Dropdown.SelectedItem
+        }
+        catch {
+            Write-Log -Message 'Could not get assigned campus or set assigned campus' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+        try {
+            Write-Log -Message 'Clicking Apply Changes button'
+            Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[3]' | Invoke-SeClick
+        }
+        catch {
+            Write-Log -Message 'Could not get or click Apply Changes button' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+        try {
+            Write-Log -Message 'Opening Inventory site'
+            Open-SeUrl -Driver $Driver -Url $Inventory_URL
+            Login_ITAM
+            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
+        }
+        catch {
+            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
+        }
+    
+        try {
+            Write-Log -Message 'Setting Campus and Room in Inventory from UI'
+            $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
+            Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus_Dropdown.SelectedItem
+            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+            Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $Room_Dropdown.SelectedItem #$RoomNumber
+        }
+        catch {
+            Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
+        }
+    
+    
+        $AssetUpdate_Popup.Close()
+        $PCC_TextBox.Select()
+        $StatusBar.Text = 'Ready'
+    })
+    
+$Cancel_Button_Popup.Add_MouseUp( {
+        Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
+    
+        try {
+            Write-Log -Message 'Opening Inventory site'
+            Open-SeUrl -Driver $Driver -Url $Inventory_URL
+            Login_ITAM
+            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
+        }
+        catch {
+            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
+        }
+    
+        try {
+            Write-Log -Message "Setting UI Campus and Room in UI"
+            $LocationDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1
+            Get-SeSelectionOption -Element $LocationDropDown_Element -ByValue $Campus
+            $RoomDropDown_Element = Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM"
+            Get-SeSelectionOption -Element $RoomDropDown_Element -ByValue $RoomNumber
+        }
+        catch {
+            Write-Log -Message "Issue with getting/setting Campus/Room for UI" -LogError $_.Exception.Message -Level ERROR
+        }
+
+        $AssetUpdate_Popup.Close()
+        $PCC_TextBox.Select()
+        $StatusBar.Text = 'Ready'
+    })
+
 #endregion
 
 #region Main
@@ -657,7 +678,6 @@ $global:Credentials = $null
 Login_ITAM -FirstLogin $true
 
 $Global:loginInstance = (Get-SeElement -Driver $Driver -Id 'pInstance').getattribute('value')
-$Global:Cancelled = $false
 
 try {
     Write-Log -Message 'Loading campus options for UI on first attempt'
