@@ -4,11 +4,10 @@ If (-not(Get-InstalledModule Selenium -ErrorAction silentlycontinue)) {
 }
 
 #region UI
+#region Asset Search Window
 Add-Type -AssemblyName System.Windows.Forms
 [System.Windows.Forms.Application]::EnableVisualStyles()
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
-
-#https://colorhunt.co/palette/10792
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
@@ -102,6 +101,12 @@ $LayoutPanel.RowCount = 5
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, .25)))
 
+$LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
+$LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
+$LayoutPanel.Controls.Add($PCC_TextBox, 1, 2)
+$LayoutPanel.Controls.Add($Search_Button, 1, 3)
+$Form.controls.AddRange(@($LayoutPanel, $StatusBar))
+#EndRegion
 
 #region Asset Update Popup
 $AssetUpdate_Popup = New-Object system.Windows.Forms.Form
@@ -195,19 +200,99 @@ $LayoutPanel_Popup.SetColumnSpan($Status_Dropdown_Popup, 2)
 $LayoutPanel_Popup.Controls.Add($OK_Button_Popup, 1, 2)
 $LayoutPanel_Popup.Controls.Add($Cancel_Button_Popup, 2, 2)
 $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
-
-$LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
-$LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
-$LayoutPanel.Controls.Add($PCC_TextBox, 1, 2)
-$LayoutPanel.Controls.Add($Search_Button, 1, 3)
-$Form.controls.AddRange(@($LayoutPanel, $StatusBar))
-#EndRegion
 #EndRegion
 
+#region Login Window
+$Login_Form = New-Object system.Windows.Forms.Form
+#$Login_Form.Text = 'Asset Update'
+$Login_Form.Backcolor = '#324e7a'
+$Login_Form.ForeColor = '#eeeeee' 
+$Login_Form.FormBorderStyle = "FixedDialog"
+$Login_Form.ClientSize = "400,220"
+$Login_Form.TopMost = $true
+$Login_Form.StartPosition = 'CenterScreen'
+$Login_Form.ControlBox = $false
+$Login_Form.AutoSize = $true
 
+$Username_TextBox = New-Object system.Windows.Forms.TextBox
+$Username_TextBox.multiline = $false
+$Username_TextBox.Text = "Username"
+$Username_TextBox.Font = 'Segoe UI, 18pt'
+$Username_TextBox.Backcolor = '#1b3666'
+$Username_TextBox.ForeColor = '#a3a3a3' 
+$Username_TextBox.Dock = 'Top'
+$Username_TextBox.TabIndex = 2
+$Username_TextBox.BorderStyle = 1
+$Username_TextBox.Anchor = 'Left,Right'
+
+$Password_TextBox = New-Object system.Windows.Forms.TextBox
+$Password_TextBox.multiline = $false
+$Password_TextBox.Text = "Password"
+$Password_TextBox.Font = 'Segoe UI, 18pt'
+$Password_TextBox.Backcolor = '#1b3666'
+$Password_TextBox.ForeColor = '#a3a3a3' 
+$Password_TextBox.Dock = 'Top'
+$Password_TextBox.TabIndex = 2
+$Password_TextBox.BorderStyle = 1
+$Password_TextBox.Anchor = 'Left,Right'
+
+$OK_Button_Login = New-Object system.Windows.Forms.Button
+$OK_Button_Login.Text = "Login"
+$OK_Button_Login.Backcolor = '#616161'
+$OK_Button_Login.ForeColor = '#eeeeee' 
+$OK_Button_Login.Dock = 'Fill'
+$OK_Button_Login.TabIndex = 3
+$OK_Button_Login.Font = 'Segoe UI, 18pt'
+$OK_Button_Login.FlatStyle = 1
+$OK_Button_Login.FlatAppearance.BorderSize = 0
+$Login_Form.AcceptButton = $OK_Button_Login
+
+$Cancel_Button_Login = New-Object system.Windows.Forms.Button
+$Cancel_Button_Login.Text = "Cancel"
+$Cancel_Button_Login.Font = 'Segoe UI, 18pt'
+$Cancel_Button_Login.Backcolor = '#1b3666'
+$Cancel_Button_Login.ForeColor = '#eeeeee' 
+$Cancel_Button_Login.Dock = 'Fill'
+$Cancel_Button_Login.TabIndex = 4
+$Cancel_Button_Login.FlatStyle = 1
+$Cancel_Button_Login.FlatAppearance.BorderSize = 0
+
+$LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
+$LayoutPanel_Login.Dock = "Fill"
+$LayoutPanel_Login.ColumnCount = 4
+$LayoutPanel_Login.RowCount = 4
+$LayoutPanel_Login.CellBorderStyle = 1
+[void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+
+[void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+
+$LayoutPanel_Login.Controls.Add($Username_TextBox, 1, 0)
+$LayoutPanel_Login.SetColumnSpan($Username_TextBox, 2)
+$LayoutPanel_Login.Controls.Add($Password_TextBox, 1, 1)
+$LayoutPanel_Login.SetColumnSpan($Password_TextBox, 2)
+$LayoutPanel_Login.Controls.Add($OK_Button_Login, 1, 2)
+$LayoutPanel_Login.Controls.Add($Cancel_Button_Login, 2, 2)
+$Login_Form.controls.Add($LayoutPanel_Login)
+#EndRegion
+#EndRegion
+# Copy above to main code^^^
+# Code below for basic UI functions
 @('1', '2', '3', '4', '5', '6', '7', '8') | ForEach-Object { [void] $Campus_Dropdown.Items.Add($_) }
-@('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Room_Dropdown.Items.Add($_) }
 @('1', '2', '3', '4', '5') | ForEach-Object { [void] $Status_Dropdown_Popup.Items.Add($_) }
+
+$Campus_Dropdown.add_SelectedIndexChanged({
+    $Room_Dropdown.Enabled = $false
+    $Room_Dropdown.Text = 'Select Room'
+    $Room_Dropdown.Items.Clear()
+    @('1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15') | ForEach-Object { [void] $Room_Dropdown.Items.Add($_) }
+    $Room_Dropdown.Enabled = $true
+})
 
 $Search_Button.Add_MouseUp( {
         $AssetUpdate_Popup.ShowDialog()
@@ -222,9 +307,29 @@ $PCC_TextBox.Add_MouseDown( {
         $PCC_TextBox.Forecolor = '#eeeeee'
     })
 
-$Assigneduser_TextBox_Popup.Add_MouseDown( {
-        $Assigneduser_TextBox_Popup.clear()
-        $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
+$Username_TextBox.Add_MouseDown( {
+        $Username_TextBox.clear()
+        $Username_TextBox.Forecolor = '#eeeeee'
     })
 
-[void]$Form.ShowDialog()
+$Password_TextBox.Add_MouseDown( {
+        $Password_TextBox.clear()
+        $Password_TextBox.Forecolor = '#eeeeee'
+    })
+$OK_Button_Login.Add_MouseUp( {
+        $Login_Form.DialogResult = 'OK'
+        #$Login_Form.Close()
+    })
+$Cancel_Button_Login.Add_MouseUp( {
+        $Login_Form.DialogResult = 'Cancel'
+        #$Login_Form.Close()
+    })
+
+[void]$Login_Form.ShowDialog()
+
+if ($Login_Form.DialogResult -eq 'OK') {
+    [void]$Form.ShowDialog()
+}
+elseif ($Login_Form.DialogResult -eq 'Cancel') {
+    Write-Error -Message 'Login Canceled'
+}
