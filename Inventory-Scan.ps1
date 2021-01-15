@@ -12,7 +12,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Scanning'
+$Form.Text = 'Inventory Helper Beta 0.1.0'
 $Form.ClientSize = "200,330"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -314,47 +314,17 @@ function Login_ITAM {
 Function Find-Asset($PCCNumber, $Campus, $Room) {
     
     try {
+        Write-Log -Message "Getting Inventory Table element for $($PCCNumber). $($Campus): $($Room)"
         $InventoryTable = Get-SeElement -Driver $driver -XPath '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody'
         
-        $InventoryTableAssets = $InventoryTable.FindElementsByTagName('tr')
+        $InventoryTableAssests = $InventoryTable.FindElementsByTagName('tr')
         $PCCNumberFront_xpath = '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody/tr['
         $PCCNumberBack_xpath = ']/td[2]'
     
-        for ($i = 0; $i -le $InventoryTableAssets.Count - 1; $i++) {
+        for ($i = 1; $i -le $InventoryTableAssests.Count; $i++) {
             if ($InventoryTable.FindElementByXPath($PCCNumberFront_xpath + $i + $PCCNumberBack_xpath).text -eq $PCC_TextBox.Text) {
-                $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
-                try {
-                    Write-Log -Message 'Clicking Verify and Submit button'
-                    Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $i)_0001" | Invoke-SeClick
-                    Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-    
-                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
-                    $PCC_TextBox.Select()
-                }
-                catch {
-                    Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
-                }
+                return $i
                 break
-            }
-            if ($i -eq $InventoryTableAssests.Count - 1) {
-                $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
-                Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
-                Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
-                try {
-                    Write-Log -Message 'Clicking Verify and Submit button'
-                    Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $i)_0001" | Invoke-SeClick
-                    Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-    
-                    $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
-                    $PCC_TextBox.Select()
-                }
-                catch {
-                    Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
-                }
             }
         }
     }
@@ -450,7 +420,49 @@ function Update-Asset($PCCNumber, $Campus, $Room) {
 function Confirm-Asset($PCCNumber, $Campus, $Room) {
 
     $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
-    Find-Asset $PCCNumber $Campus $Room
+      
+    $AssetIndex = Find-Asset $PCCNumber $Campus $Room
+    if ($AssetIndex) {
+        $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
+        try {
+            Write-Log -Message 'Clicking Verify and Submit button'
+            Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
+            Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+
+            $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+            Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+            Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
+            $PCC_TextBox.Select()
+        }
+        catch {
+            Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+        }
+    }
+
+    else {
+        $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
+        Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
+        Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
+
+        $AssetIndex = Find-Asset $PCCNumber $Campus $Room
+        if ($AssetIndex) {
+            $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
+            try {
+                Write-Log -Message 'Clicking Verify and Submit button'
+                Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
+                Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
+    
+                $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
+                Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
+                $PCC_TextBox.Select()
+            }
+            catch {
+                Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+            }
+        }
+        $PCC_TextBox.Select()
+    }
 }
 
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
@@ -694,7 +706,6 @@ if ($Login_Form.DialogResult -eq 'OK') {
 
 $Driver.close()
 $Driver.quit()
-
 #endregion
 
 #region Old Code for future use?
