@@ -227,7 +227,7 @@ $Username_TextBox.Anchor = 'Left,Right'
 
 $Password_TextBox = New-Object system.Windows.Forms.TextBox
 $Password_TextBox.multiline = $false
-$Password_TextBox.Text = "Password"
+$Password_TextBox.Text = "PimaRocks"
 $Password_TextBox.Font = 'Segoe UI, 18pt'
 $Password_TextBox.Backcolor = '#1b3666'
 $Password_TextBox.ForeColor = '#a3a3a3' 
@@ -235,6 +235,7 @@ $Password_TextBox.Dock = 'Top'
 $Password_TextBox.TabIndex = 2
 $Password_TextBox.BorderStyle = 1
 $Password_TextBox.Anchor = 'Left,Right'
+$Password_TextBox.PasswordChar = '*'
 
 $OK_Button_Login = New-Object system.Windows.Forms.Button
 $OK_Button_Login.Text = "Login"
@@ -261,7 +262,7 @@ $LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Login.Dock = "Fill"
 $LayoutPanel_Login.ColumnCount = 4
 $LayoutPanel_Login.RowCount = 4
-$LayoutPanel_Login.CellBorderStyle = 1
+#$LayoutPanel_Login.CellBorderStyle = 1
 [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
