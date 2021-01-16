@@ -12,7 +12,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Helper Beta 0.1.1'
+$Form.Text = 'Inventory Helper Beta 0.1.2'
 $Form.ClientSize = "200,330"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -339,13 +339,13 @@ function Open-PimaSite ($URL,[bool]$FirstLogin) {
                         'Cancel' {
                             $Driver.close()
                             $Driver.quit()
+                            Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
                             exit
                         }
                     }
                     Start-Sleep -Milliseconds 500
                 }
             }
-            Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
         }
     }
     catch { 
