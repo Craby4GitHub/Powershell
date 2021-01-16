@@ -12,7 +12,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Helper BETA 0.1.0'
+$Form.Text = 'Inventory Helper Beta 0.1.0'
 $Form.ClientSize = "200,330"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -120,11 +120,16 @@ $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
 $AssetUpdate_Popup.AutoSize = $true
 
-$Status_DropdownLabel_Popup = New-Object system.Windows.Forms.Label
-$Status_DropdownLabel_Popup.Font = 'Segoe UI, 8pt'
-$Status_DropdownLabel_Popup.ForeColor = '#eeeeee' 
-$Status_DropdownLabel_Popup.AutoSize = $true
-$Status_DropdownLabel_Popup.Dock = 'Bottom'
+$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
+$Assigneduser_TextBox_Popup.multiline = $false
+$Assigneduser_TextBox_Popup.Text = "Assigned User"
+$Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
+$Assigneduser_TextBox_Popup.Backcolor = '#1b3666'
+$Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
+$Assigneduser_TextBox_Popup.Dock = 'Top'
+$Assigneduser_TextBox_Popup.TabIndex = 1
+$Assigneduser_TextBox_Popup.BorderStyle = 1
+$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $Status_Dropdown_Popup = New-Object System.Windows.Forms.ComboBox
 $Status_Dropdown_Popup.DropDownStyle = 'DropDown'
@@ -133,29 +138,11 @@ $Status_Dropdown_Popup.Backcolor = '#1b3666'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
-$Status_Dropdown_Popup.TabIndex = 1
+$Status_Dropdown_Popup.TabIndex = 2
 $Status_Dropdown_Popup.Dock = "Fill"
 $Status_Dropdown_Popup.FlatStyle = 0
 $Status_Dropdown_Popup.Anchor = 'Top, Left, Right'
 $Status_Dropdown_Popup.Font = 'Segoe UI, 18pt'
-
-$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
-$Assigneduser_TextBoxLabel_Popup.Text = "Assigned User"
-$Assigneduser_TextBoxLabel_Popup.Font = 'Segoe UI, 8pt'
-$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
-$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
-
-$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
-$Assigneduser_TextBox_Popup.multiline = $false
-$Assigneduser_TextBox_Popup.Text = "Assigned User"
-$Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
-$Assigneduser_TextBox_Popup.Backcolor = '#1b3666'
-$Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
-$Assigneduser_TextBox_Popup.Dock = 'Top'
-$Assigneduser_TextBox_Popup.TabIndex = 2
-$Assigneduser_TextBox_Popup.BorderStyle = 1
-$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.Text = "OK"
@@ -167,6 +154,7 @@ $OK_Button_Popup.Font = 'Segoe UI, 18pt'
 $OK_Button_Popup.FlatStyle = 1
 $OK_Button_Popup.FlatAppearance.BorderSize = 0
 $AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
+$AssetUpdate_Popup.AcceptButton.DialogResult = 'OK'
 
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
 $Cancel_Button_Popup.Text = "Cancel"
@@ -204,7 +192,6 @@ $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
 
 #region Login Window
 $Login_Form = New-Object system.Windows.Forms.Form
-#$Login_Form.Text = 'Asset Update'
 $Login_Form.Backcolor = '#324e7a'
 $Login_Form.ForeColor = '#eeeeee' 
 $Login_Form.FormBorderStyle = "FixedDialog"
@@ -217,11 +204,12 @@ $Login_Form.AutoSize = $true
 $Username_TextBox = New-Object system.Windows.Forms.TextBox
 $Username_TextBox.multiline = $false
 $Username_TextBox.Text = "Username"
+$Username_TextBox.Select()
 $Username_TextBox.Font = 'Segoe UI, 18pt'
 $Username_TextBox.Backcolor = '#1b3666'
 $Username_TextBox.ForeColor = '#a3a3a3' 
 $Username_TextBox.Dock = 'Top'
-$Username_TextBox.TabIndex = 2
+$Username_TextBox.TabIndex = 1
 $Username_TextBox.BorderStyle = 1
 $Username_TextBox.Anchor = 'Left,Right'
 
@@ -247,6 +235,7 @@ $OK_Button_Login.Font = 'Segoe UI, 18pt'
 $OK_Button_Login.FlatStyle = 1
 $OK_Button_Login.FlatAppearance.BorderSize = 0
 $Login_Form.AcceptButton = $OK_Button_Login
+$Login_Form.AcceptButton.DialogResult = 'OK'
 
 $Cancel_Button_Login = New-Object system.Windows.Forms.Button
 $Cancel_Button_Login.Text = "Cancel"
@@ -257,6 +246,8 @@ $Cancel_Button_Login.Dock = 'Fill'
 $Cancel_Button_Login.TabIndex = 4
 $Cancel_Button_Login.FlatStyle = 1
 $Cancel_Button_Login.FlatAppearance.BorderSize = 0
+$Login_Form.CancelButton = $Cancel_Button_Login
+$Login_Form.CancelButton.DialogResult = 'Cancel'
 
 $LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Login.Dock = "Fill"
