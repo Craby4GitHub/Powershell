@@ -12,7 +12,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Helper Beta 0.1.0'
+$Form.Text = 'Inventory Helper Beta 0.1.1'
 $Form.ClientSize = "200,330"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -120,11 +120,16 @@ $AssetUpdate_Popup.StartPosition = 'CenterScreen'
 $AssetUpdate_Popup.ControlBox = $false
 $AssetUpdate_Popup.AutoSize = $true
 
-$Status_DropdownLabel_Popup = New-Object system.Windows.Forms.Label
-$Status_DropdownLabel_Popup.Font = 'Segoe UI, 8pt'
-$Status_DropdownLabel_Popup.ForeColor = '#eeeeee' 
-$Status_DropdownLabel_Popup.AutoSize = $true
-$Status_DropdownLabel_Popup.Dock = 'Bottom'
+$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
+$Assigneduser_TextBox_Popup.multiline = $false
+$Assigneduser_TextBox_Popup.Text = "Assigned User"
+$Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
+$Assigneduser_TextBox_Popup.Backcolor = '#1b3666'
+$Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
+$Assigneduser_TextBox_Popup.Dock = 'Top'
+$Assigneduser_TextBox_Popup.TabIndex = 1
+$Assigneduser_TextBox_Popup.BorderStyle = 1
+$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $Status_Dropdown_Popup = New-Object System.Windows.Forms.ComboBox
 $Status_Dropdown_Popup.DropDownStyle = 'DropDown'
@@ -133,29 +138,11 @@ $Status_Dropdown_Popup.Backcolor = '#1b3666'
 $Status_Dropdown_Popup.ForeColor = '#eeeeee' 
 $Status_Dropdown_Popup.AutoCompleteMode = 'SuggestAppend'
 $Status_Dropdown_Popup.AutoCompleteSource = 'ListItems'
-$Status_Dropdown_Popup.TabIndex = 1
+$Status_Dropdown_Popup.TabIndex = 2
 $Status_Dropdown_Popup.Dock = "Fill"
 $Status_Dropdown_Popup.FlatStyle = 0
 $Status_Dropdown_Popup.Anchor = 'Top, Left, Right'
 $Status_Dropdown_Popup.Font = 'Segoe UI, 18pt'
-
-$Assigneduser_TextBoxLabel_Popup = New-Object system.Windows.Forms.Label
-$Assigneduser_TextBoxLabel_Popup.Text = "Assigned User"
-$Assigneduser_TextBoxLabel_Popup.Font = 'Segoe UI, 8pt'
-$Assigneduser_TextBoxLabel_Popup.ForeColor = '#eeeeee' 
-$Assigneduser_TextBoxLabel_Popup.AutoSize = $true
-$Assigneduser_TextBoxLabel_Popup.Dock = 'Bottom'
-
-$Assigneduser_TextBox_Popup = New-Object system.Windows.Forms.TextBox
-$Assigneduser_TextBox_Popup.multiline = $false
-$Assigneduser_TextBox_Popup.Text = "Assigned User"
-$Assigneduser_TextBox_Popup.Font = 'Segoe UI, 18pt'
-$Assigneduser_TextBox_Popup.Backcolor = '#1b3666'
-$Assigneduser_TextBox_Popup.ForeColor = '#a3a3a3' 
-$Assigneduser_TextBox_Popup.Dock = 'Top'
-$Assigneduser_TextBox_Popup.TabIndex = 2
-$Assigneduser_TextBox_Popup.BorderStyle = 1
-$Assigneduser_TextBox_Popup.Anchor = 'Left,Right'
 
 $OK_Button_Popup = New-Object system.Windows.Forms.Button
 $OK_Button_Popup.Text = "OK"
@@ -167,6 +154,7 @@ $OK_Button_Popup.Font = 'Segoe UI, 18pt'
 $OK_Button_Popup.FlatStyle = 1
 $OK_Button_Popup.FlatAppearance.BorderSize = 0
 $AssetUpdate_Popup.AcceptButton = $OK_Button_Popup
+$AssetUpdate_Popup.AcceptButton.DialogResult = 'OK'
 
 $Cancel_Button_Popup = New-Object system.Windows.Forms.Button
 $Cancel_Button_Popup.Text = "Cancel"
@@ -204,7 +192,6 @@ $AssetUpdate_Popup.controls.Add($LayoutPanel_Popup)
 
 #region Login Window
 $Login_Form = New-Object system.Windows.Forms.Form
-#$Login_Form.Text = 'Asset Update'
 $Login_Form.Backcolor = '#324e7a'
 $Login_Form.ForeColor = '#eeeeee' 
 $Login_Form.FormBorderStyle = "FixedDialog"
@@ -217,11 +204,12 @@ $Login_Form.AutoSize = $true
 $Username_TextBox = New-Object system.Windows.Forms.TextBox
 $Username_TextBox.multiline = $false
 $Username_TextBox.Text = "Username"
+$Username_TextBox.Select()
 $Username_TextBox.Font = 'Segoe UI, 18pt'
 $Username_TextBox.Backcolor = '#1b3666'
 $Username_TextBox.ForeColor = '#a3a3a3' 
 $Username_TextBox.Dock = 'Top'
-$Username_TextBox.TabIndex = 2
+$Username_TextBox.TabIndex = 1
 $Username_TextBox.BorderStyle = 1
 $Username_TextBox.Anchor = 'Left,Right'
 
@@ -247,6 +235,7 @@ $OK_Button_Login.Font = 'Segoe UI, 18pt'
 $OK_Button_Login.FlatStyle = 1
 $OK_Button_Login.FlatAppearance.BorderSize = 0
 $Login_Form.AcceptButton = $OK_Button_Login
+$Login_Form.AcceptButton.DialogResult = 'OK'
 
 $Cancel_Button_Login = New-Object system.Windows.Forms.Button
 $Cancel_Button_Login.Text = "Cancel"
@@ -257,6 +246,8 @@ $Cancel_Button_Login.Dock = 'Fill'
 $Cancel_Button_Login.TabIndex = 4
 $Cancel_Button_Login.FlatStyle = 1
 $Cancel_Button_Login.FlatAppearance.BorderSize = 0
+$Login_Form.CancelButton = $Cancel_Button_Login
+$Login_Form.CancelButton.DialogResult = 'Cancel'
 
 $LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Login.Dock = "Fill"
@@ -285,7 +276,10 @@ $Login_Form.controls.Add($LayoutPanel_Login)
 
 #region Functions
 
-function Login_ITAM {
+function Open-PimaSite ($URL,[bool]$FirstLogin) {
+
+    #Open-SeUrl -Driver $Driver -Url $URL
+    $Driver.Url = $URL
 
     Write-Log -Message "$($Credentials.UserName) attempting to login"
     
@@ -310,11 +304,59 @@ function Login_ITAM {
         Write-Log -Message "Could not enter credentials into website" -Level FATAL
         exit
     }    
+
+    try {
+        for ($i = 0; $i -lt 1; $i++) {
+            switch ($URL) {
+                $Inventory_URL { $LoginCheck = Get-SeElement -Driver $Driver -ClassName 'userBlock' }
+                $ITAM_URL { $LoginCheck = Get-SeElement -Driver $Driver -ID 'welcome' }
+                Default {}
+            }
+            
+            if ($LoginCheck.Enabled -and $FirstLogin) {
+                try {
+                    $CampusDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION").text.split("`n").Trim()
+                }
+                catch {
+                    Write-Log -Message 'Could not load campus for Inventory Helper on first load' -LogError $_.Exception.Message -Level FATAL
+                    exit
+                }
+                $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
+                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
+                [void]$Form.ShowDialog()
+                
+                Write-Log -Message "Ending session for $($Credentials.UserName)"
+                $Driver.close()
+                $Driver.quit()
+                break
+            }
+            else {
+                if ($null -eq $LoginCheck) {
+                    $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed", 'Warning', 'RetryCancel', 'Warning')
+                    switch ($RelogChoice) {
+                        # Need to figure out logic to re-enter creds and what not
+                        'Retry' { [void]$Login_Form.ShowDialog() }
+                        'Cancel' {
+                            $Driver.close()
+                            $Driver.quit()
+                            exit
+                        }
+                    }
+                    Start-Sleep -Milliseconds 500
+                }
+            }
+            Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
+        }
+    }
+    catch { 
+        Write-Log -Message "Failed to verify login" -Level FATAL
+        exit
+    }
 }
 Function Find-Asset($PCCNumber, $Campus, $Room) {
     
     try {
-        Write-Log -Message "Getting Inventory Table element for $($PCCNumber). $($Campus): $($Room)"
+        Write-Log -Message "Searching for $($PCCNumber) at $($Campus): $($Room)"
         $InventoryTable = Get-SeElement -Driver $driver -XPath '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody'
         
         $InventoryTableAssests = $InventoryTable.FindElementsByTagName('tr')
@@ -338,8 +380,7 @@ function Update-Asset($PCCNumber, $Campus, $Room) {
     
     try {
         Write-Log -Message 'Opening ITAM site'
-        Open-SeUrl -Driver $Driver -Url $ITAM_URL
-        Login_ITAM
+        Open-PimaSite $ITAM_URL
     }
     catch {
         Write-Log -Message 'Could not open or log into main ITAM site' -LogError $_.Exception.Message -Level FATAL
@@ -376,8 +417,7 @@ function Update-Asset($PCCNumber, $Campus, $Room) {
 
         try {
             Write-Log -Message 'Opening Inventory site'
-            Open-SeUrl -Driver $Driver -Url $Inventory_URL
-            Login_ITAM
+            Open-PimaSite -URL $Inventory_URL
             $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
         }
         catch {
@@ -389,14 +429,13 @@ function Update-Asset($PCCNumber, $Campus, $Room) {
             Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
-            Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message 'Issue with getting Campus/Room from site or setting Inventory Helper campus/room' -LogError $_.Exception.Message -Level ERROR
         }
         $PCC_TextBox.Select()
         return
     }
 
     try {
-        Write-Log -Message 'Populating UI status dropdown from ITAM and set UI selection to current asset status'
         $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
         $AssetStatusOptions_Element = Get-SeSelectionOption -Element $AssetStatus_Element -ListOptionText
         $Status_Dropdown_Popup.Items.Clear()
@@ -521,42 +560,18 @@ Function Write-Log {
 
     Add-Content $PSScriptRoot\ITAMScan_Errorlog.csv -Value $Line
 }
-
 #endregion
 
 #region UI Actions
 
 $Username_TextBox.Add_MouseDown( {
-        $Username_TextBox.clear()
+        $Username_TextBox.Clear()
         $Username_TextBox.Forecolor = '#eeeeee'
     })
-
+    
 $Password_TextBox.Add_MouseDown( {
         $Password_TextBox.clear()
         $Password_TextBox.Forecolor = '#eeeeee'
-    })
-
-$OK_Button_Login.Add_MouseUp( {
-        $Login_Form.DialogResult = 'OK'
-        $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
-        $global:Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
-
-        Login_ITAM -FirstLogin $true
-        try {
-            $CampusDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION").text.split("`n").Trim()
-        }
-        catch {
-            Write-Log -Message 'Could not load campus for UI on first load' -LogError $_.Exception.Message -Level FATAL
-            exit
-        }
-        $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
-        $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-        
-        #Add logic to only load form when login is successfull, IE: re-add the code that was deleted T_T
-        $Login_Form.Close()
-    })
-$Cancel_Button_Login.Add_MouseUp( {
-        $Login_Form.DialogResult = 'Cancel'
     })
 
 $Search_Button.Add_MouseDown( {
@@ -583,7 +598,7 @@ $Campus_Dropdown.add_SelectedIndexChanged( {
             $RoomDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM").text.split("`n").Trim()
         }
         catch {
-            Write-Log -Message 'Could not load campus/room for UI dropdowns' -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message 'Could not load campus/room for Inventory Helper dropdowns' -LogError $_.Exception.Message -Level ERROR
 
         }
 
@@ -598,7 +613,7 @@ $Room_Dropdown.add_SelectedIndexChanged( {
             Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
-            Write-Log -Message 'Could not load room for UI dropdowns' -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message 'Could not load room for Inventory Helper dropdowns' -LogError $_.Exception.Message -Level ERROR
         }
     })
 
@@ -608,7 +623,6 @@ $PCC_TextBox.Add_MouseDown( {
     })
 
 $Assigneduser_TextBox_Popup.Add_MouseDown( {
-        $Assigneduser_TextBox_Popup.clear()
         $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
     })
 
@@ -622,14 +636,14 @@ $OK_Button_Popup.Add_MouseUp( {
             $AssetRoom_Element.Clear()
             Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.SelectedItem
 
-            # Setting status on ITAM from UI
+            # Setting status on ITAM from Inventory Helper
             Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS" | Get-SeSelectionOption -ByValue $Status_Dropdown_Popup.Text
 
-            Write-Log -Message "Setting Assigned User on ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
+            Write-Log -Message "Setting Assigned User for $($PCC_TextBox.Text) in ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
             $AssetAssignedUser_Element.Clear()
             Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
 
-            # Selecting ITAM campus from UI
+            # Selecting ITAM campus from Inventory Helper
             Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_LOCATION" | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
 
             # Clicking Apply Changes button
@@ -638,26 +652,23 @@ $OK_Button_Popup.Add_MouseUp( {
         catch {
             Write-Log -Message "Had issue updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"  -LogError $_.Exception.Message -Level ERROR
         }
-                
+            
         try {
-            Write-Log -Message 'Opening Inventory site'
-            Open-SeUrl -Driver $Driver -Url $Inventory_URL
-            Login_ITAM
+            Open-PimaSite -URL $Inventory_URL
             $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
         }
         catch {
             Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
         }
-    
+
         try {
-            Write-Log -Message "Setting UI Campus and Room in UI"
             Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1 | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
             Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
-            Write-Log -Message 'Issue with getting Campus/Room from site or setting UI campus/room' -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message 'Issue with getting Campus/Room from site or setting Inventory Helper campus/room' -LogError $_.Exception.Message -Level ERROR
         }
-    
+
         $AssetUpdate_Popup.Close()
         $PCC_TextBox.Select()
         $StatusBar.Text = 'Ready'
@@ -667,8 +678,7 @@ $Cancel_Button_Popup.Add_MouseUp( {
         Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
     
         try {
-            Open-SeUrl -Driver $Driver -Url $Inventory_URL
-            Login_ITAM
+            Open-PimaSite -URL $Inventory_URL
             $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
         }
         catch {
@@ -680,7 +690,7 @@ $Cancel_Button_Popup.Add_MouseUp( {
             Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
-            Write-Log -Message "Issue with getting/setting Campus/Room for UI" -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message "Issue with getting Campus or Room for Inventory Helper" -LogError $_.Exception.Message -Level ERROR
         }
 
         $AssetUpdate_Popup.Close()
@@ -692,20 +702,18 @@ $Cancel_Button_Popup.Add_MouseUp( {
 
 #region Main
 
-$ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
-$Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
-
-$Driver = Start-SeFirefox -PrivateBrowsing #-Headless
-
-Open-SeUrl -Driver $Driver -Url $Inventory_URL
 [void]$Login_Form.ShowDialog()
 if ($Login_Form.DialogResult -eq 'OK') {
-    [void]$Form.ShowDialog()
-    Write-Log -Message "Ending session for $($Credentials.UserName)"
-}
+    $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
+    $global:Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
 
-$Driver.close()
-$Driver.quit()
+    $ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+    $Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
+
+    $Driver = Start-SeFirefox -PrivateBrowsing -ImplicitWait 2
+    
+    Open-PimaSite -URL $Inventory_URL $true
+}
 #endregion
 
 #region Old Code for future use?
