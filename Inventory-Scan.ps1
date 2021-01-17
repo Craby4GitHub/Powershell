@@ -11,9 +11,9 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
-$Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Helper Beta 0.1.2'
-$Form.ClientSize = "200,330"
+$Form.StartPosition = 'Manual'
+$Form.Text = 'Inventory Helper Beta 0.2.3'
+$Form.ClientSize = "125,300"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
@@ -276,80 +276,23 @@ $Login_Form.controls.Add($LayoutPanel_Login)
 
 #region Functions
 
-function Open-PimaSite ($URL,[bool]$FirstLogin) {
+function Login-PimaSite ([Object[]]$Site) {
 
-    #Open-SeUrl -Driver $Driver -Url $URL
-    $Driver.Url = $URL
-
-    Write-Log -Message "$($Credentials.UserName) attempting to login"
+    Write-Log -Message "$($Credentials.UserName) attempting to login to $($Site)"
     
     try {
-        $usernameElement = Get-SeElement -Driver $Driver -Wait -Id 'P101_USERNAME'
-        $passwordElement = Get-SeElement -Driver $Driver -Id 'P101_PASSWORD'
-    }
-    catch {
-        Write-Log -Message "Unable to get Username and Password elements" -LogError $_.Exception.Message -Level FATAL
-        exit
-    }
+        $usernameElement = $Site.FindElementById('P101_USERNAME')
+        $passwordElement = $Site.FindElementById('P101_PASSWORD')
 
-    $usernameElement.Clear()
-    $passwordElement.Clear()
+        $usernameElement.Clear()
+        $passwordElement.Clear()
 
-    try {
         Send-SeKeys -Element $usernameElement -Keys $Credentials.UserName
         Send-SeKeys -Element $passwordElement -Keys $Credentials.GetNetworkCredential().Password
-        Get-SeElement -Driver $Driver -ID 'P101_LOGIN' | Invoke-SeClick
+        $Site.FindElementById('P101_LOGIN').Click()
     }
     catch {
-        Write-Log -Message "Could not enter credentials into website" -Level FATAL
-        exit
-    }    
-
-    try {
-        for ($i = 0; $i -lt 1; $i++) {
-            switch ($URL) {
-                $Inventory_URL { $LoginCheck = Get-SeElement -Driver $Driver -ClassName 'userBlock' }
-                $ITAM_URL { $LoginCheck = Get-SeElement -Driver $Driver -ID 'welcome' }
-                Default {}
-            }
-            
-            if ($LoginCheck.Enabled -and $FirstLogin) {
-                try {
-                    $CampusDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION").text.split("`n").Trim()
-                }
-                catch {
-                    Write-Log -Message 'Could not load campus for Inventory Helper on first load' -LogError $_.Exception.Message -Level FATAL
-                    exit
-                }
-                $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
-                $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-                [void]$Form.ShowDialog()
-                
-                Write-Log -Message "Ending session for $($Credentials.UserName)"
-                $Driver.close()
-                $Driver.quit()
-                break
-            }
-            else {
-                if ($null -eq $LoginCheck) {
-                    $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed", 'Warning', 'RetryCancel', 'Warning')
-                    switch ($RelogChoice) {
-                        # Need to figure out logic to re-enter creds and what not
-                        'Retry' { [void]$Login_Form.ShowDialog() }
-                        'Cancel' {
-                            $Driver.close()
-                            $Driver.quit()
-                            Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
-                            exit
-                        }
-                    }
-                    Start-Sleep -Milliseconds 500
-                }
-            }
-        }
-    }
-    catch { 
-        Write-Log -Message "Failed to verify login" -Level FATAL
+        Write-Log -Message "Had an issue with the login element on the site" -LogError $_.Exception.Message -Level FATAL
         exit
     }
 }
@@ -357,14 +300,10 @@ Function Find-Asset($PCCNumber, $Campus, $Room) {
     
     try {
         Write-Log -Message "Searching for $($PCCNumber) at $($Campus): $($Room)"
-        $InventoryTable = Get-SeElement -Driver $driver -XPath '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody'
-        
-        $InventoryTableAssests = $InventoryTable.FindElementsByTagName('tr')
-        $PCCNumberFront_xpath = '/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody/tr['
-        $PCCNumberBack_xpath = ']/td[2]'
-    
-        for ($i = 1; $i -le $InventoryTableAssests.Count; $i++) {
-            if ($InventoryTable.FindElementByXPath($PCCNumberFront_xpath + $i + $PCCNumberBack_xpath).text -eq $PCC_TextBox.Text) {
+        $InventoryTableAssets = $Inventory.FindElementByXPath('//*[@id="report_R3257120268858381"]/tbody[2]/tr/td/table/tbody').FindElementsByTagName('tr')
+        for ($i = 0; $i -le $InventoryTableAssets.Count; $i++) {
+            $InventoryTableAsset = $InventoryTableAssets[$i].FindElementsByTagName('td')
+            if (($InventoryTableAsset[1].text -eq $PCC_TextBox.Text) -or ($InventoryTableAsset[6].text -eq $PCC_TextBox.Text)) {
                 return $i
                 break
             }
@@ -374,136 +313,6 @@ Function Find-Asset($PCCNumber, $Campus, $Room) {
         Write-Log -Message "Unable to get Inventory Table element for $($PCCNumber). $($Campus): $($Room)" -LogError $_.Exception.Message -Level ERROR
     }
 }
-function Update-Asset($PCCNumber, $Campus, $Room) {
-
-    Write-Log -Message "Updating $PCCNumber in ITAM"
-    
-    try {
-        Write-Log -Message 'Opening ITAM site'
-        Open-PimaSite $ITAM_URL
-    }
-    catch {
-        Write-Log -Message 'Could not open or log into main ITAM site' -LogError $_.Exception.Message -Level FATAL
-    }
-
-    try {
-        Write-Log -Message 'Navigating ITAM search'
-        # Click Magnifying glass button
-        Get-SeElement -Driver $Driver -Id 'R3070613760137337_column_search_root' | Invoke-SeClick
-
-        # Click Barcode option
-        Get-SeElement -Driver $Driver -Id 'R3070613760137337_column_search_drop_2_c1i' | Invoke-SeClick
-
-        # Entering PCCNumber into search bar
-        Get-SeElement -Driver $Driver -Id 'R3070613760137337_search_field' | Send-SeKeys -Keys $PCCNumber
-
-        #Clicking Go button
-        Get-SeElement -Driver $Driver -Id 'R3070613760137337_search_button' | Invoke-SeClick
-    }
-    catch {
-        Write-Log -Message "Had an issue navigating ITAM to search for $PCCNumber" -LogError $_.Exception.Message -Level ERROR
-    }
-    
-    try {
-        Write-Log -Message "Clicking edit for asset for $PCCNumber"
-        #NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
-        # Also script will fail if it can not find the pcc number in ITAM
-        Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a' | Invoke-SeClick
-    }
-    catch {
-        Write-Log -Message 'Could not find or click edit option for asset' -LogError $_.Exception.Message -Level ERROR
-        Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room,'Not in ITAM'"
-        $StatusBar.Text = "Could not find $PCCNumber in ITAM, saved data to log..."
-
-        try {
-            Write-Log -Message 'Opening Inventory site'
-            Open-PimaSite -URL $Inventory_URL
-            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-        }
-        catch {
-            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
-        }
-    
-        try {
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
-        }
-        catch {
-            Write-Log -Message 'Issue with getting Campus/Room from site or setting Inventory Helper campus/room' -LogError $_.Exception.Message -Level ERROR
-        }
-        $PCC_TextBox.Select()
-        return
-    }
-
-    try {
-        $AssetStatus_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS"
-        $AssetStatusOptions_Element = Get-SeSelectionOption -Element $AssetStatus_Element -ListOptionText
-        $Status_Dropdown_Popup.Items.Clear()
-        $Status_Dropdown_Popup.Items.AddRange($AssetStatusOptions_Element)
-        $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
-    }
-    catch {
-        Write-Log -Message 'Could not find Asset Status element' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
-    }
-
-    try {
-        $AssetAssignedUser_Element = Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_ASSIGNED_USER"
-        $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
-    }
-    catch {
-        Write-Log -Message 'Could not get Assets assigned user element' -LogError $_.Exception.Message -Level ERROR -Control $Assigneduser_TextBox_Popup.Text
-    }
-    
-    [void]$AssetUpdate_Popup.ShowDialog()
-}
-function Confirm-Asset($PCCNumber, $Campus, $Room) {
-
-    $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
-      
-    $AssetIndex = Find-Asset $PCCNumber $Campus $Room
-    if ($AssetIndex) {
-        $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
-        try {
-            Write-Log -Message 'Clicking Verify and Submit button'
-            Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
-            Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-
-            $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-            Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-            Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
-            $PCC_TextBox.Select()
-        }
-        catch {
-            Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
-        }
-    }
-
-    else {
-        $StatusBar.Text = "Unable to find $PCCNumber in $Room, opening ITAM to edit"
-        Write-Log -Message "Unable to find $($PCCNumber) in $($Room) at $($Campus)"
-        Update-Asset -PCCNumber $PCCNumber -RoomNumber $Room -Campus $Campus
-
-        $AssetIndex = Find-Asset $PCCNumber $Campus $Room
-        if ($AssetIndex) {
-            $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
-            try {
-                Write-Log -Message 'Clicking Verify and Submit button'
-                Get-SeElement -Driver $Driver -Id "f02_$('{0:d4}' -f $AssetIndex)_0001" | Invoke-SeClick
-                Get-SeElement -Driver $Driver -Id 'B3258732422858420' | Invoke-SeClick
-    
-                $StatusBar.Text = "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                Write-Log -message "$($PCCNumber) has been inventoried to $($Campus): $($Room)"
-                Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$PCCNumber,$Campus,$Room"
-                $PCC_TextBox.Select()
-            }
-            catch {
-                Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
-            }
-        }
-        $PCC_TextBox.Select()
-    }
-}
-
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
     switch -regex ($UIInput.ToString()) {
         'System.Windows.Forms.TextBox' {  
@@ -577,15 +386,149 @@ $Password_TextBox.Add_MouseDown( {
 $Search_Button.Add_MouseDown( {
         Confirm-UIInput -UIInput $Campus_Dropdown -ErrorMSG 'Invalid Campus'
         Confirm-UIInput -UIInput $Room_Dropdown -ErrorMSG 'Invalid Room'
-        Confirm-UIInput -UIInput $PCC_TextBox -RegEx '^\d{6}$' -ErrorMSG 'Invalid PCC Number'
     })
 
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $StatusBar.Text = 'Starting Search...'
 
-            Confirm-Asset -PCCNumber $PCC_TextBox.Text -Campus $Campus_Dropdown.SelectedItem -Room $Room_Dropdown.SelectedItem
+            $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
+            Write-Log -Message "Searching for $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
 
+            $AssetIndex = Find-Asset $PCC_TextBox.Text
+            if ($AssetIndex) {
+                $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
+                try {
+                    $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
+                    $Inventory.FindElementById('B3258732422858420').Click()
+        
+                    $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                    Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
+                    $PCC_TextBox.Select()
+                }
+                catch {
+                    Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+                }
+            }
+            else {
+                $StatusBar.Text = "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem), opening ITAM to edit"
+                Write-Log -Message "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem) at $($Campus_Dropdown.SelectedItem)"
+        
+                try {
+                    # Click Magnifying glass button
+                    $ITAM.FindElementById('R3070613760137337_column_search_root').Click()
+        
+                    if ($PCC_TextBox.Text -match '^\d{6}$') {
+                        $ITAM.FindElementById('R3070613760137337_column_search_drop_2_c1i').Click()
+                    }
+                    else {
+                        # Click Serial Number option
+                        $ITAM.FindElementById('R3070613760137337_column_search_drop_2_c5i').Click()
+                    }
+            
+                    # Entering PCCNumber into search bar
+                    $ITAM.FindElementById('R3070613760137337_search_field').SendKeys($PCC_TextBox.Text)
+        
+                    # Clicking Go button
+                    $ITAM.FindElementById('R3070613760137337_search_button').Click()
+                }
+                catch {
+                    Write-Log -Message "Had an issue navigating ITAM to search for $($PCC_TextBox.Text)" -LogError $_.Exception.Message -Level ERROR
+                }
+            
+                try {
+                    Write-Log -Message "Clicking edit for asset for $($PCC_TextBox.Text)"
+                    #NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
+                    # Or find a better way of finding the asset in itam
+                    $ITAM.FindElementsByXPath('//*[@id="3070711880137337"]/tbody/tr[2]/td[1]/a').Click()
+                }
+                catch {
+                    Write-Log -Message "Could not find or click edit option for $($PCC_TextBox.Text)" -LogError $_.Exception.Message -Level ERROR
+                    Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem),'Not in ITAM'"
+                    $StatusBar.Text = "Could not find $($PCC_TextBox.Text) in ITAM, saved data to log..."
+                    #Remove filter
+                    $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
+                    $PCC_TextBox.Select()
+                    return
+                }
+        
+                try {
+                    $AssetStatus_Element = $ITAM.FindElementById('P27_WAITAMBAST_STATUS')
+                    $AssetStatusOptions_Element = Get-SeSelectionOption -Element $AssetStatus_Element -ListOptionText
+                    $Status_Dropdown_Popup.Items.Clear()
+                    $Status_Dropdown_Popup.Items.AddRange($AssetStatusOptions_Element)
+                    $Status_Dropdown_Popup.Text = $AssetStatus_Element.getattribute('value')
+        
+                    $AssetAssignedUser_Element = $ITAM.FindElementById('P27_WAITAMBAST_ASSIGNED_USER')
+                    $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
+                }
+                catch {
+                    Write-Log -Message 'Could not load asset information for Inventory Helper' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
+                    return
+                }
+        
+                [void]$AssetUpdate_Popup.ShowDialog()
+                if ($AssetUpdate_Popup.DialogResult -eq 'OK') {
+        
+                    Write-Log -Message "Updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"
+            
+                    try {
+                        # Clearing room on ITAM and enter room from UI
+                        $AssetRoom_Element = $ITAM.FindElementById('P27_WAITAMBAST_ROOM')
+                        $AssetRoom_Element.Clear()
+                        Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.SelectedItem
+        
+                        # Setting status on ITAM from Inventory Helper
+                        $ITAM.FindElementById('P27_WAITAMBAST_STATUS') | Get-SeSelectionOption -ByValue $Status_Dropdown_Popup.Text
+        
+                        Write-Log -Message "Setting Assigned User for $($PCC_TextBox.Text) in ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
+                        $AssetAssignedUser_Element.Clear()
+                        Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
+        
+                        # Selecting ITAM campus from Inventory Helper
+                        $ITAM.FindElementById('P27_WAITAMBAST_LOCATION') | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
+        
+                        # Clicking Apply Changes button
+                        #$WebBrowser.ExecuteScript("apex.submit('SAVE')")
+                        $ITAM.FindElementByXPath('//*[@id="R3052711890100393"]/div[1]/div/div[2]/button[3]').Click()
+                        $ITAM.Url = ("https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value')):::::")
+                        #Remove filter
+                        $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
+                    }
+                    catch {
+                        Write-Log -Message "Had issue updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"  -LogError $_.Exception.Message -Level ERROR
+                    }
+                    
+                    try {
+                        $Inventory.Navigate().refresh()
+                    }
+                    catch {
+                        Write-Log -Message "Could not refresh Inventory site after updating $($PCC_TextBox.Text)" -LogError $_.Exception.Message -Level FATAL
+                    }
+
+                    $Inventory.Navigate().refresh()
+                    $AssetIndex = Find-Asset $PCC_TextBox.Text
+                    if ($AssetIndex) {
+                        $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
+                        try {
+                            Write-Log -Message 'Clicking Verify and Submit button'
+                            $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
+                            $Inventory.FindElementById('B3258732422858420').Click()
+                
+                            $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                            Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                            Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
+                        }
+                        catch {
+                            Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
+                        }
+                    }
+                    else {
+                        Write-Log -Message "Update to $($PCC_TextBox.Text) $($Campus_Dropdown.SelectedItem) : $($Room_Dropdown.SelectedItem) attempted in ITAM but not showing in Inventory"
+                    }           
+                }
+            }
             $PCC_TextBox.Clear()
             $PCC_TextBox.Focused
         }
@@ -594,23 +537,21 @@ $Search_Button.Add_MouseUp( {
 $Campus_Dropdown.add_SelectedIndexChanged( {
         $Room_Dropdown.Enabled = $false
         try {
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
-            $RoomDropDown_Element = (Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM").text.split("`n").Trim()
+            $Inventory.FindElementById('P1_WAITAMBAST_LOCATION') | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
+            $RoomDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_ROOM')).text.split("`n").Trim()
+            $Room_Dropdown.Text = 'Select Room'
+            $Room_Dropdown.Items.Clear()
+            $Room_Dropdown.Items.AddRange($RoomDropDown_Element)
+            $Room_Dropdown.Enabled = $true
         }
         catch {
             Write-Log -Message 'Could not load campus/room for Inventory Helper dropdowns' -LogError $_.Exception.Message -Level ERROR
-
         }
-
-        $Room_Dropdown.Text = 'Select Room'
-        $Room_Dropdown.Items.Clear()
-        $Room_Dropdown.Items.AddRange($RoomDropDown_Element)
-        $Room_Dropdown.Enabled = $true
     })
 
 $Room_Dropdown.add_SelectedIndexChanged( {
         try {
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
+            $Inventory.FindElementById('P1_WAITAMBAST_ROOM') | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
             Write-Log -Message 'Could not load room for Inventory Helper dropdowns' -LogError $_.Exception.Message -Level ERROR
@@ -618,113 +559,97 @@ $Room_Dropdown.add_SelectedIndexChanged( {
     })
 
 $PCC_TextBox.Add_MouseDown( {
-        $PCC_TextBox.clear()
+        $PCC_TextBox.Clear()
         $PCC_TextBox.Forecolor = '#eeeeee'
     })
 
 $Assigneduser_TextBox_Popup.Add_MouseDown( {
         $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
     })
-
-$OK_Button_Popup.Add_MouseUp( {
-
-        Write-Log -Message "Updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"
-    
-        try {
-            # Clearing room on ITAM and enter room from UI
-            $AssetRoom_Element = Get-SeElement -Driver $Driver -Id 'P27_WAITAMBAST_ROOM'
-            $AssetRoom_Element.Clear()
-            Send-SeKeys -Element $AssetRoom_Element -Keys $Room_Dropdown.SelectedItem
-
-            # Setting status on ITAM from Inventory Helper
-            Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_STATUS" | Get-SeSelectionOption -ByValue $Status_Dropdown_Popup.Text
-
-            Write-Log -Message "Setting Assigned User for $($PCC_TextBox.Text) in ITAM and entering: $($Assigneduser_TextBox_Popup.Text)"
-            $AssetAssignedUser_Element.Clear()
-            Send-SeKeys -Element $AssetAssignedUser_Element -Keys $Assigneduser_TextBox_Popup.Text
-
-            # Selecting ITAM campus from Inventory Helper
-            Get-SeElement -Driver $Driver -Id "P27_WAITAMBAST_LOCATION" | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
-
-            # Clicking Apply Changes button
-            Get-SeElement -Driver $Driver -xPath '/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[3]' | Invoke-SeClick
-        }
-        catch {
-            Write-Log -Message "Had issue updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"  -LogError $_.Exception.Message -Level ERROR
-        }
-            
-        try {
-            Open-PimaSite -URL $Inventory_URL
-            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-        }
-        catch {
-            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
-        }
-
-        try {
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1 | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
-        }
-        catch {
-            Write-Log -Message 'Issue with getting Campus/Room from site or setting Inventory Helper campus/room' -LogError $_.Exception.Message -Level ERROR
-        }
-
-        $AssetUpdate_Popup.Close()
-        $PCC_TextBox.Select()
-        $StatusBar.Text = 'Ready'
-    })
-    
+ 
 $Cancel_Button_Popup.Add_MouseUp( {
         Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
     
-        try {
-            Open-PimaSite -URL $Inventory_URL
-            $Driver.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:10000,fetched:10000})")
-        }
-        catch {
-            Write-Log -Message 'Could not open Inventory site' -LogError $_.Exception.Message -Level FATAL
-        }
-    
-        try {
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_LOCATION" -Timeout 1 | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
-            Get-SeElement -Driver $Driver -Id "P1_WAITAMBAST_ROOM" | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
-        }
-        catch {
-            Write-Log -Message "Issue with getting Campus or Room for Inventory Helper" -LogError $_.Exception.Message -Level ERROR
-        }
-
         $AssetUpdate_Popup.Close()
         $PCC_TextBox.Select()
+        $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
+        #Remove filter
+        $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
         $StatusBar.Text = 'Ready'
     })
 
 #endregion
 
 #region Main
+$screen = [System.Windows.Forms.Screen]::AllScreens
+
+
+$ITAM = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5
+$Inventory = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5
+$ITAM.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.1)),$($screen[0].bounds.Height)"
+$Inventory.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.7)),$($screen[0].bounds.Height)"
+$ITAM.Manage().Window.Position = "$($Inventory.Manage().Window.Size.Width),0"
+$Inventory.Manage().Window.Position = "0,0"
+$ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+$Inventory.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
 
 [void]$Login_Form.ShowDialog()
 if ($Login_Form.DialogResult -eq 'OK') {
     $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
     $global:Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
 
-    $ITAM_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
-    $Inventory_URL = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
+    Login-PimaSite $ITAM
+    Login-PimaSite $Inventory
 
-    $Driver = Start-SeFirefox -PrivateBrowsing -ImplicitWait 2
-    
-    Open-PimaSite -URL $Inventory_URL $true
+    $test = $ITAM.FindElementById('welcome')
+    $test2 = $Inventory.FindElementsByClassName('userBlock')
+
+    if ( $test -and $test2) {
+        try {
+            $Inventory.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:500,fetched:500})")
+            $CampusDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim()
+            $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
+
+            $Form.Location = "$($ITAM.Manage().Window.Size.Width),100"
+            [void]$Form.ShowDialog()
+
+            Write-Log -Message "Ending session for $($Credentials.UserName)"
+
+            $ITAM.Close()
+            $Inventory.Close()
+            $ITAM.Quit()
+            $Inventory.Quit()
+            break
+        }
+        catch {
+            Write-Log -Message "Could not load verify login of $($Credentials.UserName)" -LogError $_.Exception.Message -Level FATAL
+            exit
+        }
+    }
+    else {
+        
+        $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed, please relaunch.", 'Warning', 'RetryCancel', 'Warning')
+        switch ($RelogChoice) {
+            # Need to figure out logic to re-enter creds and what not
+            'Retry' { 
+                [void]$Login_Form.ShowDialog() 
+                break
+            }
+            'Cancel' {
+                $ITAM.Close()
+                $Inventory.Close()
+                $ITAM.Quit()
+                $Inventory.Quit()
+                Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
+                exit
+            }
+        }        
+    }
+}
+elseif ($Login_Form.DialogResult -eq 'Cancel') {
+    $ITAM.Close()
+    $Inventory.Close()
+    $ITAM.Quit()
+    $Inventory.Quit()
 }
 #endregion
-
-#region Old Code for future use?
-<#
-
-Write-Log -Message 'Reloading Inventory page so data is always updated'
-Open-SeUrl -Driver $Driver -Url ($Inventory_URL + ":1:$($loginInstance)::NO:RP::")
-$Global:loginInstance = (Get-SeElement -Driver $Driver -Id 'pInstance').getattribute('value')
-
-
-
-
-#>
-#EndRegion
