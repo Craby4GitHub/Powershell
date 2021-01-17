@@ -11,9 +11,9 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
-$Form.StartPosition = 'CenterScreen'
-$Form.Text = 'Inventory Helper Beta 0.1.0'
-$Form.ClientSize = "200,330"
+$Form.StartPosition = 'Manual'
+$Form.Text = 'Inventory Helper Beta 0.2.3'
+$Form.ClientSize = "125,300"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
@@ -323,5 +323,5 @@ if ($Login_Form.DialogResult -eq 'OK') {
     [void]$Form.ShowDialog()
 }
 elseif ($Login_Form.DialogResult -eq 'Cancel') {
-    Write-Error -Message 'Login Canceled'
+
 }
