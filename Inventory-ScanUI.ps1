@@ -13,7 +13,7 @@ $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
 $Form.Text = 'Inventory Helper Beta 0.2.3'
-$Form.ClientSize = "125,300"
+$Form.ClientSize = "180,300"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
@@ -32,13 +32,6 @@ $Campus_Dropdown.TabIndex = 1
 #$Campus_Dropdown.Dock = "Fill"
 $Campus_Dropdown.FlatStyle = 0
 $Campus_Dropdown.Anchor = 'left, Right'
-
-$Room_Label = New-Object system.Windows.Forms.Label
-$Room_Label.Text = "Room:" 
-#$Room_Label.Font = 'Segoe UI, 10pt, style=Bold'
-$Room_Label.AutoSize = $true
-$Room_Label.Dock = 'Bottom'
-$Room_Label.Anchor = 'Left,Right,Bottom'
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
@@ -77,6 +70,7 @@ $Search_Button.ForeColor = '#eeeeee'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
+#$Form.AcceptButton.DialogResult = 'OK'
 
 $StatusBar = New-Object System.Windows.Forms.StatusBar
 $StatusBar.Text = "Ready"
@@ -114,9 +108,9 @@ $AssetUpdate_Popup.Text = 'Asset Update'
 $AssetUpdate_Popup.Backcolor = '#324e7a'
 $AssetUpdate_Popup.ForeColor = '#eeeeee' 
 $AssetUpdate_Popup.FormBorderStyle = "FixedDialog"
-$AssetUpdate_Popup.ClientSize = "400,220"
+$AssetUpdate_Popup.ClientSize = "$($Form.Size.Width),220"
 $AssetUpdate_Popup.TopMost = $true
-$AssetUpdate_Popup.StartPosition = 'CenterScreen'
+$AssetUpdate_Popup.StartPosition = 'Manual'
 $AssetUpdate_Popup.ControlBox = $false
 $AssetUpdate_Popup.AutoSize = $true
 
@@ -165,6 +159,8 @@ $Cancel_Button_Popup.Dock = 'Fill'
 $Cancel_Button_Popup.TabIndex = 4
 $Cancel_Button_Popup.FlatStyle = 1
 $Cancel_Button_Popup.FlatAppearance.BorderSize = 0
+$AssetUpdate_Popup.CancelButton = $Cancel_Button_Popup
+$AssetUpdate_Popup.CancelButton.DialogResult = 'Cancel'
 
 $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
@@ -275,6 +271,20 @@ $Login_Form.controls.Add($LayoutPanel_Login)
 #EndRegion
 # Copy above to main code^^^
 # Code below for basic UI functions
+
+$screen = [System.Windows.Forms.Screen]::AllScreens
+$Inventory = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5 -Quiet
+$Inventory.Manage().Window.Position = "0,0"
+$Inventory.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.7)),$($screen[0].bounds.Height)"
+$ITAM = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5 -Quiet
+$ITAM.Manage().Window.Position = "$($Inventory.Manage().Window.Size.Width - 12),0"
+$ITAM.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.3)),$($screen[0].bounds.Height)"
+$Inventory.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
+$ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+
+$Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Position.X - 15),100"
+$AssetUpdate_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
+
 @('1', '2', '3', '4', '5', '6', '7', '8') | ForEach-Object { [void] $Campus_Dropdown.Items.Add($_) }
 @('1', '2', '3', '4', '5') | ForEach-Object { [void] $Status_Dropdown_Popup.Items.Add($_) }
 
@@ -310,11 +320,9 @@ $Password_TextBox.Add_MouseDown( {
     })
 $OK_Button_Login.Add_MouseUp( {
         $Login_Form.DialogResult = 'OK'
-        #$Login_Form.Close()
     })
 $Cancel_Button_Login.Add_MouseUp( {
         $Login_Form.DialogResult = 'Cancel'
-        #$Login_Form.Close()
     })
 
 [void]$Login_Form.ShowDialog()
@@ -325,3 +333,5 @@ if ($Login_Form.DialogResult -eq 'OK') {
 elseif ($Login_Form.DialogResult -eq 'Cancel') {
 
 }
+Stop-SeDriver $ITAM
+Stop-SeDriver $Inventory
