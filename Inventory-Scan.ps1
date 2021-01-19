@@ -12,8 +12,8 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.2.3'
-$Form.ClientSize = "125,300"
+$Form.Text = 'Inventory Helper Beta 0.2.4'
+$Form.ClientSize = "180,300"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
@@ -32,13 +32,6 @@ $Campus_Dropdown.TabIndex = 1
 #$Campus_Dropdown.Dock = "Fill"
 $Campus_Dropdown.FlatStyle = 0
 $Campus_Dropdown.Anchor = 'left, Right'
-
-$Room_Label = New-Object system.Windows.Forms.Label
-$Room_Label.Text = "Room:" 
-#$Room_Label.Font = 'Segoe UI, 10pt, style=Bold'
-$Room_Label.AutoSize = $true
-$Room_Label.Dock = 'Bottom'
-$Room_Label.Anchor = 'Left,Right,Bottom'
 
 $Room_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Room_Dropdown.DropDownStyle = 'DropDown'
@@ -77,6 +70,7 @@ $Search_Button.ForeColor = '#eeeeee'
 $Search_Button.FlatStyle = 1
 $Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
+#$Form.AcceptButton.DialogResult = 'OK'
 
 $StatusBar = New-Object System.Windows.Forms.StatusBar
 $StatusBar.Text = "Ready"
@@ -114,9 +108,9 @@ $AssetUpdate_Popup.Text = 'Asset Update'
 $AssetUpdate_Popup.Backcolor = '#324e7a'
 $AssetUpdate_Popup.ForeColor = '#eeeeee' 
 $AssetUpdate_Popup.FormBorderStyle = "FixedDialog"
-$AssetUpdate_Popup.ClientSize = "400,220"
+$AssetUpdate_Popup.ClientSize = "$($Form.Size.Width),220"
 $AssetUpdate_Popup.TopMost = $true
-$AssetUpdate_Popup.StartPosition = 'CenterScreen'
+$AssetUpdate_Popup.StartPosition = 'Manual'
 $AssetUpdate_Popup.ControlBox = $false
 $AssetUpdate_Popup.AutoSize = $true
 
@@ -165,6 +159,8 @@ $Cancel_Button_Popup.Dock = 'Fill'
 $Cancel_Button_Popup.TabIndex = 4
 $Cancel_Button_Popup.FlatStyle = 1
 $Cancel_Button_Popup.FlatAppearance.BorderSize = 0
+$AssetUpdate_Popup.CancelButton = $Cancel_Button_Popup
+$AssetUpdate_Popup.CancelButton.DialogResult = 'Cancel'
 
 $LayoutPanel_Popup = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel_Popup.Dock = "Fill"
@@ -278,7 +274,7 @@ $Login_Form.controls.Add($LayoutPanel_Login)
 
 function Login-PimaSite ([Object[]]$Site) {
 
-    Write-Log -Message "$($Credentials.UserName) attempting to login to $($Site)"
+    Write-Log -Message "$($Credentials.UserName) attempting to login"
     
     try {
         $usernameElement = $Site.FindElementById('P101_USERNAME')
@@ -304,7 +300,7 @@ Function Find-Asset($PCCNumber, $Campus, $Room) {
         for ($i = 0; $i -le $InventoryTableAssets.Count; $i++) {
             $InventoryTableAsset = $InventoryTableAssets[$i].FindElementsByTagName('td')
             if (($InventoryTableAsset[1].text -eq $PCC_TextBox.Text) -or ($InventoryTableAsset[6].text -eq $PCC_TextBox.Text)) {
-                return $i
+                return $i + 1
                 break
             }
         }
@@ -390,8 +386,6 @@ $Search_Button.Add_MouseDown( {
 
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
-            $StatusBar.Text = 'Starting Search...'
-
             $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
             Write-Log -Message "Searching for $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
 
@@ -405,7 +399,6 @@ $Search_Button.Add_MouseUp( {
                     $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
-                    $PCC_TextBox.Select()
                 }
                 catch {
                     Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
@@ -449,7 +442,6 @@ $Search_Button.Add_MouseUp( {
                     $StatusBar.Text = "Could not find $($PCC_TextBox.Text) in ITAM, saved data to log..."
                     #Remove filter
                     $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
-                    $PCC_TextBox.Select()
                     return
                 }
         
@@ -467,7 +459,7 @@ $Search_Button.Add_MouseUp( {
                     Write-Log -Message 'Could not load asset information for Inventory Helper' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
                     return
                 }
-        
+                
                 [void]$AssetUpdate_Popup.ShowDialog()
                 if ($AssetUpdate_Popup.DialogResult -eq 'OK') {
         
@@ -528,6 +520,15 @@ $Search_Button.Add_MouseUp( {
                         Write-Log -Message "Update to $($PCC_TextBox.Text) $($Campus_Dropdown.SelectedItem) : $($Room_Dropdown.SelectedItem) attempted in ITAM but not showing in Inventory"
                     }           
                 }
+                elseif ($AssetUpdate_Popup.DialogResult -eq 'Cancel') {
+                    Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
+    
+                    $AssetUpdate_Popup.Close()
+                    $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
+                    #Remove filter
+                    $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
+                    $StatusBar.Text = 'Ready'
+                }
             }
             $PCC_TextBox.Clear()
             $PCC_TextBox.Focused
@@ -566,32 +567,21 @@ $PCC_TextBox.Add_MouseDown( {
 $Assigneduser_TextBox_Popup.Add_MouseDown( {
         $Assigneduser_TextBox_Popup.Forecolor = '#eeeeee'
     })
- 
-$Cancel_Button_Popup.Add_MouseUp( {
-        Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
-    
-        $AssetUpdate_Popup.Close()
-        $PCC_TextBox.Select()
-        $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
-        #Remove filter
-        $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
-        $StatusBar.Text = 'Ready'
-    })
-
 #endregion
 
 #region Main
 $screen = [System.Windows.Forms.Screen]::AllScreens
-
-
-$ITAM = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5
-$Inventory = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5
-$ITAM.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.1)),$($screen[0].bounds.Height)"
-$Inventory.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.7)),$($screen[0].bounds.Height)"
-$ITAM.Manage().Window.Position = "$($Inventory.Manage().Window.Size.Width),0"
+$Inventory = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5 -Quiet
 $Inventory.Manage().Window.Position = "0,0"
-$ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+$Inventory.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.7)),$($screen[0].bounds.Height)"
+$ITAM = Start-SeFirefox -PrivateBrowsing -ImplicitWait 5 -Quiet
+$ITAM.Manage().Window.Position = "$($Inventory.Manage().Window.Size.Width - 12),0"
+$ITAM.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.3)),$($screen[0].bounds.Height)"
 $Inventory.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
+$ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
+
+$Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Position.X - 15),100"
+$AssetUpdate_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
 
 [void]$Login_Form.ShowDialog()
 if ($Login_Form.DialogResult -eq 'OK') {
@@ -610,24 +600,19 @@ if ($Login_Form.DialogResult -eq 'OK') {
             $CampusDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim()
             $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
 
-            $Form.Location = "$($ITAM.Manage().Window.Size.Width),100"
             [void]$Form.ShowDialog()
 
             Write-Log -Message "Ending session for $($Credentials.UserName)"
-
-            $ITAM.Close()
-            $Inventory.Close()
-            $ITAM.Quit()
-            $Inventory.Quit()
+            Stop-SeDriver $ITAM
+            Stop-SeDriver $Inventory
             break
         }
         catch {
-            Write-Log -Message "Could not load verify login of $($Credentials.UserName)" -LogError $_.Exception.Message -Level FATAL
+            Write-Log -Message "Could not verify login of $($Credentials.UserName)" -LogError $_.Exception.Message -Level FATAL
             exit
         }
     }
     else {
-        
         $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed, please relaunch.", 'Warning', 'RetryCancel', 'Warning')
         switch ($RelogChoice) {
             # Need to figure out logic to re-enter creds and what not
@@ -636,10 +621,8 @@ if ($Login_Form.DialogResult -eq 'OK') {
                 break
             }
             'Cancel' {
-                $ITAM.Close()
-                $Inventory.Close()
-                $ITAM.Quit()
-                $Inventory.Quit()
+                Stop-SeDriver $ITAM
+                Stop-SeDriver $Inventory
                 Write-Log -Message "$($Credentials.UserName) failed to login" -Level WARN
                 exit
             }
@@ -647,9 +630,7 @@ if ($Login_Form.DialogResult -eq 'OK') {
     }
 }
 elseif ($Login_Form.DialogResult -eq 'Cancel') {
-    $ITAM.Close()
-    $Inventory.Close()
-    $ITAM.Quit()
-    $Inventory.Quit()
+    Stop-SeDriver $ITAM
+    Stop-SeDriver $Inventory
 }
 #endregion
