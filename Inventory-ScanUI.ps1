@@ -12,8 +12,8 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.2.3'
-$Form.ClientSize = "180,300"
+$Form.Text = 'Inventory Helper Beta 0.2.5'
+$Form.ClientSize = "180,250"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
 $Form.BackColor = '#324e7a'
@@ -53,7 +53,7 @@ $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
 #$PCC_TextBox.Font = 'Segoe UI, 15pt'
 $PCC_TextBox.Backcolor = '#1b3666'
-$PCC_TextBox.Text = 'PCC Number'
+$PCC_TextBox.Text = 'PCC/Serial Number'
 $PCC_TextBox.ForeColor = '#a3a3a3' 
 $PCC_TextBox.Dock = 'Fill'
 $PCC_TextBox.TabIndex = 3
@@ -91,8 +91,8 @@ $LayoutPanel.RowCount = 5
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 2)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, .25)))
 
 $LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
@@ -172,10 +172,10 @@ $LayoutPanel_Popup.RowCount = 4
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$LayoutPanel_Popup.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 6)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 6)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 6)))
+[void]$LayoutPanel_Popup.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
 $LayoutPanel_Popup.Controls.Add($Assigneduser_TextBox_Popup, 1, 0)
 $LayoutPanel_Popup.SetColumnSpan($Assigneduser_TextBox_Popup, 2)
