@@ -1,4 +1,3 @@
-#Requires -Modules Selenium
 If (-not(Get-InstalledModule Selenium -ErrorAction silentlycontinue)) {
     Install-Module Selenium -Confirm:$False -Force -Scope CurrentUser
 }
@@ -387,8 +386,6 @@ $Search_Button.Add_MouseDown( {
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
-            Write-Log -Message "Searching for $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
-
             $AssetIndex = Find-Asset $PCC_TextBox.Text
             if ($AssetIndex) {
                 $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
@@ -397,7 +394,6 @@ $Search_Button.Add_MouseUp( {
                     $Inventory.FindElementById('B3258732422858420').Click()
         
                     $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
-                    Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                 }
                 catch {
@@ -509,7 +505,6 @@ $Search_Button.Add_MouseUp( {
                             $Inventory.FindElementById('B3258732422858420').Click()
                 
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
-                            Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                         }
                         catch {
