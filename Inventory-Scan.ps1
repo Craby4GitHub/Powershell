@@ -1,3 +1,4 @@
+#Requires -Modules Selenium
 If (-not(Get-InstalledModule Selenium -ErrorAction silentlycontinue)) {
     Install-Module Selenium -Confirm:$False -Force -Scope CurrentUser
 }
@@ -291,21 +292,20 @@ function Login-PimaSite ([Object[]]$Site) {
         exit
     }
 }
-Function Find-Asset($PCCNumber, $Campus, $Room) {
+Function Find-Asset($PCCNumber) {
     
     try {
-        Write-Log -Message "Searching for $($PCCNumber) at $($Campus): $($Room)"
-        $InventoryTableAssets = $Inventory.FindElementByXPath('/html/body/form/div/table/tbody/tr/td[1]/section[2]/div[2]/div/table/tbody[2]/tr/td/table/tbody').FindElementsByTagName('tr')
+        $InventoryTableAssets = $Inventory.FindElementByClassName('uReportStandard').FindElementsByTagName('tr')
         for ($i = 0; $i -le $InventoryTableAssets.Count; $i++) {
             $InventoryTableAsset = $InventoryTableAssets[$i].FindElementsByTagName('td')
-            if (($InventoryTableAsset[1].text -eq $PCC_TextBox.Text) -or ($InventoryTableAsset[6].text -eq $PCC_TextBox.Text)) {
+            if (($InventoryTableAsset[1].text -eq $PCCNumber) -or ($InventoryTableAsset[6].text -eq $PCCNumber)) {
                 return $i + 1
                 break
             }
         }
     }
     catch {
-        Write-Log -Message "Unable to get Inventory Table element for $($PCCNumber). $($Campus): $($Room)" -LogError $_.Exception.Message -Level ERROR
+        Write-Log -Message "Unable to get Inventory Table element for $($PCCNumber)." -LogError $_.Exception.Message -Level ERROR
     }
 }
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
@@ -326,7 +326,7 @@ function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
                 return $true
             }
             else {
-                Write-Log -Message 'Invalid Dropdown Selection' -Control $UIInput.Text
+                Write-Log -Message 'Invalid Dropdown Selection' -Control $UIInput.Text -Level ERROR
                 $ErrorProvider.SetError($UIInput, $ErrorMSG)
                 return $false
             }
@@ -359,7 +359,7 @@ Function Write-Log {
         $Control
     )
 
-    $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+    $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss:ff")
     $Line = "$Stamp,$Level,$($Credentials.UserName),$Control,$Message,$LogError"
 
     Add-Content $PSScriptRoot\ITAMScan_Errorlog.csv -Value $Line
@@ -381,11 +381,14 @@ $Password_TextBox.Add_MouseDown( {
 $Search_Button.Add_MouseDown( {
         Confirm-UIInput -UIInput $Campus_Dropdown -ErrorMSG 'Invalid Campus'
         Confirm-UIInput -UIInput $Room_Dropdown -ErrorMSG 'Invalid Room'
+        Confirm-UIInput -UIInput $PCC_TextBox -ErrorMSG 'Invalid Search Term' -RegEx '\w'
     })
 
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
             $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
+            Write-Log -Message "Searching for $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+
             $AssetIndex = Find-Asset $PCC_TextBox.Text
             if ($AssetIndex) {
                 $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
@@ -394,6 +397,7 @@ $Search_Button.Add_MouseUp( {
                     $Inventory.FindElementById('B3258732422858420').Click()
         
                     $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                    Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                 }
                 catch {
@@ -423,21 +427,26 @@ $Search_Button.Add_MouseUp( {
                     $ITAM.FindElementById('R3070613760137337_search_button').Click()
                 }
                 catch {
-                    Write-Log -Message "Had an issue navigating ITAM to search for $($PCC_TextBox.Text)" -LogError $_.Exception.Message -Level ERROR
+                    Write-Log -Message "Had an issue navigating ITAM to search for $($PCC_TextBox.Text)" -Level ERROR
                 }
             
                 try {
                     Write-Log -Message "Clicking edit for asset for $($PCC_TextBox.Text)"
                     #NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
                     # Or find a better way of finding the asset in itam
-                    $ITAM.FindElementsByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a').Click()
+                    $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a').Click()
                 }
                 catch {
-                    Write-Log -Message "Could not find or click edit option for $($PCC_TextBox.Text)" -LogError $_.Exception.Message -Level ERROR
+                    Write-Log -Message "Could not find or click edit option for $($PCC_TextBox.Text)" -Level ERROR
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem),'Not in ITAM'"
                     $StatusBar.Text = "Could not find $($PCC_TextBox.Text) in ITAM, saved data to log..."
                     #Remove filter
-                    $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
+                    $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
+                    
+
+                    $PCC_TextBox.Clear()
+                    $PCC_TextBox.Select()
+
                     return
                 }
         
@@ -482,7 +491,7 @@ $Search_Button.Add_MouseUp( {
                         $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[2]').Click()
                         $ITAM.Url = ("https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value')):::::")
                         #Remove filter
-                        $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
+                        $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
                     }
                     catch {
                         Write-Log -Message "Had issue updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"  -LogError $_.Exception.Message -Level ERROR
@@ -505,6 +514,7 @@ $Search_Button.Add_MouseUp( {
                             $Inventory.FindElementById('B3258732422858420').Click()
                 
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                            Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                         }
                         catch {
@@ -521,8 +531,8 @@ $Search_Button.Add_MouseUp( {
                     $AssetUpdate_Popup.Close()
                     $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
                     #Remove filter
-                    $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[2]/div[2]/ul/li/span[4]/button').Click()
-                    $StatusBar.Text = 'Ready'
+                    $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
+                   $StatusBar.Text = 'Ready'
                 }
             }
             $PCC_TextBox.Clear()
@@ -550,7 +560,7 @@ $Room_Dropdown.add_SelectedIndexChanged( {
             $Inventory.FindElementById('P1_WAITAMBAST_ROOM') | Get-SeSelectionOption -ByValue $Room_Dropdown.SelectedItem
         }
         catch {
-            Write-Log -Message 'Could not load room for Inventory Helper dropdowns' -LogError $_.Exception.Message -Level ERROR
+            Write-Log -Message 'Could not load room for Inventory Helper dropdowns' -Level ERROR
         }
     })
 
@@ -575,7 +585,7 @@ $ITAM.Manage().Window.Size = "$([math]::Round($screen[0].bounds.Width / 2.3)),$(
 $Inventory.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=403'
 $ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
 
-$Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Position.X - 15),100"
+$Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Position.X - 15),0"
 $AssetUpdate_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
 
 [void]$Login_Form.ShowDialog()
@@ -587,7 +597,7 @@ if ($Login_Form.DialogResult -eq 'OK') {
     Login-PimaSite $Inventory
 
     $test = $ITAM.FindElementById('welcome')
-    $test2 = $Inventory.FindElementsByClassName('userBlock')
+    $test2 = $Inventory.FindElementByClassName('userBlock')
 
     if ( $test -and $test2) {
         try {
