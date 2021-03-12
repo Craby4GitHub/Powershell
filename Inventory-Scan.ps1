@@ -12,7 +12,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.2.5'
+$Form.Text = 'Inventory Helper Beta 0.2.7'
 $Form.ClientSize = "180,250"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -299,7 +299,7 @@ Function Find-Asset($PCCNumber) {
         for ($i = 0; $i -le $InventoryTableAssets.Count; $i++) {
             $InventoryTableAsset = $InventoryTableAssets[$i].FindElementsByTagName('td')
             if (($InventoryTableAsset[1].text -eq $PCCNumber) -or ($InventoryTableAsset[6].text -eq $PCCNumber)) {
-                return $i + 1
+                return $i
                 break
             }
         }
