@@ -1,4 +1,3 @@
-#Requires -Modules Selenium
 If (-not(Get-InstalledModule Selenium -ErrorAction silentlycontinue)) {
     Install-Module Selenium -Confirm:$False -Force -Scope CurrentUser
 }
@@ -12,7 +11,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.2.7'
+$Form.Text = 'Inventory Helper Beta 0.3.0'
 $Form.ClientSize = "180,250"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -72,9 +71,19 @@ $Search_Button.FlatAppearance.BorderSize = 0
 $Form.AcceptButton = $Search_Button
 #$Form.AcceptButton.DialogResult = 'OK'
 
+<#
 $StatusBar = New-Object System.Windows.Forms.StatusBar
 $StatusBar.Text = "Ready"
 $StatusBar.SizingGrip = $false
+$StatusBar.Font = 'Segoe UI, 12pt'
+$StatusBar.Dock = 'Bottom'
+$StatusBar.Backcolor = '#1b3666'
+#$StatusBar.ForeColor = '#eeeeee'
+#>
+
+$StatusBar = New-Object System.Windows.Forms.Label
+$StatusBar.Text = "Ready"
+#$StatusBar.SizingGrip = $false
 $StatusBar.Font = 'Segoe UI, 12pt'
 $StatusBar.Dock = 'Bottom'
 $StatusBar.Backcolor = '#1b3666'
@@ -199,7 +208,7 @@ $Login_Form.AutoSize = $true
 
 $Username_TextBox = New-Object system.Windows.Forms.TextBox
 $Username_TextBox.multiline = $false
-$Username_TextBox.Text = "Username"
+$Username_TextBox.Text = $env:USERNAME
 $Username_TextBox.Select()
 $Username_TextBox.Font = 'Segoe UI, 18pt'
 $Username_TextBox.Backcolor = '#1b3666'
@@ -292,22 +301,36 @@ function Login-PimaSite ([Object[]]$Site) {
         exit
     }
 }
+
 Function Find-Asset($PCCNumber) {
-    
     try {
-        $InventoryTableAssets = $Inventory.FindElementByClassName('uReportStandard').FindElementsByTagName('tr')
-        for ($i = 0; $i -le $InventoryTableAssets.Count; $i++) {
-            $InventoryTableAsset = $InventoryTableAssets[$i].FindElementsByTagName('td')
-            if (($InventoryTableAsset[1].text -eq $PCCNumber) -or ($InventoryTableAsset[6].text -eq $PCCNumber)) {
-                return $i
-                break
-            }
+        
+        $InventoryTableAssets = $Inventory.FindElementByClassName('uReportStandard')
+
+        if ($PCCNumber -match '\d{6}') {
+            $PCCNumbers = $InventoryTableAssets.FindElementsByXPath("//td[@headers='WAITAMBAST_BARCODE']")
+            for ($i = 0; $i -lt $PCCNumbers.Count; $i++) {
+                if ($PCCNumbers[$i].text -eq $PCCNumber) {
+                    return $i + 1
+                    break
+                }
+            }    
+        }
+        else {
+            $SerialNumbers = $InventoryTableAssets.FindElementsByXPath("//td[@headers='WAITAMBAST_SERIAL_NBR']")
+            for ($i = 0; $i -lt $SerialNumbers.Count; $i++) {
+                if ($SerialNumbers[$i].text -eq $PCCNumber) {
+                    return $i + 1
+                    break
+                }
+            } 
         }
     }
     catch {
         Write-Log -Message "Unable to get Inventory Table element for $($PCCNumber)." -LogError $_.Exception.Message -Level ERROR
     }
 }
+
 function Confirm-UIInput($UIInput, $RegEx, $ErrorMSG) {
     switch -regex ($UIInput.ToString()) {
         'System.Windows.Forms.TextBox' {  
@@ -386,17 +409,21 @@ $Search_Button.Add_MouseDown( {
 
 $Search_Button.Add_MouseUp( {
         if (Confirm-NoError) {
-            $StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
+            #$StatusBar.Text = "Searching for $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
             Write-Log -Message "Searching for $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
 
             $AssetIndex = Find-Asset $PCC_TextBox.Text
             if ($AssetIndex) {
-                $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
+                #$StatusBar.Text = "$($PCC_TextBox.Text) Found!"
                 try {
+
+                    # Click Verify radio button
                     $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
-                    $Inventory.FindElementById('B3258732422858420').Click()
-        
-                    $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+
+                    # Click Submit button
+                    $Inventory.ExecuteScript("apex.submit('SUBMIT')")
+                            
+                    #$StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                 }
@@ -405,7 +432,7 @@ $Search_Button.Add_MouseUp( {
                 }
             }
             else {
-                $StatusBar.Text = "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem), opening ITAM to edit"
+                #$StatusBar.Text = "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem), opening ITAM to edit"
                 Write-Log -Message "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem) at $($Campus_Dropdown.SelectedItem)"
         
                 try {
@@ -423,7 +450,7 @@ $Search_Button.Add_MouseUp( {
                     # Entering PCCNumber into search bar
                     $ITAM.FindElementById('R3070613760137337_search_field').SendKeys($PCC_TextBox.Text)
         
-                    # Clicking Go button
+                    # Click Go button
                     $ITAM.FindElementById('R3070613760137337_search_button').Click()
                 }
                 catch {
@@ -440,10 +467,10 @@ $Search_Button.Add_MouseUp( {
                     Write-Log -Message "Could not find or click edit option for $($PCC_TextBox.Text)" -Level ERROR
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem),'Not in ITAM'"
                     $StatusBar.Text = "Could not find $($PCC_TextBox.Text) in ITAM, saved data to log..."
+                    
                     #Remove filter
                     $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
                     
-
                     $PCC_TextBox.Clear()
                     $PCC_TextBox.Select()
 
@@ -461,7 +488,7 @@ $Search_Button.Add_MouseUp( {
                     $Assigneduser_TextBox_Popup.Text = $AssetAssignedUser_Element.getattribute('value')
                 }
                 catch {
-                    Write-Log -Message 'Could not load asset information for Inventory Helper' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
+                    Write-Log -Message 'Could not load asset information for Inventory Helper from ITAM' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
                     return
                 }
                 
@@ -487,9 +514,10 @@ $Search_Button.Add_MouseUp( {
                         $ITAM.FindElementById('P27_WAITAMBAST_LOCATION') | Get-SeSelectionOption -ByValue $Campus_Dropdown.SelectedItem
         
                         # Clicking Apply Changes button
-                        #$WebBrowser.ExecuteScript("apex.submit('SAVE')")
-                        $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div[1]/div[1]/div/div[2]/button[2]').Click()
+                        $ITAM.ExecuteScript("apex.submit('SAVE')")
+
                         $ITAM.Url = ("https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value')):::::")
+
                         #Remove filter
                         $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
                     }
@@ -511,8 +539,10 @@ $Search_Button.Add_MouseUp( {
                         try {
                             Write-Log -Message 'Clicking Verify and Submit button'
                             $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
-                            $Inventory.FindElementById('B3258732422858420').Click()
-                
+
+                            # Click Submit button
+                            $Inventory.ExecuteScript("apex.submit('SUBMIT')")
+
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
@@ -530,9 +560,10 @@ $Search_Button.Add_MouseUp( {
     
                     $AssetUpdate_Popup.Close()
                     $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
+
                     #Remove filter
                     $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
-                   $StatusBar.Text = 'Ready'
+                    $StatusBar.Text = 'Ready'
                 }
             }
             $PCC_TextBox.Clear()
@@ -601,7 +632,7 @@ if ($Login_Form.DialogResult -eq 'OK') {
 
     if ( $test -and $test2) {
         try {
-            $Inventory.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:500,fetched:500})")
+            $Inventory.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:2000,fetched:2000})")
             $CampusDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim()
             $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
 
