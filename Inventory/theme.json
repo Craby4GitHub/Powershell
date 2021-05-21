@@ -1,0 +1,132 @@
+{
+    "Form": {
+        "BackgroundImage": "",
+        "BackColor": "#324e7a",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "LayoutPanel": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e"
+    },
+    "Campus_Dropdown": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Room_Dropdown": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Equipment_Dropdown": {
+        "BackgroundImage": "",
+        "BackColor": "#ffd57e",
+        "ForeColor": "#000000",
+        "Font": "Segoe UI, 18pt"
+    },
+    "PCC_TextBox": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#a3a3a3",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Search_Button": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Option_Button": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "StatusBar": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 12pt"
+    },
+    "Option_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#324e7a",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "ScanLog_Button": {
+        "BackgroundImage": "",
+        "BackColor": "#324e7a",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "ErrorLog_Button": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "AssetUpdate_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Assigneduser_TextBox_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#a3a3a3",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Status_Dropdown_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "OK_Button_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Cancel_Button_Popup": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Login_Form": {
+        "BackgroundImage": "",
+        "BackColor": "#324e7a",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Username_TextBox": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#a3a3a3",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Password_TextBox": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#a3a3a3",
+        "Font": "Segoe UI, 18pt"
+    },
+    "OK_Button_Login": {
+        "BackgroundImage": "",
+        "BackColor": "#616161",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    },
+    "Cancel_Button_Login": {
+        "BackgroundImage": "",
+        "BackColor": "#1b3666",
+        "ForeColor": "#eeeeee",
+        "Font": "Segoe UI, 18pt"
+    }
+}
