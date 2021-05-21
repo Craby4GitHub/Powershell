@@ -11,7 +11,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.3.1'
+$Form.Text = 'Inventory Helper Beta 0.3.2'
 $Form.ClientSize = "180,250"
 $Form.Font = 'Segoe UI, 18pt'
 $Form.TopMost = $true
@@ -52,7 +52,7 @@ $PCC_TextBox = New-Object system.Windows.Forms.TextBox
 $PCC_TextBox.multiline = $false
 #$PCC_TextBox.Font = 'Segoe UI, 15pt'
 $PCC_TextBox.Backcolor = '#1b3666'
-$PCC_TextBox.Text = 'PCC/Serial Number'
+$PCC_TextBox.Text = 'PCC or Serial Number'
 $PCC_TextBox.ForeColor = '#a3a3a3' 
 $PCC_TextBox.Dock = 'Fill'
 $PCC_TextBox.TabIndex = 3
@@ -93,7 +93,7 @@ $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
 $LayoutPanel.ColumnCount = 3
 $LayoutPanel.RowCount = 5
-$LayoutPanel.CellBorderStyle = 1
+#$LayoutPanel.CellBorderStyle = 1
 
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
