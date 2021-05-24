@@ -116,6 +116,23 @@ Function Write-Log {
 }
 #endregion
 
+#region Sounds
+$InventoriedSound = New-Object System.Media.SoundPlayer
+$InventoriedSound.SoundLocation = "$PSScriptRoot\Sounds\identify.wav"
+
+$ErrorSound = New-Object System.Media.SoundPlayer
+$ErrorSound.SoundLocation = "$PSScriptRoot\Sounds\warcry1.wav"
+
+$PortalCast = New-Object System.Media.SoundPlayer
+$PortalCast.SoundLocation = "$PSScriptRoot\Sounds\portalcast.wav"
+
+$PortalEnter = New-Object System.Media.SoundPlayer
+$PortalEnter.SoundLocation = "$PSScriptRoot\Sounds\portalenter.wav"
+
+$D2Button = New-Object System.Media.SoundPlayer
+$D2Button.SoundLocation = "$PSScriptRoot\Sounds\button.wav"
+#EndRegion
+
 #region UI Actions
 
 $Username_TextBox.Add_MouseDown( {
@@ -135,6 +152,7 @@ $Search_Button.Add_MouseDown( {
     })
 
 $Search_Button.Add_MouseUp( {
+    $D2Button.play()
         if (Confirm-NoError) {
             $StatusBar.Text = "Searching $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
             Write-Log -Message "Searching $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
@@ -150,9 +168,10 @@ $Search_Button.Add_MouseUp( {
                     # Click Submit button
                     #$Inventory.FindElementById('B3258732422858420').Click()
                     $Inventory.ExecuteScript("apex.submit('SUBMIT')")
-                    $InventoriedSound.playsync()
+                    $InventoriedSound.play()
                             
                     $StatusBar.Text = "$($PCC_TextBox.Text) inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+                    $StatusBar.Backcolor = 'Green'
                     Write-Log -message "$($PCC_TextBox.Text) inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
                 }
@@ -161,8 +180,9 @@ $Search_Button.Add_MouseUp( {
                 }
             }
             else {
-                $ErrorSound.playsync()
+                $ErrorSound.play()
                 $StatusBar.Text = "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem), opening ITAM to edit"
+                $StatusBar.Backcolor = 'Orange'
                 Write-Log -Message "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem) at $($Campus_Dropdown.SelectedItem)"
         
                 try {
@@ -188,7 +208,7 @@ $Search_Button.Add_MouseUp( {
                 }
             
                 try {
-                    Write-Log -Message "Clicking edit for asset for $($PCC_TextBox.Text)"
+                    Write-Log -Message "Clicking edit for asset $($PCC_TextBox.Text) in ITAM"
                     #NOTE: Only clicks on the first entry, may need to load whole table in future to verify only 1 asset found
                     # Or find a better way of finding the asset in itam
                     $ITAM.FindElementByXPath('/html/body/form/div[5]/table/tbody/tr/td[1]/div/div[2]/div/div/div/div/div[2]/div[2]/div[6]/div[1]/table/tbody/tr[2]/td[1]/a').Click()
@@ -199,8 +219,8 @@ $Search_Button.Add_MouseUp( {
                     $StatusBar.Text = "Could not find $($PCC_TextBox.Text) in ITAM, saved data to log..."
                     
                     #Remove filter
-                    $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
-                    
+                    $ITAM.FindElementByCssSelector('button[title="Remove Filter"]').Click()
+                                        
                     $PCC_TextBox.Clear()
                     $PCC_TextBox.Select()
 
@@ -221,7 +241,6 @@ $Search_Button.Add_MouseUp( {
                     Write-Log -Message 'Could not load asset information for Inventory Helper from ITAM' -LogError $_.Exception.Message -Level ERROR -Control $Status_Dropdown_Popup.SelectedItem
                     return
                 }
-                
                 [void]$AssetUpdate_Popup.ShowDialog()
                 if ($AssetUpdate_Popup.DialogResult -eq 'OK') {
         
@@ -249,7 +268,7 @@ $Search_Button.Add_MouseUp( {
                         $ITAM.Url = ("https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value')):::::")
 
                         #Remove filter
-                        $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
+                        $ITAM.FindElementByCssSelector('button[title="Remove Filter"]').Click()
                     }
                     catch {
                         Write-Log -Message "Had issue updating $($PCC_TextBox.Text) to Campus: $($Campus_Dropdown.SelectedItem ) and Room: $($Room_Dropdown.SelectedItem)"  -LogError $_.Exception.Message -Level ERROR
@@ -273,7 +292,7 @@ $Search_Button.Add_MouseUp( {
                             # Click Submit button
                             #$Inventory.FindElementById('B3258732422858420').Click()
                             $Inventory.ExecuteScript("apex.submit('SUBMIT')")
-                            $InventoriedSound.playsync()
+                            $InventoriedSound.play()
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
@@ -284,19 +303,19 @@ $Search_Button.Add_MouseUp( {
                     }
                     else {
                         Write-Log -Message "Update to $($PCC_TextBox.Text) $($Campus_Dropdown.SelectedItem) : $($Room_Dropdown.SelectedItem) attempted in ITAM but not showing in Inventory"
-                    }           
+                    }          
                 }
                 elseif ($AssetUpdate_Popup.DialogResult -eq 'Cancel') {
                     Write-Log -Message "Canceling Asset update for $($PCC_TextBox.Text) to Campus:$($Campus_Dropdown.SelectedItem ) and Room:$($Room_Dropdown.SelectedItem)"
     
-                    $AssetUpdate_Popup.Close()
                     $ITAM.ExecuteScript("apex.navigation.redirect('f?p=402:26:$($ITAM.FindElementById('pInstance').getattribute('value'))::NO:::')")
 
                     #Remove filter
-                    $ITAM.FindElementByClassName('a-IRR-button--remove').Click()
+                    $ITAM.FindElementByClassName('icon-remove').Click()
                     $StatusBar.Text = 'Ready'
                 }
             }
+            $StatusBar.Backcolor = $Theme.StatusBar.Backcolor
             $PCC_TextBox.Clear()
             $PCC_TextBox.Select()
         }
@@ -336,25 +355,20 @@ $Assigneduser_TextBox_Popup.Add_MouseDown( {
     })
 
 $Option_Button.Add_MouseUp( {
+        $D2Button.Play()
         $Option_Popup.ShowDialog()
     })
 $ScanLog_Button.Add_MouseUp( {
+        $D2Button.Play()
         $Option_Popup.DialogResult = 'OK'
         Invoke-Item $PSScriptRoot\ITAMScan_Scanlog.csv
     })
 $ErrorLog_Button.Add_MouseUp( {
+        $D2Button.Play()
         $Option_Popup.DialogResult = 'OK'
         Invoke-Item $PSScriptRoot\ITAMScan_Errorlog.csv
     })
 #endregion
-
-#region Fun
-$InventoriedSound = New-Object System.Media.SoundPlayer
-$InventoriedSound.SoundLocation = "$PSScriptRoot\Sounds\identify.wav"
-
-$ErrorSound = New-Object System.Media.SoundPlayer
-$ErrorSound.SoundLocation = "$PSScriptRoot\Sounds\warcry1.wav"
-#EndRegion
 
 #region Main
 $screen = [System.Windows.Forms.Screen]::AllScreens
@@ -369,7 +383,9 @@ $ITAM.Url = 'https://pimaapps.pima.edu/pls/htmldb_pdat/f?p=402:26'
 
 $Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Position.X - 15),0"
 $AssetUpdate_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
+$Option_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
 
+$PortalCast.play()
 [void]$Login_Form.ShowDialog()
 if ($Login_Form.DialogResult -eq 'OK') {
     $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
@@ -389,6 +405,7 @@ if ($Login_Form.DialogResult -eq 'OK') {
             $CampusDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim()
             $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
 
+            $PortalEnter.play()
             [void]$Form.ShowDialog()
 
             Write-Log -Message "Ending session for $($Credentials.UserName)"
