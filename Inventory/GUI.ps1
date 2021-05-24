@@ -7,7 +7,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.3.2'
+$Form.Text = 'Inventory Helper Beta 0.4.2'
 $Form.ClientSize = "180,300"
 $Form.TopMost = $true
 $Form.FormBorderStyle = 'Sizable'
@@ -289,13 +289,13 @@ $ErrorLog_Button.TabIndex = 3
 $ErrorLog_Button.FlatStyle = 1
 $ErrorLog_Button.Dock = 'Fill'
 
-#endregion
+#Endregion
 
 #region Layouts
 $Main_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $Main_LayoutPanel.ColumnCount = 3
 $Main_LayoutPanel.RowCount = 5
-$Main_LayoutPanel.CellBorderStyle = 1
+#$Main_LayoutPanel.CellBorderStyle = 1
 $Main_LayoutPanel.Dock = "Fill"
 [void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, .5)))
 [void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -361,4 +361,6 @@ $Option_Popup.controls.Add($Options_LayoutPanel)
 
 
 #EndRegion
-[void]$Form.ShowDialog()
+
+# Comment line out below if code in production
+#[void]$Form.ShowDialog()
