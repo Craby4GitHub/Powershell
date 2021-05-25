@@ -152,7 +152,7 @@ $Search_Button.Add_MouseDown( {
     })
 
 $Search_Button.Add_MouseUp( {
-    $D2Button.play()
+    $D2Button.Play()
         if (Confirm-NoError) {
             $StatusBar.Text = "Searching $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
             Write-Log -Message "Searching $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
@@ -168,7 +168,7 @@ $Search_Button.Add_MouseUp( {
                     # Click Submit button
                     #$Inventory.FindElementById('B3258732422858420').Click()
                     $Inventory.ExecuteScript("apex.submit('SUBMIT')")
-                    $InventoriedSound.play()
+                    $InventoriedSound.Play()
                             
                     $StatusBar.Text = "$($PCC_TextBox.Text) inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                     $StatusBar.Backcolor = 'Green'
@@ -180,7 +180,7 @@ $Search_Button.Add_MouseUp( {
                 }
             }
             else {
-                $ErrorSound.play()
+                $ErrorSound.Play()
                 $StatusBar.Text = "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem), opening ITAM to edit"
                 $StatusBar.Backcolor = 'Orange'
                 Write-Log -Message "Unable to find $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem) at $($Campus_Dropdown.SelectedItem)"
@@ -292,7 +292,7 @@ $Search_Button.Add_MouseUp( {
                             # Click Submit button
                             #$Inventory.FindElementById('B3258732422858420').Click()
                             $Inventory.ExecuteScript("apex.submit('SUBMIT')")
-                            $InventoriedSound.play()
+                            $InventoriedSound.Play()
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Write-Log -message "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
                             Add-Content $PSScriptRoot\ITAMScan_Scanlog.csv -Value "$($PCC_TextBox.Text),$($Campus_Dropdown.SelectedItem),$($Room_Dropdown.SelectedItem)"
@@ -385,27 +385,33 @@ $Form.Location = "$($ITAM.Manage().Window.Size.Width + $ITAM.Manage().Window.Pos
 $AssetUpdate_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
 $Option_Popup.Location = "$($Form.Location.X),$($PCC_Textbox.Location.Y)"
 
-$PortalCast.play()
+$PortalCast.Play()
 [void]$Login_Form.ShowDialog()
 if ($Login_Form.DialogResult -eq 'OK') {
     $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
     $global:Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
-
-    Login-PimaSite $ITAM
+    
     Login-PimaSite $Inventory
+    Login-PimaSite $ITAM
+    
     try {
         $test = $ITAM.FindElementById('welcome')
         $test2 = $Inventory.FindElementByClassName('userBlock')
     }
     catch {}
    
-    if ( $test -and $test2) {
-        try {
-            $Inventory.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',{min:1,max:2000,fetched:2000})")
-            $CampusDropDown_Element = ($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim()
-            $Campus_Dropdown.Items.AddRange($CampusDropDown_Element)
+    if ($test -and $test2) {
 
-            $PortalEnter.play()
+        $PageHash = ((($Inventory.FindElementById('X01_3257120268858381')).GetAttribute('onchange')).split("'"))[3]
+
+        # quotes needed as PageHash ***needs*** quotes around value when used in execute script below
+        $PageHashWithQuotes = "'$PageHash'"
+
+        $Inventory.ExecuteScript("apex.widget.tabular.paginate('R3257120268858381',$PageHashWithQuotes,{min:1,max:2000,fetched:2000})")
+        try {
+            $Campus_Dropdown.Items.AddRange(($Inventory.FindElementById('P1_WAITAMBAST_LOCATION')).text.split("`n").Trim())
+
+            $PortalEnter.Play()
             [void]$Form.ShowDialog()
 
             Write-Log -Message "Ending session for $($Credentials.UserName)"
