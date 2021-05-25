@@ -71,7 +71,7 @@
     },
     "AssetUpdate_Popup": {
         "BackgroundImage": "",
-        "BackColor": "#616161",
+        "BackColor": "#324e7a",
         "ForeColor": "#eeeeee",
         "Font": "Segoe UI, 18pt"
     },
@@ -79,25 +79,25 @@
         "BackgroundImage": "",
         "BackColor": "#1b3666",
         "ForeColor": "#a3a3a3",
-        "Font": "Segoe UI, 18pt"
+        "Font": "Segoe UI, 12pt"
     },
     "Status_Dropdown_Popup": {
         "BackgroundImage": "",
         "BackColor": "#1b3666",
         "ForeColor": "#eeeeee",
-        "Font": "Segoe UI, 18pt"
+        "Font": "Segoe UI, 12pt"
     },
     "OK_Button_Popup": {
         "BackgroundImage": "",
-        "BackColor": "#616161",
+        "BackColor": "#1b3666",
         "ForeColor": "#eeeeee",
-        "Font": "Segoe UI, 18pt"
+        "Font": "Segoe UI, 12pt"
     },
     "Cancel_Button_Popup": {
         "BackgroundImage": "",
-        "BackColor": "#1b3666",
+        "BackColor": "#616161",
         "ForeColor": "#eeeeee",
-        "Font": "Segoe UI, 18pt"
+        "Font": "Segoe UI, 12pt"
     },
     "Login_Form": {
         "BackgroundImage": "",
