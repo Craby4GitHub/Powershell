@@ -163,7 +163,7 @@ $Search_Button.Add_MouseUp( {
                 try {
 
                     # Click Verify radio button
-                    $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
+                    $Inventory.ExecuteScript("arguments[0].click();", $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001"))
 
                     # Click Submit button
                     #$Inventory.FindElementById('B3258732422858420').Click()
@@ -286,11 +286,10 @@ $Search_Button.Add_MouseUp( {
                     if ($AssetIndex) {
                         $StatusBar.Text = "$($PCC_TextBox.Text) Found!"
                         try {
-                            Write-Log -Message 'Clicking Verify and Submit button'
-                            $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001").Click()
+                            # Click Verify radio button
+                            $Inventory.ExecuteScript("arguments[0].click();", $Inventory.FindElementById("f02_$('{0:d4}' -f $AssetIndex)_0001"))
 
                             # Click Submit button
-                            #$Inventory.FindElementById('B3258732422858420').Click()
                             $Inventory.ExecuteScript("apex.submit('SUBMIT')")
                             $InventoriedSound.Play()
                             $StatusBar.Text = "$($PCC_TextBox.Text) has been inventoried to $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
