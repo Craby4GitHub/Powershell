@@ -36,11 +36,18 @@ Function Find-Asset($PCCNumber) {
 
         if ($PCCNumber -match '\d{6}') {
             $PCCNumbers = $InventoryTableAssets.FindElementsByXPath("//td[@headers='WAITAMBAST_BARCODE']")
+            $ProgressBar.Maximum = $PCCNumbers.Count
             for ($i = 0; $i -lt $PCCNumbers.Count; $i++) {
+                [System.Windows.Forms.Application]::DoEvents()
+                if ($script:CancelLoop -eq $true) {
+                    $progressbar1.Value = 0
+                    break
+                }
                 if ($PCCNumbers[$i].text -eq $PCCNumber) {
                     return $i + 1
                     break
                 }
+                $ProgressBar.Increment(1)
             }    
         }
         else {
@@ -152,10 +159,20 @@ $Search_Button.Add_MouseDown( {
     })
 
 $Search_Button.Add_MouseUp( {
-    $D2Button.Play()
+        $D2Button.Play()
         if (Confirm-NoError) {
             $StatusBar.Text = "Searching $($PCC_TextBox.Text) in $($Room_Dropdown.SelectedItem)"
             Write-Log -Message "Searching $($PCC_TextBox.Text) at $($Campus_Dropdown.SelectedItem): $($Room_Dropdown.SelectedItem)"
+
+
+            $script:CancelLoop = $false
+            $Search_Button.Enabled = $false
+            $Campus_Dropdown.Enabled = $false
+            $Room_Dropdown.Enabled = $false
+            $PCC_TextBox.Enabled = $false
+
+            $ProgressBar.Value = 0
+            $ProgressBar.Visible = $true
 
             $AssetIndex = Find-Asset $PCC_TextBox.Text
             if ($AssetIndex) {
@@ -178,6 +195,9 @@ $Search_Button.Add_MouseUp( {
                 catch {
                     Write-Log -Message 'Could not find/click Verify/Submit' -LogError $_.Exception.Message -Level ERROR
                 }
+            }
+            elseif ($script:CancelLoop) {
+                $StatusBar.Text = 'Ready'
             }
             else {
                 $ErrorSound.Play()
@@ -314,10 +334,21 @@ $Search_Button.Add_MouseUp( {
                     $StatusBar.Text = 'Ready'
                 }
             }
+
+            $ProgressBar.Visible = $false
+            $this.Enabled = $true
+            $Campus_Dropdown.Enabled = $true
+            $Room_Dropdown.Enabled = $true
+            $PCC_TextBox.Enabled = $true
+
             $StatusBar.Backcolor = $Theme.StatusBar.Backcolor
             $PCC_TextBox.Clear()
             $PCC_TextBox.Select()
         }
+    })
+
+$ProgressBar.Add_MouseDown( {
+        $script:CancelLoop = $true
     })
 
 $Campus_Dropdown.add_SelectedIndexChanged( {

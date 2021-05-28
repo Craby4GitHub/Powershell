@@ -7,7 +7,7 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 $Form = New-Object system.Windows.Forms.Form
 $Form.AutoScaleMode = 'Font'
 $Form.StartPosition = 'Manual'
-$Form.Text = 'Inventory Helper Beta 0.4.3'
+$Form.Text = 'Inventory Helper Beta 0.4.4'
 $Form.ClientSize = "180,300"
 $Form.TopMost = $true
 $Form.FormBorderStyle = 'Sizable'
@@ -39,6 +39,10 @@ $Search_Button.Text = "Search"
 $Search_Button.TabIndex = 4
 $Form.AcceptButton = $Search_Button
 
+$ProgressBar = New-Object System.Windows.Forms.ProgressBar
+$ProgressBar.Minimum = 0
+$ProgressBar.Visible = $false
+
 $Option_Button = New-Object system.Windows.Forms.Button
 $Option_Button.Text = "Options"
 $Option_Button.TabIndex = 5
@@ -46,7 +50,6 @@ $Option_Button.TabIndex = 5
 $StatusBar = New-Object System.Windows.Forms.Label
 $StatusBar.Text = "Ready"
 #$StatusBar.SizingGrip = $false
-
 
 #EndRegion
 
@@ -236,6 +239,9 @@ $Option_Button.FlatStyle = 1
 $Option_Button.FlatAppearance.BorderSize = 0
 $Option_Button.Dock = 'Fill'
 
+$ProgressBar.Style = 'Continuous'
+$ProgressBar.Dock = 'Fill'
+
 $StatusBar.Font = $Theme.StatusBar.Font
 $StatusBar.Backcolor = $Theme.StatusBar.Backcolor
 $StatusBar.ForeColor = $Theme.StatusBar.ForeColor
@@ -310,6 +316,7 @@ $Main_LayoutPanel.Controls.Add($Campus_Dropdown, 1, 0)
 $Main_LayoutPanel.Controls.Add($Room_Dropdown, 1, 1)
 $Main_LayoutPanel.Controls.Add($PCC_TextBox, 1, 2)
 $Main_LayoutPanel.Controls.Add($Search_Button, 1, 3)
+$Main_LayoutPanel.Controls.Add($ProgressBar, 1, 4)
 $Main_LayoutPanel.Controls.Add($Option_Button, 2, 4)
 $Form.controls.AddRange(@($Main_LayoutPanel, $StatusBar))
 
@@ -358,7 +365,6 @@ $Options_LayoutPanel.SetColumnSpan($ScanLog_Button, 2)
 $Options_LayoutPanel.Controls.Add($ErrorLog_Button, 1, 1)
 $Options_LayoutPanel.SetColumnSpan($ErrorLog_Button, 2)
 $Option_Popup.controls.Add($Options_LayoutPanel)
-
 
 #EndRegion
 
