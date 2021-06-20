@@ -213,7 +213,7 @@ Function Write-Log {
     )
 
     $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $Line = "$Stamp,$Level,$env:COMPUTERNAME,$Message,$Element"
+    $Line = "$Stamp,$Level,$env:COMPUTERNAME,$($Message -replace','),$Element"
 
     try {
         Add-Content $ErrorPath -Value $Line
