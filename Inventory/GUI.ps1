@@ -171,7 +171,7 @@ $Login_Form.controls.Add($LayoutPanel_Login)
 #EndRegion
 
 #region UI Theme
-$Theme = Get-Content -Path .\theme.json | ConvertFrom-Json
+$Theme = Get-Content -Path $PSScriptRoot\theme.json | ConvertFrom-Json
 
 $Login_Form.Backcolor = $Theme.Login_Form.BackColor
 $Login_Form.ForeColor = $Theme.Login_Form.ForeColor 
