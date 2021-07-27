@@ -35,12 +35,12 @@ function OSD-GUI {
     $Main_LayoutPanel.ColumnCount = 3
     $Main_LayoutPanel.RowCount = 4
     #$Main_LayoutPanel.CellBorderStyle = 1
-    [void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$Main_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
 
 
     $ComputerName_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
@@ -48,13 +48,13 @@ function OSD-GUI {
     $ComputerName_LayoutPanel.ColumnCount = 4
     $ComputerName_LayoutPanel.RowCount = 3
     #$ComputerName_LayoutPanel.CellBorderStyle = 1
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 
     $ComputerName_Label = New-Object system.Windows.Forms.Label
     $ComputerName_Label.Text = 'Create Computer Name'
@@ -118,11 +118,11 @@ function OSD-GUI {
     $Domain_LayoutPanel.ColumnCount = 3
     $Domain_LayoutPanel.RowCount = 2
     #$Domain_LayoutPanel.CellBorderStyle = 1
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-    [void]$Domain_LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 
     $DomainSelection_Label = New-Object system.Windows.Forms.Label
     $DomainSelection_Label.Text = 'Select a Domain'
@@ -205,16 +205,16 @@ function OSD-GUI {
     $LayoutPanel_Login.ColumnCount = 4
     $LayoutPanel_Login.RowCount = 5
     #$LayoutPanel_Login.CellBorderStyle = 1
-    [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-    [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-    [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-    [void]$LayoutPanel_Login.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+    [void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+    [void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+    [void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+    [void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
-    [void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-    [void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-    [void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-    [void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-    [void]$LayoutPanel_Login.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+    [void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+    [void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+    [void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+    [void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+    [void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
     $LayoutPanel_Login.Controls.Add($Username_TextBox, 1, 0)
     $LayoutPanel_Login.SetColumnSpan($Username_TextBox, 2)
@@ -279,7 +279,7 @@ function OSD-GUI {
 
     Function AddNodes ( $Node, $CurrentOU, $Domain ) {
         $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
-        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server "$($Domain)-domain.pima.edu" | ForEach-Object { AddNodes $NodeSub $_ }
+        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server "$($Domain)-domain.pima.edu" | ForEach-Object { AddNodes $NodeSub $_ $Domain }
     }
     #endregion
 
@@ -287,7 +287,7 @@ function OSD-GUI {
     $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
             $treeView.Nodes.Clear()
             if ($EDU_RadioButton.Checked -eq $true) {
-                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server 'edu-domain.pima.edu' | ForEach-Object { AddNodes $treeView $_ -Domain 'edu' }
+                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server 'edu-domain.pima.edu' | ForEach-Object { AddNodes $treeView $_ 'edu' }
             }
             elseif ($PCC_RadioButton.Checked -eq $true) {
                 if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
@@ -306,12 +306,17 @@ function OSD-GUI {
     }
  
     $Submit_Button.Add_Click( { 
+        if ($null -ne $treeView.SelectedNode) {
             if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
                 $ErrorProvider.SetError($ComputerName_Label, '')
                 if ($ComputerName_BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
                     $ErrorProvider.SetError($ComputerName_Label, '')
                     if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
                         $ErrorProvider.SetError($ComputerName_Label, '')
+                        $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $ComputerName_PCCNumber_Textbox.Text + '*"')
+                        if ($null -ne $PCCSearch) {
+                            [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)`nImaging will continue", 'Warning', 'Ok', 'Warning')
+                        }
                         if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$') {
                             $ErrorProvider.SetError($ComputerName_Label, '')
                             if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {
@@ -341,7 +346,10 @@ function OSD-GUI {
             }
             else {
                 $ErrorProvider.SetError($ComputerName_Label, 'Select a proper campus')
-            }            
+            } 
+        } else {
+            $ErrorProvider.SetError($ComputerName_Label, 'Select an OU')
+        }          
         
             if (Confirm-NoError) {
                 # Output for testing
@@ -374,10 +382,10 @@ function OSD-GUI {
             $ADDomain = Get-ADDomain -Credential $Credentials
         }
         catch [System.Security.Authentication.AuthenticationException] {
-            write-host "incorrect login"
+            Write-Host "incorrect login"
         }
         catch {
-            write-host 'hm...'
+            Write-Host 'hm...'
         }
 
         if ($ADDomain.Name -match $PCC_RadioButton.text -or $ADDomain.Name -match $EDU_RadioButton.text) {
@@ -408,5 +416,5 @@ $CampusShortList = @('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC',
 $RandomRooms = @('CG11', 'E513', 'AH321', 'emp', 'stu')
 
 for ($i = 0; $i -lt 1; $i++) {
-    OSD-GUI -Campus $(get-random -InputObject $CampusShortList) -Bldg $(get-random -InputObject $RandomRooms) -PCC $(get-random -Maximum 999999 -Minimum 111111) -Suffix $( -join ((65..90) + (97..121) | Get-Random -Count 2 | % { [char]$_ })) -Domain $(get-random -InputObject 'EDU', 'PCC')
+    OSD-GUI -Campus $(Get-Random -InputObject $CampusShortList) -Bldg $(Get-Random -InputObject $RandomRooms) -PCC $(Get-Random -Maximum 999999 -Minimum 111111) -Suffix $( -join ((65..90) + (97..121) | Get-Random -Count 2 | ForEach-Object { [char]$_ })) -Domain $(Get-Random -InputObject 'EDU', 'PCC')
 }
