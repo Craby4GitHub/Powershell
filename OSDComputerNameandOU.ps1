@@ -6,8 +6,6 @@ function OSD-GUI {
         $Suffix,
         $Domain
     )
-    
-
 
     #region GUI
 
@@ -19,44 +17,17 @@ function OSD-GUI {
     $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
     $screen = [System.Windows.Forms.Screen]::AllScreens
-
-    $Form = New-Object System.Windows.Forms.Form    
-    $Form.AutoScaleDimensions = '7,15'
-    $Form.AutoScaleMode = 'Font'
-    $Form.StartPosition = 'CenterScreen'
-    $Form.Width = $($screen[0].bounds.Width / 5)
-    $Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
-    $Form.Text = 'Active Directory Information'
-    $Form.ControlBox = $false
-    $Form.TopMost = $true
-
-    $Main_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-    $Main_LayoutPanel.Dock = "Fill"
-    $Main_LayoutPanel.ColumnCount = 3
-    $Main_LayoutPanel.RowCount = 4
-    #$Main_LayoutPanel.CellBorderStyle = 1
-    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$Main_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-
-
-    $ComputerName_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-    $ComputerName_LayoutPanel.Dock = "Fill"
-    $ComputerName_LayoutPanel.ColumnCount = 5
-    $ComputerName_LayoutPanel.RowCount = 3
-    $ComputerName_LayoutPanel.CellBorderStyle = 1
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    #region Computer Info
+    $ComputerInfo_Form = New-Object System.Windows.Forms.Form    
+    $ComputerInfo_Form.AutoScaleDimensions = '7,15'
+    $ComputerInfo_Form.AutoScaleMode = 'Font'
+    $ComputerInfo_Form.StartPosition = 'CenterScreen'
+    $ComputerInfo_Form.Width = $($screen[0].bounds.Width / 5)
+    $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
+    $ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
+    $ComputerInfo_Form.Text = 'Active Directory Information'
+    $ComputerInfo_Form.ControlBox = $false
+    $ComputerInfo_Form.TopMost = $true
 
     $ComputerName_Label = New-Object system.Windows.Forms.Label
     $ComputerName_Label.Text = 'Create Computer Name'
@@ -120,16 +91,8 @@ function OSD-GUI {
     $ComputerName_Check_Button.Font = 'Segoe UI, 8pt'
     $ComputerName_Check_Button.TabIndex = 6
     $ComputerName_Check_Button.Dock = 'Bottom'
+    $ComputerName_Check_Button.Anchor = 'Bottom'
     $ComputerName_Check_Button.AutoSize = $true
-
-    $Submit_Button = New-Object System.Windows.Forms.Button
-    $Submit_Button.Text = 'Submit'
-    $Submit_Button.Font = 'Segoe UI, 8pt'
-    $Submit_Button.TabIndex = 6
-    $Submit_Button.Dock = 'Bottom'
-    $Submit_Button.AutoSize = $true
-    $Submit_Button.Enabled = $false
-    $Form.AcceptButton = $Submit_Button
 
     $ADOUTree_Label = New-Object system.Windows.Forms.Label
     $ADOUTree_Label.Text = 'Select an OU'
@@ -140,14 +103,24 @@ function OSD-GUI {
     $ADOUTree = New-Object System.Windows.Forms.TreeView
     $ADOUTree.Dock = 'Fill'
 
-    $Form.controls.Add($Main_LayoutPanel)
-
+    $Submit_Button = New-Object System.Windows.Forms.Button
+    $Submit_Button.Text = 'Submit'
+    $Submit_Button.Font = 'Segoe UI, 8pt'
+    $Submit_Button.TabIndex = 6
+    $Submit_Button.Dock = 'Bottom'
+    $Submit_Button.AutoSize = $true
+    $Submit_Button.Enabled = $false
+    $ComputerInfo_Form.AcceptButton = $Submit_Button
+    #endregion
     #region Login Window
     $Login_Form = New-Object system.Windows.Forms.Form
     $Login_Form.FormBorderStyle = "FixedDialog"
-    $Login_Form.ClientSize = "400,220"
     $Login_Form.TopMost = $true
+    $Login_Form.AutoScaleDimensions = '7,15'
+    $Login_Form.AutoScaleMode = 'Font'
     $Login_Form.StartPosition = 'CenterScreen'
+    $Login_Form.Width = $($screen[0].bounds.Width / 5)
+    $Login_Form.Height = $($screen[0].bounds.Height / 5)
     $Login_Form.ControlBox = $false
     $Login_Form.AutoSize = $true
 
@@ -169,7 +142,7 @@ function OSD-GUI {
     $Password_TextBox.AutoSize = $true
 
     $DomainSelection_Label = New-Object system.Windows.Forms.Label
-    $DomainSelection_Label.Text = 'Select a Domain'
+    $DomainSelection_Label.Text = 'Domain'
     $DomainSelection_Label.Font = 'Segoe UI, 10pt,style=bold'
     $DomainSelection_Label.Dock = 'Bottom'
     $DomainSelection_Label.Anchor = 'Bottom'
@@ -192,23 +165,6 @@ function OSD-GUI {
     $PCC_RadioButton.Dock = 'Fill'
     $PCC_RadioButton.AutoSize = $true
 
-    $Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-    $Domain_LayoutPanel.Dock = "Fill"
-    $Domain_LayoutPanel.ColumnCount = 3
-    $Domain_LayoutPanel.RowCount = 2
-    #$Domain_LayoutPanel.CellBorderStyle = 1
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-
-    #region Domain Selection
-    $Domain_LayoutPanel.Controls.Add($DomainSelection_Label, 1, 0)
-    $Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
-    $Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
-    #endregion
-
     $OK_Button_Login = New-Object system.Windows.Forms.Button
     $OK_Button_Login.Text = "Login"
     $OK_Button_Login.Dock = 'Fill'
@@ -225,6 +181,27 @@ function OSD-GUI {
 
     $Login_Form.CancelButton = $Cancel_Button_Login
     $Login_Form.CancelButton.DialogResult = 'Cancel'
+
+    #EndRegion
+    #region All UI Layouts
+    #region Login Layout
+    $Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+    $Domain_LayoutPanel.Dock = "Fill"
+    $Domain_LayoutPanel.ColumnCount = 3
+    $Domain_LayoutPanel.RowCount = 2
+    #$Domain_LayoutPanel.CellBorderStyle = 1
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+    [void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+
+    $Domain_LayoutPanel.Controls.Add($DomainSelection_Label, 1, 0)
+    $Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
+    $Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
+
+
+
 
     $LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
     $LayoutPanel_Login.Dock = "Fill"
@@ -250,24 +227,26 @@ function OSD-GUI {
     $LayoutPanel_Login.SetColumnSpan($Domain_LayoutPanel, 2)
     $LayoutPanel_Login.Controls.Add($OK_Button_Login, 1, 3)
     $LayoutPanel_Login.Controls.Add($Cancel_Button_Login, 2, 3)
+
     $Login_Form.controls.Add($LayoutPanel_Login)
 
-    #EndRegion
-    #region UI Layout
-    #region Main Layout
-
-    $Main_LayoutPanel.Controls.Add($ComputerName_LayoutPanel, 0, 0)
-    $Main_LayoutPanel.SetColumnSpan($ComputerName_LayoutPanel, 3)
-
-    $Main_LayoutPanel.Controls.Add($ADOUTree_Label, 0, 1)
-    $Main_LayoutPanel.SetColumnSpan($ADOUTree_Label, 3)
-    $Main_LayoutPanel.Controls.Add($ADOUTree, 0, 2)
-    $Main_LayoutPanel.SetColumnSpan($ADOUTree, 3)
-
-    $Main_LayoutPanel.Controls.Add($Submit_Button, 1, 3)
     #endregion
-
+    #region Main Layout
     #region Computer Name
+    $ComputerName_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+    $ComputerName_LayoutPanel.Dock = "Fill"
+    $ComputerName_LayoutPanel.ColumnCount = 5
+    $ComputerName_LayoutPanel.RowCount = 3
+    $ComputerName_LayoutPanel.CellBorderStyle = 1
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+    [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+
     $ComputerName_LayoutPanel.Controls.Add($ComputerName_Label, 0, 0)
     $ComputerName_LayoutPanel.SetColumnSpan($ComputerName_Label, 5)
 
@@ -286,13 +265,35 @@ function OSD-GUI {
     $ComputerName_LayoutPanel.Controls.Add($ComputerName_Check_Button, 4, 2)
 
     #endregion
-    #endregion
-    #endregion
+    $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+    $ComputerInfo_LayoutPanel.Dock = "Fill"
+    $ComputerInfo_LayoutPanel.ColumnCount = 3
+    $ComputerInfo_LayoutPanel.RowCount = 4
+    $ComputerInfo_LayoutPanel.CellBorderStyle = 1
+    [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
+    [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+    [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+    [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+    [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
 
+    $ComputerInfo_LayoutPanel.Controls.Add($ComputerName_LayoutPanel, 0, 0)
+    $ComputerInfo_LayoutPanel.SetColumnSpan($ComputerName_LayoutPanel, 3)
+
+    $ComputerInfo_LayoutPanel.Controls.Add($ADOUTree_Label, 0, 1)
+    $ComputerInfo_LayoutPanel.SetColumnSpan($ADOUTree_Label, 3)
+    $ComputerInfo_LayoutPanel.Controls.Add($ADOUTree, 0, 2)
+    $ComputerInfo_LayoutPanel.SetColumnSpan($ADOUTree, 3)
+
+    $ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 1, 3)
+    $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
+    #endregion
+    #endregion
+    #endregion
     #region Functions
-
     function Confirm-NoError {
-        if ($ErrorProvider.GetError($ComputerName_Label) -or $ErrorProvider.GetError($DomainSelection_Label)) {
+        if ($ErrorProvider.GetError($ComputerName_Label) -or $ErrorProvider.GetError($ADOUTree_Label)) {
             return $false
         }
         else {
@@ -305,7 +306,6 @@ function OSD-GUI {
         Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { AddNodes $NodeSub $_ $ADDomain.Forest }
     }
     #endregion
-
     #region Actions
     $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
             $ADOUTree.Nodes.Clear()
@@ -385,10 +385,10 @@ function OSD-GUI {
         })
     $Submit_Button.Add_Click( { 
             if ($null -eq $ADOUTree.SelectedNode) {
-                $ErrorProvider.SetError($ComputerName_Label, 'Select an OU')
+                $ErrorProvider.SetError($ADOUTree_Label, 'Select an OU')
             }
             else {
-                $ErrorProvider.SetError($ComputerName_Label, '')
+                $ErrorProvider.SetError($ADOUTree_Label, '')
             }          
         
             if (Confirm-NoError) {
@@ -401,7 +401,7 @@ function OSD-GUI {
                 #$TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
                 #$TSEnvironment.Value("OSDDomainOUName") = "$($OULocation)"
                 #$TSEnvironment.Value("OSDDomainName") = "$($Domain)"               
-                [void]$Form.Close()
+                [void]$ComputerInfo_Form.Close()
             }
             else {
                 $OULocation = "LDAP://$($ADOUTree.SelectedNode.Name)"
@@ -410,18 +410,11 @@ function OSD-GUI {
         })
 
     #endregion
-
-    # Test Values
-    #$ComputerName_Campus_Dropdown.SelectedItem = $Campus
-    $ComputerName_BuildingRoom_Textbox.Text = $Bldg
-    $ComputerName_PCCNumber_Textbox.Text = $PCC
-    $ComputerName_Suffix_Textbox.Text = $Suffix
-
+    #region Main
     [void]$Login_Form.ShowDialog()
     if ($Login_Form.DialogResult -eq 'OK') {
         $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
         $global:Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
-
         try {
             if ($PCC_RadioButton.Checked) {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($PCC_RadioButton.text + '-domain.pima.edu')
@@ -429,7 +422,6 @@ function OSD-GUI {
             else {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($EDU_RadioButton.text + '-domain.pima.edu')
             }
-
         }
         catch [System.Security.Authentication.AuthenticationException] {
             Write-Host "incorrect login"
@@ -439,7 +431,13 @@ function OSD-GUI {
         }
 
         if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
-            [void]$Form.ShowDialog()
+            # Test Values
+            #$ComputerName_Campus_Dropdown.SelectedItem = $Campus
+            $ComputerName_BuildingRoom_Textbox.Text = $Bldg
+            $ComputerName_PCCNumber_Textbox.Text = $PCC
+            $ComputerName_Suffix_Textbox.Text = $Suffix
+
+            [void]$ComputerInfo_Form.ShowDialog()
             break
         }
         else {
@@ -460,6 +458,7 @@ function OSD-GUI {
     }
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
     }
+    #endregion
 }
 
 $CampusShortList = @('29', 'ER', 'EP', 'DV', 'DO', 'DC', 'EC', 'MS', 'NW', 'WC', 'PCC')
