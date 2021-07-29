@@ -93,6 +93,7 @@ function OSD-GUI {
     $ComputerName_Check_Button.Dock = 'Bottom'
     $ComputerName_Check_Button.Anchor = 'Bottom'
     $ComputerName_Check_Button.AutoSize = $true
+    $ComputerName_Check_Button.BackColor = 'LightGray'
 
     $ADOUTree_Label = New-Object system.Windows.Forms.Label
     $ADOUTree_Label.Text = 'Select an OU'
@@ -109,7 +110,6 @@ function OSD-GUI {
     $Submit_Button.TabIndex = 6
     $Submit_Button.Dock = 'Bottom'
     $Submit_Button.AutoSize = $true
-    $Submit_Button.Enabled = $false
     $ComputerInfo_Form.AcceptButton = $Submit_Button
     #endregion
     #region Login Window
@@ -200,9 +200,6 @@ function OSD-GUI {
     $Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
     $Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
 
-
-
-
     $LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
     $LayoutPanel_Login.Dock = "Fill"
     $LayoutPanel_Login.ColumnCount = 4
@@ -237,7 +234,7 @@ function OSD-GUI {
     $ComputerName_LayoutPanel.Dock = "Fill"
     $ComputerName_LayoutPanel.ColumnCount = 5
     $ComputerName_LayoutPanel.RowCount = 3
-    $ComputerName_LayoutPanel.CellBorderStyle = 1
+    #$ComputerName_LayoutPanel.CellBorderStyle = 1
     [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
     [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
     [void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
@@ -269,7 +266,7 @@ function OSD-GUI {
     $ComputerInfo_LayoutPanel.Dock = "Fill"
     $ComputerInfo_LayoutPanel.ColumnCount = 3
     $ComputerInfo_LayoutPanel.RowCount = 4
-    $ComputerInfo_LayoutPanel.CellBorderStyle = 1
+    #$ComputerInfo_LayoutPanel.CellBorderStyle = 1
     [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
     [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
     [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
@@ -301,6 +298,54 @@ function OSD-GUI {
         }
     }
 
+    Function Confirm-ComputerName {
+        $ComputerName_Check_Button.BackColor = 'LightGray'
+        if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
+            $ErrorProvider.SetError($ComputerName_Label, '')
+            if ($ComputerName_BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
+                $ErrorProvider.SetError($ComputerName_Label, '')
+                if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
+                    $ErrorProvider.SetError($ComputerName_Label, '')
+                    $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $ComputerName_PCCNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
+                    if ($null -ne $PCCSearch) {
+                        [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)`nImaging will continue", 'Warning', 'Ok', 'Warning')
+                    }
+                    if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$|') {
+                        $ErrorProvider.SetError($ComputerName_Label, '')
+                        if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {
+                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            if ($ComputerName.Length -gt 15) {
+                                $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
+                            }else {
+                                $ComputerName_Check_Button.BackColor = 'Green'
+                            }
+                        }
+                        else {
+                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            if ($ComputerName.Length -gt 15) {
+                                $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
+                            }else {
+                                $ComputerName_Check_Button.BackColor = 'Green'
+                            }
+                        }
+                    }
+                    else {
+                        $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper suffix')
+                    }
+                }
+                else {
+                    $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper PCC Number')
+                }
+            }
+            else {
+                $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper building/room')
+            }
+        }
+        else {
+            $ErrorProvider.SetError($ComputerName_Label, 'Select a proper campus')
+        }
+    }
+
     Function AddNodes ( $Node, $CurrentOU) {
         $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
         Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { AddNodes $NodeSub $_ $ADDomain.Forest }
@@ -328,62 +373,10 @@ function OSD-GUI {
         $ComputerName_PCCNumber_Textbox.ReadOnly = $true
     }
     $ComputerName_Check_Button.Add_Click( { 
-            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
-                $ErrorProvider.SetError($ComputerName_Label, '')
-                if ($ComputerName_BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
-                    $ErrorProvider.SetError($ComputerName_Label, '')
-                    if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
-                        $ErrorProvider.SetError($ComputerName_Label, '')
-                        $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $ComputerName_PCCNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
-                        if ($null -ne $PCCSearch) {
-                            [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)`nImaging will continue", 'Warning', 'Ok', 'Warning')
-                        }
-                        if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$') {
-                            $ErrorProvider.SetError($ComputerName_Label, '')
-                            if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {
-                                $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
-                                if ($ComputerName.Length -gt 15) {
-                                    $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
-                                }
-                                else {
-                                    $Submit_Button.Enabled = $true
-                                    $ComputerName_Campus_Dropdown.Enabled = $false
-                                    $ComputerName_BuildingRoom_Textbox.ReadOnly = $true
-                                    $ComputerName_PCCNumber_Textbox.ReadOnly = $true
-                                    $ComputerName_Suffix_Textbox.ReadOnly = $true
-                                }
-                            }
-                            else {
-                                $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
-                                if ($ComputerName.Length -gt 15) {
-                                    $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
-                                }
-                                else {
-                                    $Submit_Button.Enabled = $true
-                                    $ComputerName_Campus_Dropdown.Enabled = $false
-                                    $ComputerName_BuildingRoom_Textbox.ReadOnly = $true
-                                    $ComputerName_PCCNumber_Textbox.ReadOnly = $true
-                                    $ComputerName_Suffix_Textbox.ReadOnly = $true
-                                }
-                            }
-                        }
-                        else {
-                            $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper suffix')
-                        }
-                    }
-                    else {
-                        $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper PCC Number')
-                    }
-                }
-                else {
-                    $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper building/room')
-                }
-            }
-            else {
-                $ErrorProvider.SetError($ComputerName_Label, 'Select a proper campus')
-            }
+        Confirm-ComputerName
         })
     $Submit_Button.Add_Click( { 
+        Confirm-ComputerName
             if ($null -eq $ADOUTree.SelectedNode) {
                 $ErrorProvider.SetError($ADOUTree_Label, 'Select an OU')
             }
@@ -432,7 +425,6 @@ function OSD-GUI {
 
         if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
             # Test Values
-            #$ComputerName_Campus_Dropdown.SelectedItem = $Campus
             $ComputerName_BuildingRoom_Textbox.Text = $Bldg
             $ComputerName_PCCNumber_Textbox.Text = $PCC
             $ComputerName_Suffix_Textbox.Text = $Suffix
