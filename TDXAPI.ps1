@@ -38,9 +38,9 @@ function ApiAuthenticateAndBuildAuthHeaders {
 	
 }
 
-function SearchAsset($serialNumber) {
-    $appID = 1257
-    $getAssetSearchUri = $apiBaseUri + "/api/$($appID)/assets/search"
+function Search-Asset($serialNumber) {
+    
+    $getAssetSearchUri = $apiBaseUri + "api/$($appID)/assets/search"
     
     # Filtering options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
@@ -52,13 +52,74 @@ function SearchAsset($serialNumber) {
     return $resp
 }
 
+function Edit-Asset {
+    param (
+        [Parameter(Mandatory=$true)]
+        [int]$ID,
+        [string]$Name,
+        [string]$SerialNumber,
+        [string]$Tag,
+        [int]$OwningCustomerID,
+        [datetime]$AcquisitionDate,
+        [int]$LocationID,
+        [int]$LocationRoomID,
+        [Parameter(Mandatory=$true)]
+        [int]$StatusID,
+        [int]$ProductModelID,
+        [int]$SupplierID
+
+    )
+
+    $assetBody = [PSCustomObject]@{
+        SerialLike = $serialNumber;
+    } | ConvertTo-Json
+
+    $getAssetSearchUri = $apiBaseUri + "api/$($appID)/assets/$($ID)"
+    $resp = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $getAssetSearchUri -Body $assetBody -ContentType "application/json" -UseBasicParsing
+
+}
+
+function SCCmCrap($computernName) {
+
+    Get-CMDevice -Name $computerName -Fast
+
+    <#
+    
+    LastActiveTime                           : 9/1/2021 10:38:51 PM
+    LastClientCheckTime                      : 8/15/2021 10:10:11 AM
+    LastDDR                                  : 8/31/2021 3:29:56 PM
+    LastHardwareScan                         : 8/31/2021 4:15:34 PM
+    LastLogonUser                            : wrcrabtree
+    last check in and internal ip
+    #>
+}
+
+# Site configuration
+$SiteCode = "PCC" # Site code 
+$ProviderMachineName = "do-sccm.pcc-domain.pima.edu" # SMS Provider machine name
+
+$initParams = @{}
+
+# Import the ConfigurationManager.psd1 module 
+if($null -eq (Get-Module ConfigurationManager)) {
+    Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1" @initParams 
+}
+
+# Connect to the site's drive if it is not already present
+if($null -eq (Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {
+    New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $ProviderMachineName @initParams
+}
+
+# Set the current location to be the site code.
+Set-Location "$($SiteCode):\" @initParams
 
 $apiBaseUri = 'https://service.pima.edu/SBTDWebApi/'
-    
-$apiWSBeid = ''
 
-$apiWSKey = ''
+$TDXCreds = Get-Content .\TDXCreds.json | ConvertFrom-Json  
 
+$apiWSBeid = $TDXCreds.BEID
+$apiWSKey = $TDXCreds.Key
+$appID = 1258
 $global:apiHeaders = ApiAuthenticateAndBuildAuthHeaders
 
-SearchAsset -serialNumber 140759
+Search-Asset -serialNumber 140759
