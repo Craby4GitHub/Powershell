@@ -1,46 +1,21 @@
 function ApiAuthenticateAndBuildAuthHeaders {
 	
-    # Set the admin authentication URI and create an authentication JSON body.
     $authUri = $apiBaseUri + "api/auth/loginadmin"
     $authBody = [PSCustomObject]@{
         BEID           = $apiWSBeid;
         WebServicesKey = $apiWSKey;
     } | ConvertTo-Json
-	
-    # Call the admin login API method and store the returned token.
-    # If this part fails, display errors and exit the entire script.
-    # We cannot proceed without authentication.
-    $authToken = try {
-        Invoke-RestMethod -Method Post -Uri $authUri -Body $authBody -ContentType "application/json"
-    }
-    catch {
 
-        # Display errors and exit script.
-        Write-Log -level ERROR -string "API authentication failed:"
-        Write-Log -level ERROR -string ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-        Write-Log -level ERROR -string ("Status Description - " + $_.Exception.Response.StatusDescription)
-        Write-Log -level ERROR -string ("Error Message - " + $_.ErrorDetails.Message)
-        Write-Log -level INFO -string " "
-        Write-Log -level ERROR -string "The import cannot proceed when API authentication fails. Please check your authentication settings and try again."
-        Write-Log -level INFO -string " "
-        Write-Log -level INFO -string "Exiting."
-        Write-Log -level INFO -string $processingLoopSeparator
-        Exit(1)
-		
-    }
-
-    # Create an API header object containing an Authorization header with a
-    # value of "Bearer {tokenReturnedFromAuthCall}".
+    $authToken = Invoke-RestMethod -Method Post -Uri $authUri -Body $authBody -ContentType "application/json"
+    
     $apiHeadersInternal = @{"Authorization" = "Bearer " + $authToken }
 
-    # Return the API headers.
     return $apiHeadersInternal
-	
 }
 
 function Search-Asset($serialNumber) {
     
-    $getAssetSearchUri = $apiBaseUri + "api/$($appID)/assets/search"
+    $uri = $apiBaseUri + "api/$($appID)/assets/search"
     
     # Filtering options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
@@ -48,30 +23,62 @@ function Search-Asset($serialNumber) {
         SerialLike = $serialNumber;
     } | ConvertTo-Json
 
-    $resp = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $getAssetSearchUri -Body $assetBody -ContentType "application/json" -UseBasicParsing
+    $resp = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $assetBody -ContentType "application/json" -UseBasicParsing
     return $resp
+}
+
+# Need to get array of array for statues with Name and ID
+function Get-AllAssetStatus {
+    $statuses = @()
+    $uri = $apiBaseUri + "api/$($appID)/assets/statuses"
+
+    $resp = $status = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    foreach ($status in $resp) {
+        if ($status.IsActive) {
+            $statuses += @($status.Name,$status.ID)
+        }
+    }
+    return $statuses
 }
 
 function Edit-Asset {
     param (
-        [Parameter(Mandatory=$true)]
+        [Parameter(Mandatory = $true)]
         [int]$ID,
-        [string]$Name,
+        [Parameter(Mandatory = $true)]
         [string]$SerialNumber,
-        [string]$Tag,
-        [int]$OwningCustomerID,
-        [datetime]$AcquisitionDate,
-        [int]$LocationID,
-        [int]$LocationRoomID,
-        [Parameter(Mandatory=$true)]
-        [int]$StatusID,
-        [int]$ProductModelID,
-        [int]$SupplierID
-
+        [Parameter(Mandatory = $true)]
+        $StatusID,
+        $OwningCustomerID
     )
 
+
+<#
+
+Changed Status from "Active" to "Disposed".
+Changed Supplier from "HP" to "".
+Changed Product Model from "HP - Z230 TWR" to "".
+Changed Location from "West Campus" to "Nothing".
+Changed Owner from "Will Crabtree" to "Aakash Gupta".
+Changed Service Tag from "140759" to "".
+Changed Acquisition Date from "Wed 5/21/14" to "".
+Changed Last Inventory Date from "03/19/2021" to "Nothing".
+Changed PO # from "P1421343" to "Nothing".
+Changed Role from "Employee Device" to "Nothing".
+Changed Warranty End Date from "05/30/2017" to "Nothing".
+
+
+#>
+
+
+
+
+
+
     $assetBody = [PSCustomObject]@{
-        SerialLike = $serialNumber;
+        SerialNumber = $SerialNumber;
+        StatusID = $StatusID;
+        OwningCustomerID = $OwningCustomerID;
     } | ConvertTo-Json
 
     $getAssetSearchUri = $apiBaseUri + "api/$($appID)/assets/$($ID)"
@@ -94,19 +101,22 @@ function SCCmCrap($computernName) {
     #>
 }
 
+$TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
+
 # Site configuration
 $SiteCode = "PCC" # Site code 
 $ProviderMachineName = "do-sccm.pcc-domain.pima.edu" # SMS Provider machine name
 
 $initParams = @{}
+  
 
 # Import the ConfigurationManager.psd1 module 
-if($null -eq (Get-Module ConfigurationManager)) {
+if ($null -eq (Get-Module ConfigurationManager)) {
     Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1" @initParams 
 }
 
 # Connect to the site's drive if it is not already present
-if($null -eq (Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {
+if ($null -eq (Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {
     New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $ProviderMachineName @initParams
 }
 
@@ -115,11 +125,12 @@ Set-Location "$($SiteCode):\" @initParams
 
 $apiBaseUri = 'https://service.pima.edu/SBTDWebApi/'
 
-$TDXCreds = Get-Content .\TDXCreds.json | ConvertFrom-Json  
 
 $apiWSBeid = $TDXCreds.BEID
 $apiWSKey = $TDXCreds.Key
 $appID = 1258
 $global:apiHeaders = ApiAuthenticateAndBuildAuthHeaders
 
-Search-Asset -serialNumber 140759
+$asset = Search-Asset -serialNumber 140759
+
+Get-AllAssetStatus
