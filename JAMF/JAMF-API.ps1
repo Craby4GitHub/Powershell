@@ -1,5 +1,3 @@
-$Creds = Get-Credential
-
 function Get-JamfAuthClassic {
     $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add("Authorization", "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($Creds.UserName):$($Creds.GetNetworkCredential().Password)")))
@@ -114,3 +112,5 @@ function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
     $auth = Get-JamfAuthPro
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'POST' -Headers $auth -Body $params -ContentType application/json
 }
+
+$Creds = Get-Credential
