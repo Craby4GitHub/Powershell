@@ -30,16 +30,27 @@ function Get-SCCMDevice($computerName) {
 
 #$allSCCMDevices = Get-CMDevice -CollectionName 'Agent Installed' | Select-Object Name, ResourceID, LastHardwareScan
 $allTDXAssets = Search-TDXAsset
+
+
+
 foreach ($tdxAsset in $allTDXAssets) {
+    write-host "Searching $($tdxasset.tag) in SCCM"
     $SCCM = Get-SCCMDevice -computerName $('*' + $tdxAsset.Tag + '*')
+
+    # Fix logic if more than one entry. Will get generic error if not
     $sccmSerialNumber = (Get-WmiObject -Class SMS_G_system_SYSTEM_ENCLOSURE  -Namespace root\sms\site_PCC -ComputerName "do-sccm.pcc-domain.pima.edu" -Filter "ResourceID = $($SCCM.ResourceID)").Serialnumber
 
-    if($tdxAsset.SerialNumber -eq $sccmSerialNumber){
-    #need to add check if the invetory date is older than what we are updating
-    $assetAttributes = (Get-TDXAssetDetails -ID $asset.ID).Attributes
-        
-        write-host "Found $($tdxAsset.tag)" -ForegroundColor Green
-        Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $SCCM.LastHardwareScan
-    }
+    # Verify the assets serial number match. Reason: Computer could be misnamed or there could be virtual machines as we only search SCCM on pcc number
+    write-host "Verify: TDX SN: $($tdxasset.SerialNumber)-----SCCM SN:$sccmSerialNumber"
+    if ($tdxAsset.SerialNumber -eq $sccmSerialNumber) {
+        $assetAttributes = (Get-TDXAssetDetails -ID $tdxAsset.ID).Attributes
 
+        # Check to see if TDX inventory date is newer than the last SCCM heartbeat
+        # Wishlist: I would like to move away from using an index value on the attributes as more attributes may be added in the future
+        write-host "Verify: TDX Date: $($assetAttributes[1].value)-----SCCM Date:$($SCCM.LastDDR)"
+        if ($assetAttributes[1].value -gt $SCCM.LastDDR) {
+            write-host "Found $($tdxAsset.tag)" -ForegroundColor Green
+            Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $SCCM.LastHardwareScan
+        }
+    }
 }
