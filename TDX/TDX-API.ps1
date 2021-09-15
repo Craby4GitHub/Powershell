@@ -72,8 +72,29 @@ function Get-TDXAssetDetails($ID) {
     # Useful for getting atrributes and attachments
     $uri = $apiBaseUri + "$($appID)/assets/$($ID)"
 
-    $response = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
-    return $response
+    try {
+        $response = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return $response
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = GetRateLimitWaitPeriodMs -apiCallResponse $_.Exception.Response
+            Write-host "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-host "Retrying API call to retrieve all location custom attribute data for the organization."
+            Get-TDXAssetDetails -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Exit(1)
+        }
+    }
 }
 
 function Get-TDXAssetStatuses {
@@ -106,7 +127,8 @@ function Edit-TDXAsset {
     $assetAttributes = (Get-TDXAssetDetails -ID $asset.ID).Attributes
     foreach ($attribute in $assetAttributes) {
         switch ($attribute.ID) {
-            126172 {# Last Inventory Date
+            126172 {
+                # Last Inventory Date
                 if ($null -ne $sccmLastHardwareScan) {
                     $allAttributes += [PSCustomObject]@{
                         ID    = "126172";
@@ -114,7 +136,8 @@ function Edit-TDXAsset {
                     }
                 }
             }
-            Default {# All Others
+            Default {
+                # All Others
                 $allAttributes += [PSCustomObject]@{
                     ID    = $attribute.ID;
                     Value = $attribute.Value;
@@ -150,7 +173,8 @@ function Edit-TDXAsset {
     
     $uri = $apiBaseUri + "$($appID)/assets/$($Asset.ID)"
     $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $assetBody -ContentType "application/json" -UseBasicParsing
-    return $response
+    # Create logic to verify edit
+    #return $response
 }
 
 $TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
