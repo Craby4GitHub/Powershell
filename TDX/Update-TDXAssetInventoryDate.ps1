@@ -1,64 +1,54 @@
-function Get-SCCMDevice($computerName) {
 
-    # Site configuration
-    $SiteCode = "PCC" # Site code 
-    $ProviderMachineName = "do-sccm.pcc-domain.pima.edu" # SMS Provider machine name
-
-    $initParams = @{}
+#$initParams = @{}
   
-    # Import the ConfigurationManager.psd1 module 
-    if ($null -eq (Get-Module ConfigurationManager)) {
-        Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1" @initParams 
-    }
-
-    # Connect to the site's drive if it is not already present
-    if ($null -eq (Get-PSDrive -Name $SiteCode -PSProvider CMSite -ErrorAction SilentlyContinue)) {
-        New-PSDrive -Name $SiteCode -PSProvider CMSite -Root $ProviderMachineName @initParams
-    }
-
-    # Set the current location to be the site code.
-    Set-Location "$($SiteCode):\" @initParams
-
-
-    $device = Get-CMDevice -Name $computerName -Fast
-
-    return $device
+# Import the ConfigurationManager.psd1 module 
+if ($null -eq (Get-Module ConfigurationManager)) {
+    Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1" #@initParams 
 }
+
+# Connect to the site's drive if it is not already present
+if ($null -eq (Get-PSDrive -Name 'PCC' -PSProvider CMSite -ErrorAction SilentlyContinue)) {
+    New-PSDrive -Name 'PCC' -PSProvider CMSite -Root 'do-sccm.pcc-domain.pima.edu' #@initParams
+}
+
+# Set the current location to be the site code.
+Set-Location "$($SiteCode):\" #@initParams
 
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
-#. Join-Path (Get-ChildItem .\JAMF) "JAMF-API.ps1"
 
-$sccmquery = Get-CMDevice -CollectionName 'Agent Installed' | Select-Object Name, ResourceID, LastDDR
+# Pulling all devices from SCCM that have the agent installed
+$allSccmDevices = Get-CMDevice -CollectionName 'Agent Installed' | Select-Object Name, ResourceID, LastDDR
+$allSccmSerialNumber = Get-WmiObject -Class SMS_G_system_SYSTEM_ENCLOSURE  -Namespace root\sms\site_PCC -ComputerName "do-sccm.pcc-domain.pima.edu" | Select-Object ResourceID, SerialNumber
+Write-Log -level INFO -string "Loaded $($allSccmDevices.count) devices from SCCM"
 
-# Converting from SCCM object otherwise we will hit quota limit when doing sccm searches
-$allSCCMDevices = [System.Collections.ArrayList]@()
-foreach ($sccmDevice in $sccmquery) {
-    $allSCCMDevices += [PSCustomObject]@{
-        Name       = $sccmDevice.Name
-        ResourceID = $sccmDevice.ResourceID
-        LastDDR    = $sccmDevice.LastDDR
-    }
-}
-
+# Pulling all TDX assets
+# Wishlist: Filter for only computers. Currently also pulls printers, TVs, ect
 $allTDXAssets = Search-TDXAsset
+Write-Log -level INFO -string "Loaded $($allTDXAssets.count) devices from TDX"
+
 foreach ($tdxAsset in $allTDXAssets) {
-    write-host "Searching $($tdxasset.tag) in SCCM"
-    #$SCCM = Get-SCCMDevice -computerName $('*' + $tdxAsset.Tag + '*')
-    $SCCM = $allSCCMDevices | Where-Object -Property name -like "*$($tdxAsset.Tag)*"
+    Write-Log -level INFO -string "Searching for $($tdxAsset.tag) in SCCM records"
 
-    # Fix logic if more than one entry. Will get generic error if not
-    $sccmSerialNumber = (Get-WmiObject -Class SMS_G_system_SYSTEM_ENCLOSURE  -Namespace root\sms\site_PCC -ComputerName "do-sccm.pcc-domain.pima.edu" -Filter "ResourceID = $($SCCM.ResourceID)").Serialnumber
-
+    # Getting PCC and Serial number for current device
+    # Wishlist: Fix logic if more than one entry is returned. Will get generic error if there are
+    $sccmDeviceInfo = $allSccmDevices | Where-Object -Property name -like "*$($tdxAsset.Tag)*"
+    $sccmDeviceSerialNumber = ($allSccmSerialNumber | Where-Object -Property ResourceID -EQ $sccmDeviceInfo.ResourceID).SerialNumber
+    
     # Verify the assets serial number match. Reason: Computer could be misnamed or there could be virtual machines as we only search SCCM on pcc number
-    if ($tdxAsset.SerialNumber -eq $sccmSerialNumber) {
-        write-host "Serial Numbers match" -ForegroundColor Green
-        $assetAttributes = (Get-TDXAssetDetails -ID $tdxAsset.ID).Attributes
-
-        # Check to see if TDX inventory date is newer than the last SCCM heartbeat
-        # Wishlist: I would like to move away from using an index value on the attributes as more attributes may be added in the future
-        if ($assetAttributes[1].value -lt $SCCM.LastDDR) {
-            write-host "Updating $($tdxAsset.tag) inventory date to $($SCCM.LastDDR) " -ForegroundColor Green
-            Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $SCCM.LastDDR
+    if ($tdxAsset.SerialNumber -eq $sccmDeviceSerialNumber) {
+        Write-Log -level INFO -string "Serial Numbers match"
+        
+        # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat
+        $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value -ErrorAction SilentlyContinue # erroraction for null dates
+        if (($sccmDeviceInfo.LastDDR - $tdxAssetInventoryDate).Days -gt 1) {
+            Write-Log -level INFO -string "Updating $($tdxAsset.tag) inventory date to $($sccmDeviceInfo.LastDDR)"
+            Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $sccmDeviceInfo.LastDDR
         }
+        else {
+            Write-Log -level INFO -string "TDX inventory date is most recent"
+        }
+    }
+    else {
+        Write-Log -level INFO -string "Serial Numbers do not match"
     }
 }
