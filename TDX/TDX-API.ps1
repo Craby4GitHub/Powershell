@@ -115,7 +115,7 @@ function GetRateLimitWaitPeriodMs($apiCallResponse) {
     return $rateLimitMsPeriod
 }
 
-function Search-TDXAsset($serialNumber) {
+function Search-TDXAssets($serialNumber) {
     
     $uri = $apiBaseUri + "$($appID)/assets/search"
     
@@ -127,7 +127,6 @@ function Search-TDXAsset($serialNumber) {
 
     try {
         $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
-        return $response
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -152,6 +151,46 @@ function Search-TDXAsset($serialNumber) {
             Exit(1)
         }
     }
+
+    $returnedAssets = @()
+    # Loading custom attributes as above API call leaves it out
+    foreach ($asset in $response) {
+        $assetCustomAttributes = Get-TDXAssetAttributes -ID $asset.ID
+        foreach ($attribute in $assetCustomAttributes) {
+            $allCustomAttributes += [PSCustomObject]@{
+                ID    = $attribute.ID;
+                Name  = $attribute.Name;
+                Value = $attribute.Value;
+            }    
+        }
+    
+        # TDX is all or nothing, so gotta recreate the whole asset
+        # https://pima.teamdynamix.com/SBTDWebApi/Home/type/TeamDynamix.Api.Assets.Asset#properties
+        $returnedAssets += [PSCustomObject]@{
+            FormID                  = $Asset.FormID;
+            ProductModelID          = $Asset.ProductModelID;
+            SupplierID              = $Asset.SupplierID;
+            StatusID                = $Asset.StatusID;
+            LocationID              = $Asset.LocationID;
+            LocationRoomID          = $Asset.LocationRoomID;
+            Tag                     = $Asset.Tag;
+            SerialNumber            = $Asset.SerialNumber;
+            Name                    = $Asset.Name;
+            PurchaseCost            = $Asset.PurchaseCost;
+            AcquisitionDate         = $Asset.AcquisitionDate;
+            ExpectedReplacementDate = $Asset.ExpectedReplacementDate;
+            RequestingCustomerID    = $Asset.RequestingCustomerID;
+            RequestingDepartmentID  = $Asset.RequestingDepartmentID;
+            OwningCustomerID        = $Asset.OwningCustomerID;
+            OwningDepartmentID      = $Asset.OwningDepartmentID;
+            ParentID                = $Asset.ParentID;
+            MaintenanceScheduleID   = $Asset.MaintenanceScheduleID;
+            ExternalID              = $Asset.ExternalID;
+            ExternalSourceID        = $Asset.ExternalSourceID;
+            Attributes              = @($allCustomAttributes);
+        } | ConvertTo-Json
+    } 
+    return $returnedAssets
 }
 
 function Get-TDXAssetAttributes($ID) {
@@ -208,63 +247,16 @@ function Edit-TDXAsset {
     param (
         [Parameter(Mandatory = $true)]
         [object]$asset,
-        $sccmLastHardwareScan
+        $editName,
+        $editValue
     )
-    
-    $allAttributes = @()
-
-    $assetAttributes = Get-TDXAssetAttributes -ID $asset.ID
-    foreach ($attribute in $assetAttributes) {
-        switch ($attribute.ID) {
-            126172 {
-                # Last Inventory Date
-                if ($null -ne $sccmLastHardwareScan) {
-                    $allAttributes += [PSCustomObject]@{
-                        ID    = "126172";
-                        Value = $sccmLastHardwareScan.ToString("o"); #formating for TDX date/time format
-                    }
-                }
-            }
-            Default {
-                # All Others
-                $allAttributes += [PSCustomObject]@{
-                    ID    = $attribute.ID;
-                    Value = $attribute.Value;
-                }
-            }
-        }      
-    }
-    # TDX is all or nothing, so gotta upload everything
-    # https://pima.teamdynamix.com/SBTDWebApi/Home/type/TeamDynamix.Api.Assets.Asset#properties
-    $assetBody = [PSCustomObject]@{
-        FormID                  = $Asset.FormID;
-        ProductModelID          = $Asset.ProductModelID;
-        SupplierID              = $Asset.SupplierID;
-        StatusID                = $Asset.StatusID;
-        LocationID              = $Asset.LocationID;
-        LocationRoomID          = $Asset.LocationRoomID;
-        Tag                     = $Asset.Tag;
-        SerialNumber            = $Asset.SerialNumber;
-        Name                    = $Asset.Name;
-        PurchaseCost            = $Asset.PurchaseCost;
-        AcquisitionDate         = $Asset.AcquisitionDate;
-        ExpectedReplacementDate = $Asset.ExpectedReplacementDate;
-        RequestingCustomerID    = $Asset.RequestingCustomerID;
-        RequestingDepartmentID  = $Asset.RequestingDepartmentID;
-        OwningCustomerID        = $Asset.OwningCustomerID;
-        OwningDepartmentID      = $Asset.OwningDepartmentID;
-        ParentID                = $Asset.ParentID;
-        MaintenanceScheduleID   = $Asset.MaintenanceScheduleID;
-        ExternalID              = $Asset.ExternalID;
-        ExternalSourceID        = $Asset.ExternalSourceID;
-        Attributes              = @($allAttributes);
-    } | ConvertTo-Json
     
     $uri = $apiBaseUri + "$($appID)/assets/$($Asset.ID)"
 
+    $asset.$editName = $editValue
     try {
         # Wishlist: Create logic to verify edit
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $assetBody -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $asset -ContentType "application/json" -UseBasicParsing
         
     }
     catch {
