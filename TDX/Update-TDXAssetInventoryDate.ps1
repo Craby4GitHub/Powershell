@@ -29,12 +29,13 @@ $allTDXAssets = Search-TDXAssets
 Write-Log -level INFO -string "Loaded $($allTDXAssets.count) devices from TDX"
 
 foreach ($tdxAsset in $allTDXAssets) {
-    [int]$pct = ($allTDXAssets.IndexOf($tdxAsset)/$allTDXAssets.Count)*100
+    [int]$pct = ($allTDXAssets.IndexOf($tdxAsset) / $allTDXAssets.Count) * 100
     Write-progress -Activity '...' -PercentComplete $pct -status "$pct% Complete"
     Write-Log -level INFO -string "Searching for $($tdxAsset.tag) in SCCM records"
 
     # Getting PCC and Serial number for current device
     # Wishlist: Fix logic if more than one entry is returned. Will get generic error if there are
+    $sccmDeviceInfo = $null
     $sccmDeviceInfo = $allSccmDevices | Where-Object -Property name -like "*$($tdxAsset.Tag)*"
     $sccmDeviceSerialNumber = ($allSccmSerialNumber | Where-Object -Property ResourceID -EQ $sccmDeviceInfo.ResourceID).SerialNumber
     
@@ -44,11 +45,7 @@ foreach ($tdxAsset in $allTDXAssets) {
         
         # Wishlist: add check for null date. If it is null, then the edit wont be able to change the date
         if ($null -eq ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
-            $allCustomAttributes = [PSCustomObject]@{
-                ID    = '126172';
-                Name  = 'Last Inventory Date';
-                Value = '';
-            } 
+            $tdxAssetInventoryDate = get-date '05/03/1989' # Fake date
         }
         else {
             $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value -ErrorAction SilentlyContinue # erroraction for null dates 
