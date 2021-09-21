@@ -42,12 +42,22 @@ foreach ($tdxAsset in $allTDXAssets) {
     if ($tdxAsset.SerialNumber -eq $sccmDeviceSerialNumber) {
         Write-Log -level INFO -string "Serial Numbers match"
         
+        # Wishlist: add check for null date. If it is null, then the edit wont be able to change the date
+        if ($null -eq ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
+            $allCustomAttributes = [PSCustomObject]@{
+                ID    = '126172';
+                Name  = 'Last Inventory Date';
+                Value = '';
+            } 
+        }
+        else {
+            $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value -ErrorAction SilentlyContinue # erroraction for null dates 
+        }
+
         # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat
-        #$tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value -ErrorAction SilentlyContinue # erroraction for null dates
-        if (($sccmDeviceInfo.LastDDR - $tdxAsset.'Last Inventory Date').Days -gt 1) {
+        if (($sccmDeviceInfo.LastDDR - $tdxAssetInventoryDate).Days -gt 1) {
             Write-Log -level INFO -string "Updating $($tdxAsset.tag) inventory date to $($sccmDeviceInfo.LastDDR)"
-            $tdxAsset.'Last Inventory Date'.Value = $sccmDeviceInfo.LastDDR.ToString("o")
-            Edit-TDXAsset -Asset $tdxAsset #-editName 'Last Inventory Date' -editValue $sccmDeviceInfo.LastDDR.ToString("o")
+            Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $sccmDeviceInfo.LastDDR
         }
         else {
             Write-Log -level INFO -string "TDX inventory date is most recent"
