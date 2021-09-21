@@ -213,29 +213,29 @@ function Edit-TDXAsset {
     
     $allAttributes = @()
 
-    # Wishlist: Need logic for when asset has no inventory date because we are currently searching for the attribute based on ID
+    # Load all custom attributes and set the object up with those values
     $assetAttributes = Get-TDXAssetAttributes -ID $asset.ID
     foreach ($attribute in $assetAttributes) {
-        switch ($attribute.ID) {
-            126172 {
-                # Last Inventory Date
-                if ($null -ne $sccmLastHardwareScan) {
-                    $allAttributes += [PSCustomObject]@{
-                        ID    = "126172";
-                        Value = $sccmLastHardwareScan.ToString("o"); #formating for TDX date/time format
-                    }
-                }
-            }
-            Default {
-                # All Others
-                $allAttributes += [PSCustomObject]@{
-                    ID    = $attribute.ID;
-                    Value = $attribute.Value;
-                }
-            }
-        }      
+        $allAttributes += [PSCustomObject]@{
+            ID    = $attribute.ID;
+            Value = $attribute.Value;
+        }
     }
-    # TDX is all or nothing, so gotta upload everything
+    
+    # Check for an SCCM heartbeat input. Then check to see if TDX has an inventory date. Y: Update that value. N: Create the attribute and apply value.
+    if ($null -ne $sccmLastHardwareScan) {
+        if ($null -ne ($allAttributes | Where-Object -Property ID -eq '126172').Value) {
+            ($allAttributes | Where-Object -Property ID -eq '126172').Value = $sccmLastHardwareScan.ToString("o") #formating for TDX date/time format
+        }
+        else {
+            $allAttributes += [PSCustomObject]@{
+                ID    = "126172";
+                Value = $sccmLastHardwareScan.ToString("o"); #formating for TDX date/time format
+            }
+        }        
+    }
+
+    # TDX is all or nothing, so gotta upload every editable attribute
     # https://pima.teamdynamix.com/SBTDWebApi/Home/type/TeamDynamix.Api.Assets.Asset#properties
     $assetBody = [PSCustomObject]@{
         FormID                  = $Asset.FormID;
