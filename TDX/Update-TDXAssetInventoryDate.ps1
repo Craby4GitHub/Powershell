@@ -1,18 +1,15 @@
-
-#$initParams = @{}
-  
 # Import the ConfigurationManager.psd1 module 
 if ($null -eq (Get-Module ConfigurationManager)) {
-    Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1" #@initParams 
+    Import-Module "$($ENV:SMS_ADMIN_UI_PATH)\..\ConfigurationManager.psd1"
 }
 
 # Connect to the site's drive if it is not already present
 if ($null -eq (Get-PSDrive -Name 'PCC' -PSProvider CMSite -ErrorAction SilentlyContinue)) {
-    New-PSDrive -Name 'PCC' -PSProvider CMSite -Root 'do-sccm.pcc-domain.pima.edu' #@initParams
+    New-PSDrive -Name 'PCC' -PSProvider CMSite -Root 'do-sccm.pcc-domain.pima.edu'
 }
 
 # Set the current location to be the site code.
-Set-Location "PCC:\" #@initParams
+Set-Location "PCC:\"
 
 # Load TDX API functions
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
@@ -34,21 +31,21 @@ foreach ($tdxAsset in $allTDXAssets) {
     Write-Log -level INFO -string "Searching for $($tdxAsset.tag) in SCCM records"
 
     # Getting PCC and Serial number for current device
-    # Wishlist: Fix logic if more than one entry is returned. Will get generic error if there are
+    # Wishlist: Fix logic if more than one entry is returned. Will get generic error if there are multiple
     $sccmDeviceInfo = $null
     $sccmDeviceInfo = $allSccmDevices | Where-Object -Property name -like "*$($tdxAsset.Tag)*"
     $sccmDeviceSerialNumber = ($allSccmSerialNumber | Where-Object -Property ResourceID -EQ $sccmDeviceInfo.ResourceID).SerialNumber
     
     # Verifying TDX Serial Number data to SCCM data. Reason: SCCM data is search based on pcc number. A computer could be misnamed or there could be virtual machines
     if ($tdxAsset.SerialNumber -eq $sccmDeviceSerialNumber) {
-        Write-Log -level INFO -string "Serial Numbers match"
+        Write-Log -level INFO -string "Serial Numbers match. $($tdxAsset.tag) TDX:$($tdxAsset.SerialNumber)---SCCM:$($sccmDeviceSerialNumber)"
         
         # Wishlist: add check for null date. If it is null, then the edit wont be able to change the date
         if ($null -eq ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
             $tdxAssetInventoryDate = get-date '05/03/1989' # Fake date
         }
         else {
-            $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value -ErrorAction SilentlyContinue # erroraction for null dates 
+            $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
         }
 
         # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat
@@ -57,10 +54,10 @@ foreach ($tdxAsset in $allTDXAssets) {
             Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $sccmDeviceInfo.LastDDR
         }
         else {
-            Write-Log -level INFO -string "TDX inventory date is most recent"
+            Write-Log -level INFO -string "TDX inventory date of $($tdxAssetInventoryDate) is more recent than $($sccmDeviceInfo.LastDDR)"
         }
     }
     else {
-        Write-Log -level INFO -string "Serial Numbers do not match"
+        Write-Log -level INFO -string "Serial Numbers for $($tdxAsset.tag) do not match TDX:$($tdxAsset.SerialNumber)---SCCM:$($sccmDeviceSerialNumber)"
     }
 }
