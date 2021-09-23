@@ -1,9 +1,14 @@
+# https://pccjamf.jamfcloud.com/api/doc/
+# https://pccjamf.jamfcloud.com/classicapi/doc/
+
 function Get-JamfAuthClassic {
+    # Create header used in all JAMF Classic API calls
     $classicHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
     $classicHeader.Add("Authorization", "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($jamfCredentials.UserName):$($jamfCredentials.GetNetworkCredential().Password)")))
     return $classicHeader
 }
 function Get-JamfAuthPro {
+    # Create header and recieving a bearer token used in all JAMF Pro API calls
     $headers = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
     $headers.Add("Authorization", "Basic " + [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$($jamfCredentials.UserName):$($jamfCredentials.GetNetworkCredential().Password)")))
     $token = Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v1/auth/token" -Method 'POST' -Headers $Headers -ContentType application/json
