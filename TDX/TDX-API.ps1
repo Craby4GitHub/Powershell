@@ -13,6 +13,8 @@ function Get-TdxApiRateLimit($apiCallResponse) {
     return $rateLimitMsPeriod
 }
 
+# Setting name outside of funtion as $MyInvocation is scopped based and would pull the function name
+$scriptName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
 function Write-Log {
     
     param (
@@ -25,8 +27,7 @@ function Write-Log {
     )
 
     $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-    $scriptName = ($MyInvocation.MyCommand.Name -split '\.')[0]
-    $logFile = "$scriptPath\$scriptName.log"
+    $logFile = "$PSScriptroot\$scriptName.log"
     
     # First roll log if over 10MB.
     if ($logFile | Test-Path) {
@@ -45,15 +46,9 @@ function Write-Log {
         }
     }
 	
-    # Next remove old log files if there are more than 10.
-    Get-ChildItem -Path $scriptPath -Filter *.log* | `
-        Sort CreationTime -Desc | `
-        Select -Skip 10 | `
-        Remove-Item -Force
-
     $logString = (Get-Date).toString("yyyy-MM-dd HH:mm:ss") + " [$level] $string"
-    #Add-Content -Path $logFile -Value $logString -Force
-    [System.IO.File]::AppendAllText($logFile, $logString + "`r`n")
+    Add-Content -Path $logFile -Value $logString -Force
+    #[System.IO.File]::AppendAllText($logFile, $logString + "`r`n")
 	
     $foregroundColor = $host.ui.RawUI.ForegroundColor
     $backgroundColor = $host.ui.RawUI.BackgroundColor
@@ -149,7 +144,7 @@ function Search-TDXAssets($serialNumber) {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -string "Retrying API call"
-            Search-Asset -serialNumber $serialNumber
+            Search-Assets -serialNumber $serialNumber
         }
         else {
             # Display errors and exit script.
@@ -182,7 +177,7 @@ function Get-TDXAssetAttributes($ID) {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -string "Retrying API call to retrieve all location custom attribute data for the organization."
+            Write-Log -level WARN -string "Retrying API call to retrieve all asset custom attribute data for the organization."
             Get-TDXAssetAttributes -ID $ID
         }
         else {
@@ -291,7 +286,7 @@ function Edit-TDXAsset {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -string "Retrying API call to retrieve all location custom attribute data for the organization."
+            Write-Log -level WARN -string "Retrying API call to edit the asset $($Asset.Tag)"
             Get-TDXAssetAttributes -ID $ID
         }
         else {
