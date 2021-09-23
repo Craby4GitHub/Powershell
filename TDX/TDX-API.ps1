@@ -1,9 +1,18 @@
-# Global Variables
-$scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-$scriptName = ($MyInvocation.MyCommand.Name -split '\.')[0]
-$logFile = "$scriptPath\$scriptName.log"
+# https://service.pima.edu/SBTDWebApi/
+#region Helper functions
+function Get-TdxApiRateLimit($apiCallResponse) {
+    # Get the rate limit period reset.
+    # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
+    $rateLimitReset = ([DateTime]$apiCallResponse.Headers["X-RateLimit-Reset"]).ToUniversalTime()
 
-#region 
+    # Calculate the actual rate limit period in milliseconds.
+    # Add 5 seconds to the period for clock skew just to be safe.
+    $duration = New-TimeSpan -Start ((Get-Date).ToUniversalTime()) -End $rateLimitReset
+    $rateLimitMsPeriod = $duration.TotalMilliseconds + 5000
+
+    return $rateLimitMsPeriod
+}
+
 function Write-Log {
     
     param (
@@ -14,6 +23,10 @@ function Write-Log {
         [Parameter(Mandatory = $true)]
         [string]$string
     )
+
+    $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
+    $scriptName = ($MyInvocation.MyCommand.Name -split '\.')[0]
+    $logFile = "$scriptPath\$scriptName.log"
     
     # First roll log if over 10MB.
     if ($logFile | Test-Path) {
@@ -76,16 +89,20 @@ function Write-Log {
         }
     }
 }
+#endregion
 
-
+#region API functions
 function Get-TDXAuth($beid, $key) {
-	
+	# https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
     $uri = $apiBaseUri + "auth/loginadmin"
+
+    # Creating body for post to TDX
     $body = [PSCustomObject]@{
         BEID           = $beid;
         WebServicesKey = $key;
     } | ConvertTo-Json
 
+    # Attempt the API call, exit script because we cant go further with out authorization
     $authToken = try {
         Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json"
     }
@@ -97,31 +114,22 @@ function Get-TDXAuth($beid, $key) {
         Exit(1)
     }
 
-    $apiHeaders = @{"Authorization" = "Bearer " + $authToken }
-
-    return $apiHeaders
-}
-
-function GetRateLimitWaitPeriodMs($apiCallResponse) {
-    # Get the rate limit period reset.
-    # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
-    $rateLimitReset = ([DateTime]$apiCallResponse.Headers["X-RateLimit-Reset"]).ToUniversalTime()
-
-    # Calculate the actual rate limit period in milliseconds.
-    # Add 5 seconds to the period for clock skew just to be safe.
-    $duration = New-TimeSpan -Start ((Get-Date).ToUniversalTime()) -End $rateLimitReset
-    $rateLimitMsPeriod = $duration.TotalMilliseconds + 5000
-
-    return $rateLimitMsPeriod
+    # Create bearer token used as the header in all TDX API calls
+    $apiBearerToken = @{"Authorization" = "Bearer " + $authToken }
+    return $apiBearerToken
 }
 
 function Search-TDXAssets($serialNumber) {
+    # Finds all assets or searches based on a criteria
     
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
     $uri = $apiBaseUri + "$($appID)/assets/search"
     
-    # Using the serial number to filter. More options can be added later
+    # Currently only using the serial number to filter. More options can be added later. Link below for more options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
-    $Body = [PSCustomObject]@{
+
+    # Creating body for post to TDX
+    $body = [PSCustomObject]@{
         SerialLike = $serialNumber;
     } | ConvertTo-Json
 
@@ -135,7 +143,7 @@ function Search-TDXAssets($serialNumber) {
         if ($statusCode -eq 429) {
 
             # Get the amount of time we need to wait to retry in milliseconds.
-            $resetWaitInMs = GetRateLimitWaitPeriodMs -apiCallResponse $_.Exception.Response
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
             Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
@@ -156,6 +164,8 @@ function Search-TDXAssets($serialNumber) {
 
 function Get-TDXAssetAttributes($ID) {
     # Useful for getting atrributes and attachments
+
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
     $uri = $apiBaseUri + "$($appID)/assets/$($ID)"
 
     try {
@@ -167,7 +177,7 @@ function Get-TDXAssetAttributes($ID) {
         if ($statusCode -eq 429) {
 
             # Get the amount of time we need to wait to retry in milliseconds.
-            $resetWaitInMs = GetRateLimitWaitPeriodMs -apiCallResponse $_.Exception.Response
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
             Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
@@ -187,11 +197,14 @@ function Get-TDXAssetAttributes($ID) {
 }
 
 function Get-TDXAssetStatuses {
+    # Unused, for the moment
     $statuses = @()
+    # https://service.pima.edu/SBTDWebApi/Home/section/AssetStatuses#GETapi/{appId}/assets/statuses
     $uri = $apiBaseUri + "$($appID)/assets/statuses"
 
     $response = $status = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
     
+    # Find every active status
     foreach ($status in $response) {
         if ($status.IsActive) {
             $statuses += [PSCustomObject]@{
@@ -211,9 +224,8 @@ function Edit-TDXAsset {
         $sccmLastHardwareScan
     )
     
+    # Load all custom attributes and set the asset up with those values as the input asset liekly doesnt have this info
     $allAttributes = @()
-
-    # Load all custom attributes and set the object up with those values
     $assetAttributes = Get-TDXAssetAttributes -ID $asset.ID
     foreach ($attribute in $assetAttributes) {
         $allAttributes += [PSCustomObject]@{
@@ -221,8 +233,8 @@ function Edit-TDXAsset {
             Value = $attribute.Value;
         }
     }
-    
-    # Check for an SCCM heartbeat input. Then check to see if TDX has an inventory date. Y: Update that value. N: Create the attribute and apply value.
+
+    # Check for a SCCM hardware scan. Then check to see if asset has an inventory date. If it does, update that value. Otherwise create the attribute obcject and apply value.
     if ($null -ne $sccmLastHardwareScan) {
         if ($null -ne ($allAttributes | Where-Object -Property ID -eq '126172').Value) {
             ($allAttributes | Where-Object -Property ID -eq '126172').Value = $sccmLastHardwareScan.ToString("o") #formating for TDX date/time format
@@ -235,9 +247,9 @@ function Edit-TDXAsset {
         }        
     }
 
-    # TDX is all or nothing, so gotta upload every editable attribute
+    # TDX is all or nothing, so the body needs every editable attribute, otherwise null values are clear production asset value
     # https://pima.teamdynamix.com/SBTDWebApi/Home/type/TeamDynamix.Api.Assets.Asset#properties
-    $assetBody = [PSCustomObject]@{
+    $body = [PSCustomObject]@{
         FormID                  = $Asset.FormID;
         ProductModelID          = $Asset.ProductModelID;
         SupplierID              = $Asset.SupplierID;
@@ -261,12 +273,12 @@ function Edit-TDXAsset {
         Attributes              = @($allAttributes);
     } | ConvertTo-Json
     
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/{id}
     $uri = $apiBaseUri + "$($appID)/assets/$($Asset.ID)"
 
     try {
         # Wishlist: Create logic to verify edit
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $assetBody -ContentType "application/json" -UseBasicParsing
-        
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -274,7 +286,7 @@ function Edit-TDXAsset {
         if ($statusCode -eq 429) {
 
             # Get the amount of time we need to wait to retry in milliseconds.
-            $resetWaitInMs = GetRateLimitWaitPeriodMs -apiCallResponse $_.Exception.Response
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
             Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
@@ -292,11 +304,10 @@ function Edit-TDXAsset {
         }
     }
 }
+#endregion
 
+# Get creds and create the base uri and header for all API calls
 $TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
-
 $apiBaseUri = 'https://service.pima.edu/SBTDWebApi/api/'
-
 $appID = 1258
-
-$global:apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
+$apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
