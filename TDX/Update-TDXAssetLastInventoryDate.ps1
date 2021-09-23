@@ -26,29 +26,30 @@ $allTDXAssets = Search-TDXAssets
 Write-Log -level INFO -string "Loaded $($allTDXAssets.count) devices from TDX"
 
 foreach ($tdxAsset in $allTDXAssets) {
+    # Proress bar to show how far along we are
     [int]$pct = ($allTDXAssets.IndexOf($tdxAsset) / $allTDXAssets.Count) * 100
     Write-progress -Activity '...' -PercentComplete $pct -status "$pct% Complete"
     Write-Log -level INFO -string "Searching for $($tdxAsset.tag) in SCCM records"
 
-    # Getting PCC and Serial number for current device
+    # Getting last hardware scan and Serial number for current device
     # Wishlist: Fix logic if more than one entry is returned. Will get generic error if there are multiple
     $sccmDeviceInfo = $null
     $sccmDeviceInfo = $allSccmDevices | Where-Object -Property name -like "*$($tdxAsset.Tag)*"
     $sccmDeviceSerialNumber = ($allSccmSerialNumber | Where-Object -Property ResourceID -EQ $sccmDeviceInfo.ResourceID).SerialNumber
     
-    # Verifying TDX Serial Number data to SCCM data. Reason: SCCM data is search based on pcc number. A computer could be misnamed or there could be virtual machines
+    # Verifying TDX Serial Number data to SCCM data. Reason: SCCM data is search based on pcc number. A computer could be misnamed, duplicates or VMs
     if ($tdxAsset.SerialNumber -eq $sccmDeviceSerialNumber) {
         Write-Log -level INFO -string "Serial Numbers match. $($tdxAsset.tag) TDX:$($tdxAsset.SerialNumber)---SCCM:$($sccmDeviceSerialNumber)"
         
-        # Wishlist: add check for null date. If it is null, then the edit wont be able to change the date
-        if ($null -eq ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
-            $tdxAssetInventoryDate = get-date '05/03/1989' # Fake date
-        }
-        else {
+        # Get assets last inventory date data from TDX. If the asset has no inventory data, set a fake date
+        if ($null -ne ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
             $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
         }
+        else {
+            $tdxAssetInventoryDate = get-date '05/03/1989' # Fake date
+        }
 
-        # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat
+        # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the TDX asset
         if (($sccmDeviceInfo.LastDDR - $tdxAssetInventoryDate).Days -gt 1) {
             Write-Log -level INFO -string "Updating $($tdxAsset.tag) inventory date to $($sccmDeviceInfo.LastDDR)"
             Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $sccmDeviceInfo.LastDDR
