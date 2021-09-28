@@ -1,20 +1,29 @@
-$dir = get-childitem $(Split-Path $PSScriptRoot -Parent) | Get-Item | Select-Object -ExpandProperty Name
-write-host $dir 
+# Load TDX API functions
+. "$((get-item $PSScriptRoot).Parent.FullName)\JAMF\JAMF-API.ps1"
+#Get-ChildItem -Filter '*.ps1' | Foreach { . $_.FullName }
+$test = "$((get-item $PSScriptRoot).Parent.FullName)\JAMF\JAMF-API.ps1"
+write-host $test
 
 
+Function Test-SQLServer {
+    Param(
+        $Server
+    )
 
+    Try { 
+        $ReturnedInfo = Cmdlet-ThatChecksstuff -ErrorAction Stop
+        $Ports = $ReturnedInfo.Ports
+        $Notes = $ReturnedInfo.ExtraInfo
+    }
+    Catch {
+        $Ports = "Error retrieving ports"
+        $Notes = "Inspect this host again"
+    }
+    [PSCustomObject]@{
+        Server = $Server
+        Ports  = $Ports
+        Notes  = $Notes
+    }
+}
 
-
-
-
-
-
-
-
-
-# select random staff sccm group across multiple. use the staff collections in client console
-# create tickets to techincain with the properties: computer, primary user, ect
-# assign computer to sccm update test group
-# pull reports on how the test computer are doing with sccm reportsa , ticket updates(?)
-
-$computers = Get-CMDevice -CollectionName 'Agent Installed' #| Select-Object Name, ResourceID, LastDDR
+#$computers = Get-CMDevice -CollectionName 'Agent Installed' #| Select-Object Name, ResourceID, LastDDR
