@@ -23,72 +23,27 @@ function Write-Log {
         [string]$level,
 
         [Parameter(Mandatory = $true)]
-        [string]$string
+        [string]$message,
+
+        $assetSerialNumber
     )
 
     $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-    $logFile = "$PSScriptroot\$scriptName.log"
-    
-    # First roll log if over 10MB.
-    if ($logFile | Test-Path) {
-		
-        # Get the full info for the current log file.
-        $currentLog = Get-Item $logFile
-		
-        # Get log size in MB (from B)
-        $currentLogLength = ([double]$currentLog.Length / 1024.00 / 1024.00)
-		
-        # If the log file exceeds 10mb, roll it by renaming with a timestamped name.
-        if ($currentLogLength -ge 10) {
-			
-            $newLogFileName = (Get-Date).ToString("yyyy-MM-dd HHmmssfff") + " " + $currentLog.Name
-            Rename-Item -Path $currentLog.FullName -NewName $newLogFileName -Force
-        }
-    }
-	
-    $logString = (Get-Date).toString("yyyy-MM-dd HH:mm:ss") + " [$level] $string"
+    $logFile = "$PSScriptroot\$scriptName.csv"
+    	
+    $timeStamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+    $logString = "$timeStamp, $level, $assetSerialNumber, $message"
+    #$logString | Export-Csv -Path $logFile -Append -Delimiter ','
     Add-Content -Path $logFile -Value $logString -Force
     #[System.IO.File]::AppendAllText($logFile, $logString + "`r`n")
-	
-    $foregroundColor = $host.ui.RawUI.ForegroundColor
-    $backgroundColor = $host.ui.RawUI.BackgroundColor
 
-    Switch ($level) {
-        { $_ -eq 'VERBOSE' -or $_ -eq 'INFO' } {
-            
-            Out-Host -InputObject "$logString"
-            
-        }
-
-        { $_ -eq 'ERROR' } {
-
-            $host.ui.RawUI.ForegroundColor = "Red"
-            $host.ui.RawUI.BackgroundColor = "Black"
-
-            Out-Host -InputObject "$logString"
-    
-            $host.ui.RawUI.ForegroundColor = $foregroundColor
-            $host.UI.RawUI.BackgroundColor = $backgroundColor
-        }
-
-        { $_ -eq 'WARN' } {
-    
-            $host.ui.RawUI.ForegroundColor = "Yellow"
-            $host.ui.RawUI.BackgroundColor = "Black"
-
-            Out-Host -InputObject "$logString"
-    
-            $host.ui.RawUI.ForegroundColor = $foregroundColor
-            $host.UI.RawUI.BackgroundColor = $backgroundColor
-
-        }
-    }
+    Out-Host -InputObject "$logString"
 }
 #endregion
 
 #region API functions
 function Get-TDXAuth($beid, $key) {
-	# https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
+    # https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
     $uri = $apiBaseUri + "auth/loginadmin"
 
     # Creating body for post to TDX
@@ -102,10 +57,10 @@ function Get-TDXAuth($beid, $key) {
         Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json"
     }
     catch {
-        Write-Log -level ERROR -string "API authentication failed, see the following log messages for more details."
-        Write-Log -level ERROR -string ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-        Write-Log -level ERROR -string ("Status Description - " + $_.Exception.Response.StatusDescription)
-        Write-Log -level ERROR -string ("Error Message - " + $_.ErrorDetails.Message)
+        Write-Log -level ERROR -message "API authentication failed, see the following log messages for more details."
+        Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+        Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
         Exit(1)
     }
 
@@ -139,19 +94,19 @@ function Search-TDXAssets($serialNumber) {
 
             # Get the amount of time we need to wait to retry in milliseconds.
             $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
-            Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -string "Retrying API call"
+            Write-Log -level WARN -message "Retrying API call"
             Search-Assets -serialNumber $serialNumber
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -string "Searching for assets failed, see the following log messages for more details."
-            Write-Log -level ERROR -string ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -string ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -string ("Error Message - " + $_.ErrorDetails.Message)
+            Write-Log -level ERROR -message "Searching for assets failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
             Exit(1)
         }
     }
@@ -173,19 +128,19 @@ function Get-TDXAssetAttributes($ID) {
 
             # Get the amount of time we need to wait to retry in milliseconds.
             $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
-            Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -string "Retrying API call to retrieve all asset custom attribute data for the organization."
+            Write-Log -level WARN -message "Retrying API call to retrieve all custom asset attributes" -assetSerialNumber $ID
             Get-TDXAssetAttributes -ID $ID
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -string "Getting details on TDX ID $ID has failed, see the following log messages for more details."
-            Write-Log -level ERROR -string ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -string ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -string ("Error Message - " + $_.ErrorDetails.Message)
+            Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
             Exit(1)
         }
     }
@@ -282,19 +237,19 @@ function Edit-TDXAsset {
 
             # Get the amount of time we need to wait to retry in milliseconds.
             $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
-            Write-Log -level WARN -string "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -string "Retrying API call to edit the asset $($Asset.Tag)"
+            Write-Log -level WARN -message "Retrying API call to edit the asset $($Asset.Tag)"
             Get-TDXAssetAttributes -ID $ID
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -string "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
-            Write-Log -level ERROR -string ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -string ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -string ("Error Message - " + $_.ErrorDetails.Message)
+            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
             Exit(1)
         }
     }
