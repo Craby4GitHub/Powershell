@@ -17,8 +17,19 @@ function Get-JamfAuthPro {
     return $proHeader
 }
 
-function Get-JamfComputers {
-    return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/computers" -Method 'GET' -Headers $jamfClassicHeader -ContentType application/json).computers.computer.Name
+function Get-JamfAllComputers {
+    return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers" -ContentType "application/json" -UseBasicParsing).computers.computer.Name
+}
+
+function Search-JamfComputers($serialNumber, $name) {
+    # This is horrible logic... but it works(?)
+    # Wishlist: Make better
+    if ($null -eq $serialNumber) {
+        return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/name/$name" -ContentType "application/json" -UseBasicParsing).Computer
+    }
+    else {
+        return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/serialnumber/$serialNumber" -ContentType "application/json" -UseBasicParsing).Computer
+    }
 }
 
 function Get-JamfMobileDeviceEnrollmentProfiles {
@@ -103,5 +114,5 @@ function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
 
 $jamfCredentials = Get-Credential
 
-$global:jamfClassicHeader = Get-JamfAuthClassic
-$global:jamfProHeader = Get-JamfAuthPro
+$jamfClassicHeader = Get-JamfAuthClassic
+#$jamfProHeader = Get-JamfAuthPro
