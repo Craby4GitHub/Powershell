@@ -14,10 +14,17 @@ Set-Location "PCC:\"
 # Load TDX API functions
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
 
-# Pulling all devices from the SCCM. Once for heartbeat and another for serial numbers 
+# Load JAMF API functions
+. ((Get-Item $PSScriptRoot).Parent.FullName + '\JAMF\JAMF-API.ps1')
+
+# Pulling all devices from SCCM. Once for heartbeat and another for serial numbers 
 # Wishlist: Logic to filter by computer name? Reason: filter out VM's, servers(?)
 $allSccmDevices = Get-CMDevice -CollectionName 'Agent Installed' | Select-Object Name, ResourceID, LastDDR
 $allSccmSerialNumber = Get-WmiObject -Class SMS_G_system_SYSTEM_ENCLOSURE  -Namespace root\sms\site_PCC -ComputerName "do-sccm.pcc-domain.pima.edu" | Select-Object ResourceID, SerialNumber
+
+#Pulling all devices from JAMF
+$allJamfDevices = Get-JamfAllComputers
+
 Write-Log -level INFO -message "Loaded $($allSccmDevices.count) devices from SCCM"
 
 # Pulling all TDX assets
@@ -40,6 +47,7 @@ foreach ($tdxAsset in $allTDXAssets) {
         Write-Log -level INFO -message "Found $($sccmDeviceInfo.Name) in SCCM" -assetSerialNumber $tdxAsset.SerialNumber
 
         # There shouldnt be any duplicates because we are searching SCCM based on serial number, so save this info to the log for manual clean up
+        # Wishlist: Auto cleanup?
         if ($sccmDeviceInfo.Count -gt 1) {
             foreach ($resource in $sccmDeviceInfo) {
                 Write-Log -level ERROR -message "Duplicate Serial Number" -assetSerialNumber $tdxAsset.SerialNumber
