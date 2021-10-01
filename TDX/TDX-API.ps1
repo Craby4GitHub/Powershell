@@ -185,6 +185,7 @@ function Edit-TDXAsset {
     }
 
     # Check for a SCCM hardware scan. Then check to see if asset has an inventory date. If it does, update that value. Otherwise create the attribute obcject and apply value.
+    # Wishlist: Loop through all attributes and apply parameter value instead of only inventory date
     if ($null -ne $sccmLastHardwareScan) {
         if ($null -ne ($allAttributes | Where-Object -Property ID -eq '126172').Value) {
             ($allAttributes | Where-Object -Property ID -eq '126172').Value = $sccmLastHardwareScan.ToString("o") #formating for TDX date/time format
@@ -227,7 +228,7 @@ function Edit-TDXAsset {
     $uri = $apiBaseUri + "$($appID)/assets/$($Asset.ID)"
 
     try {
-        # Wishlist: Create logic to verify edit
+        # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
         $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
