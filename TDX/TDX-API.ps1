@@ -193,7 +193,7 @@ function Edit-TDXAsset {
         else {
             $allAttributes += [PSCustomObject]@{
                 ID    = "126172";
-                Value = $sccmLastHardwareScan.ToString("o"); #formating for TDX date/time format
+                Value = (Get-Date $sccmLastHardwareScan).ToString("o"); #formating for TDX date/time format
             }
         }        
     }
