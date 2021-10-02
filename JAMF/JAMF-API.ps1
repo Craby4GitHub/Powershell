@@ -25,10 +25,53 @@ function Search-JamfComputers($serialNumber, $name) {
     # This is horrible logic... but it works(?)
     # Wishlist: Make better
     if ($null -eq $serialNumber) {
-        return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/name/$name" -ContentType "application/json" -UseBasicParsing).Computer
+        try {
+            return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/name/$name" -ContentType "application/json" -UseBasicParsing).Computer
+        }
+        catch {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        }
     }
     else {
-        return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/serialnumber/$serialNumber" -ContentType "application/json" -UseBasicParsing).Computer
+        try {
+            return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/computers/serialnumber/$serialNumber" -ContentType "application/json" -UseBasicParsing).Computer
+        }
+        catch {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        }
+    }
+}
+
+function Search-JamfMobileDevices($serialNumber, $name) {
+    # This is horrible logic... but it works(?)
+    # Wishlist: Make better
+    if ($null -eq $serialNumber) {
+        try {
+            return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/mobiledevices/name/$name" -ContentType "application/json" -UseBasicParsing).mobile_device
+        }
+        catch {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        }
+    }
+    else {
+        try {
+            return (Invoke-RestMethod -Method GET -Headers $jamfClassicHeader -Uri "https://pccjamf.jamfcloud.com/JSSResource/mobiledevices/serialnumber/$serialNumber" -ContentType "application/json" -UseBasicParsing).mobile_device
+        }
+        catch {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        }
     }
 }
 
@@ -115,4 +158,4 @@ function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
 $jamfCredentials = Get-Credential
 
 $jamfClassicHeader = Get-JamfAuthClassic
-#$jamfProHeader = Get-JamfAuthPro
+$jamfProHeader = Get-JamfAuthPro
