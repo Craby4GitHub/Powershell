@@ -299,7 +299,8 @@ function Login-AD {
         catch [System.Security.Authentication.AuthenticationException] {
             Login-AD
         }
-        #
+        
+        # If login was successful, continue to computer info form
         if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
             [void]$ComputerInfo_Form.ShowDialog()
             break
@@ -317,10 +318,11 @@ function Login-AD {
         }
     }
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
+        # Wishlist: Reboot computer if cancelled(?)
     }  
 }
 function Confirm-NoError {
-    # Looks to see if there are errors on the computer name or OU selection
+    # Looks to see if there are errors on the computer name or OU elements
     if ($ErrorProvider.GetError($ComputerName_Label) -or $ErrorProvider.GetError($ADOUTree_Label)) {
         return $false
     }
@@ -330,7 +332,7 @@ function Confirm-NoError {
 }
 
 Function Confirm-ComputerName {
-    # Verify each text box agaisnt regex to verify they are valid entries
+    # Verify each text box agaisnt regex to verify they are valid entries and if not verified, set error on that element
     $ComputerName_Check_Button.BackColor = 'LightGray'
     if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
         $ErrorProvider.SetError($ComputerName_Label, '')
@@ -339,32 +341,30 @@ Function Confirm-ComputerName {
             if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
                 $ErrorProvider.SetError($ComputerName_Label, '')
 
-                # Searching AD to see if there is a computer in AD with the supplied PCC number
+                # Searching AD to see if there is a computer in AD with the supplied PCC number and notify the technician
+                # Wishlist: Deal with those assets?
                 $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $ComputerName_PCCNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
                 if ($null -ne $PCCSearch) {
+                    # Wishlist: Loop through each entry to out put results on new line
                     [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)", 'Warning', 'Ok', 'Warning')
                 }
                 if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$|[v]\d') {
                     $ErrorProvider.SetError($ComputerName_Label, '')
 
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
-                    if ($ComputerName_Campus_Dropdown.Text -ne 'DC') {
-                        $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
-                        if ($ComputerName.Length -gt 15) {
-                            $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
+                    switch ($ComputerName_Campus_Dropdown.Text) {
+                        'DC' { 
+                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
                         }
-                        else {
-                            $ComputerName_Check_Button.BackColor = 'Green'
+                        Default {
+                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
                         }
                     }
+                    if ($ComputerName.Length -gt 15) {
+                        $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
+                    }
                     else {
-                        $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
-                        if ($ComputerName.Length -gt 15) {
-                            $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
-                        }
-                        else {
-                            $ComputerName_Check_Button.BackColor = 'Green'
-                        }
+                        $ComputerName_Check_Button.BackColor = 'Green'
                     }
                 }
                 else {
@@ -392,7 +392,7 @@ Function AddNodes ( $Node, $CurrentOU) {
 #endregion
 #region Actions
 $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
-    # Populates the AD tree based on the campus and domain selected
+        # Populates the AD tree based on the campus and domain selected
         $ADOUTree.Nodes.Clear()
         if ($EDU_RadioButton.Checked -eq $true) {
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $ADOUTree $_ }
@@ -407,7 +407,7 @@ $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
         }  
     })
 
-# If the machine has a PCC number inthe BIOS, pull that and enter it into the PCC number field
+# If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
 $PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
 if ($PCCNumber -match '^\d{6}$') {
     $ComputerName_PCCNumber_Textbox.Text = $PCCNumber
@@ -441,5 +441,4 @@ $Submit_Button.Add_Click( {
 
 #endregion
 
-# 
 Login-AD
