@@ -1,51 +1,16 @@
 # https://service.pima.edu/SBTDWebApi/
-#region Helper functions
-function Get-TdxApiRateLimit($apiCallResponse) {
-    # Get the rate limit period reset.
-    # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
-    $rateLimitReset = ([DateTime]$apiCallResponse.Headers["X-RateLimit-Reset"]).ToUniversalTime()
 
-    # Calculate the actual rate limit period in milliseconds.
-    # Add 5 seconds to the period for clock skew just to be safe.
-    $duration = New-TimeSpan -Start ((Get-Date).ToUniversalTime()) -End $rateLimitReset
-    $rateLimitMsPeriod = $duration.TotalMilliseconds + 5000
-
-    return $rateLimitMsPeriod
-}
-
-# Setting name outside of funtion as $MyInvocation is scopped based and would pull the function name
-$scriptName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
-function Write-Log {
-    
-    param (
-        [ValidateSet('ERROR', 'INFO', 'VERBOSE', 'WARN')]
-        [Parameter(Mandatory = $true)]
-        [string]$level,
-
-        [Parameter(Mandatory = $true)]
-        [string]$message,
-
-        $assetSerialNumber
-    )
-
-    $scriptPath = Split-Path -parent $MyInvocation.MyCommand.Definition
-    $logFile = "$PSScriptroot\$scriptName.csv"
-    	
-    $timeStamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $logString = "$timeStamp, $level, $assetSerialNumber, $message"
-    #$logString | Export-Csv -Path $logFile -Append -Delimiter ','
-    Add-Content -Path $logFile -Value $logString -Force
-    #[System.IO.File]::AppendAllText($logFile, $logString + "`r`n")
-
-    Out-Host -InputObject "$logString"
-}
-#endregion
+# Setting Log name
+$logName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
+$logFile = "$PSScriptroot\$logName.csv"
+. ((Get-Item $PSScriptRoot).Parent.FullName + '\Callable\Write-Log.ps1')
 
 #region API functions
 function Get-TDXAuth($beid, $key) {
     # https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
-    $uri = $apiBaseUri + "auth/loginadmin"
-
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = "/auth/loginadmin"
+    
     # Creating body for post to TDX
     $body = [PSCustomObject]@{
         BEID           = $beid;
@@ -54,7 +19,7 @@ function Get-TDXAuth($beid, $key) {
 
     # Attempt the API call, exit script because we cant go further with out authorization
     $authToken = try {
-        Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json"
+        Invoke-RestMethod -Method Post -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json"
     }
     catch {
         Write-Log -level ERROR -message "API authentication failed, see the following log messages for more details."
@@ -73,8 +38,9 @@ function Search-TDXAssets($serialNumber) {
     # Finds all assets or searches based on a criteria
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
-    $uri = $apiBaseUri + "$($appID)/assets/search"
-    
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = "/assets/search"
+        
     # Currently only using the serial number to filter. More options can be added later. Link below for more options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
 
@@ -84,7 +50,7 @@ function Search-TDXAssets($serialNumber) {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
         return $response
     }
     catch {
@@ -116,10 +82,11 @@ function Get-TDXAssetAttributes($ID) {
     # Useful for getting atrributes and attachments
 
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
-    $uri = $apiBaseUri + "$($appID)/assets/$($ID)"
-
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = $uri + "/assets/$($ID)"
+    
     try {
-        return (Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing).Attributes
+        return (Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -ContentType "application/json" -UseBasicParsing).Attributes
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -225,11 +192,12 @@ function Edit-TDXAsset {
     } | ConvertTo-Json
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/{id}
-    $uri = $apiBaseUri + "$($appID)/assets/$($Asset.ID)"
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = $uri + "/assets/$($Asset.ID)"
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -255,10 +223,153 @@ function Edit-TDXAsset {
         }
     }
 }
+
+function Create-TDXTicket {
+    param (
+        [Parameter(Mandatory = $true)]
+        [int32]$AccountID, # The ID of the account/department associated with the ticket.
+        [Parameter(Mandatory = $true)]
+        [int32]$PriorityID, # The ID of the priority associated with the ticket.
+        [Parameter(Mandatory = $true)]
+        [guid]$RequestorUid, # The UID of the requestor associated with the ticket.
+        [Parameter(Mandatory = $true)]
+        [int32]$StatusID, # The ID of the ticket status associated with the ticket.
+        [Parameter(Mandatory = $true)]
+        [string]$Title, # The title of the ticket.
+        [Parameter(Mandatory = $true)]
+        [int32]$TypeID # The ID of the ticket type associated with the ticket.
+    )
+
+    # Body
+    # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.Ticket
+
+    $body = [PSCustomObject]@{
+
+        [Int32]$AccountID          = $value # The ID of the account/department associated with the ticket.
+        [Int32]$PriorityID         = $value # The ID of the priority associated with the ticket.
+        [Guid]$RequestorUid        = $value # The UID of the requestor associated with the ticket.
+        [Int32]$StatusID           = $value # The ID of the ticket status associated with the ticket.
+        [String]$Title             = $value # The title of the ticket.
+        [Int32]$TypeID             = $value # The ID of the ticket type associated with the ticket.
+
+        [Int32]$ArticleID          = $value # The ID of the Knowledge Base article associated with the ticket.
+        [Int32]$ArticleShortcutID  = $value # The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
+        [TDX]$Attributes           = @($attributes); # The custom attributes associated with the ticket.
+        [String]$Description       = $value # The description of the ticket.
+        [DateTime]$EndDate         = $value # The end date of the ticket.
+        [Int32]$EstimatedMinutes   = $value # The estimated minutes of the ticket.
+        [Double]$ExpensesBudget    = $value # The expense budget of the ticket.
+        [Int32]$FormID             = $value # The ID of the form associated with the ticket.
+        [DateTime]$GoesOffHoldDate = $value # The date the ticket goes off hold.
+        [Int32]$ImpactID           = $value # The ID of the impact associated with the ticket.
+        [Int32]$LocationID         = $value # The ID of the location associated with the ticket.
+        [Int32]$LocationRoomID     = $value # The ID of the location room associated with the ticket.
+        [Int32]$ResponsibleGroupID = $value # The ID of the responsible group associated with the ticket.
+        [Guid]$ResponsibleUid      = $value # The UID of the responsible user associated with the ticket.
+        [Int32]$ServiceID          = $value # The ID of the service associated with the ticket.
+        [Int32]$ServiceOfferingID  = $value # The ID of the service offering associated with the ticket.
+        [Int32]$SourceID           = $value # The ID of the ticket source associated with the ticket.
+        [DateTime]$StartDate       = $value # The start date of the ticket.
+        [Double]$TimeBudget        = $value # The time budget of the ticket.
+        [Int32]$UrgencyID          = $value # The ID of the urgency associated with the ticket.
+    } | ConvertTo-Json
+
+    # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
+
+    $options = [System.Web.HttpUtility]::ParseQueryString([String]::Empty)
+
+    $options.Add('EnableNotifyReviewer', $true)
+    $options.Add('NotifyRequestor', $true)
+    $options.Add('NotifyResponsible', $true)
+    $options.Add('AllowRequestorCreation', $false)
+
+    # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets?EnableNotifyReviewer={EnableNotifyReviewer}&NotifyRequestor={NotifyRequestor}&NotifyResponsible={NotifyResponsible}&AllowRequestorCreation={AllowRequestorCreation}
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = $uri + '/tickets'
+    $apiBaseUri.Query = $options.ToString()
+    try {
+        # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying API call to create the ticket: $Title"
+            Get-TDXAssetAttributes -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
+function Edit-TDXTicket {
+    #POST https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}?notifyNewResponsible={notifyNewResponsible}
+    #Edits an existing ticket.
+}
+
+function Edit-TDXTicketAddAsset($ticketID, $assetID) {
+    # POST https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/assets/{assetId}
+    # Adds an asset to a ticket.
+    $apiBaseUri = [System.UriBuilder]$uri
+    $apiBaseUri.Path = $uri + "tickets/$ticketID/assets/$assetID"
+    
+    try {
+        return Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying API call to add an asset to a ticket" -assetSerialNumber $ID
+            Get-TDXAssetAttributes -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
+function Get-TdxApiRateLimit($apiCallResponse) {
+    # Get the rate limit period reset.
+    # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
+    $rateLimitReset = ([DateTime]$apiCallResponse.Headers["X-RateLimit-Reset"]).ToUniversalTime()
+
+    # Calculate the actual rate limit period in milliseconds.
+    # Add 5 seconds to the period for clock skew just to be safe.
+    $duration = New-TimeSpan -Start ((Get-Date).ToUniversalTime()) -End $rateLimitReset
+    $rateLimitMsPeriod = $duration.TotalMilliseconds + 5000
+
+    return $rateLimitMsPeriod
+}
 #endregion
 
 # Get creds and create the base uri and header for all API calls
+$uri = "https://service.pima.edu/SBTDWebApi/api/1258"
 $TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
-$apiBaseUri = 'https://service.pima.edu/SBTDWebApi/api/'
-$appID = 1258
 $apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
