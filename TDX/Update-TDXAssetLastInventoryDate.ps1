@@ -17,7 +17,13 @@ Set-Location "PCC:\"
 # Load JAMF API functions
 . ((Get-Item $PSScriptRoot).Parent.FullName + '\JAMF\JAMF-API.ps1')
 
-# Pulling all devices from SCCM. Once for heartbeat and another for serial numbers 
+# Setting Log name
+$logName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
+$logFile = "$PSScriptroot\$logName.csv"
+. ((Get-Item $PSScriptRoot).Parent.FullName + '\Callable\Write-Log.ps1')
+
+# Pulling all devices from SCCM. Once for heartbeat and another for serial numbers
+# Reason: There is a sudo ratelimit when calling from SCCM, so might as well load it all at one, one time
 # Wishlist: Logic to filter by computer name? Reason: filter out VM's, servers(?)
 $allSccmDevices = Get-CMDevice -CollectionName 'Agent Installed' | Select-Object Name, ResourceID, LastDDR
 $allSccmSerialNumber = Get-WmiObject -Class SMS_G_system_SYSTEM_ENCLOSURE  -Namespace root\sms\site_PCC -ComputerName "do-sccm.pcc-domain.pima.edu" | Select-Object ResourceID, SerialNumber
@@ -32,11 +38,12 @@ Write-Log -level INFO -message "Loaded $($allTDXAssets.count) devices from TDX"
 foreach ($tdxAsset in $allTDXAssets) {
     # Proress bar to show how far along we are
     [int]$pct = ($allTDXAssets.IndexOf($tdxAsset) / $allTDXAssets.Count) * 100
-    Write-progress -Activity '...' -PercentComplete $pct -status "$pct% Complete"
+    Write-progress -Activity "Working on $($tdxAsset.Tag)" -PercentComplete $pct -status "$pct% Complete"
     
+    $mdmInventoryDate = $null
     switch ($tdxAsset.SupplierName) {
         'Apple' { 
-            # Different API calls for mobile devices and computers
+            # JAMF has different API calls for mobile devices and computers
             # Wishlist: Also include iphones instead of just tablets?
             if ($tdxAsset.ProductType -eq 'Tablet') {
                 Write-Log -level INFO -message "Searching for mobile asset in JAMF records" -assetSerialNumber $tdxAsset.SerialNumber
@@ -47,16 +54,17 @@ foreach ($tdxAsset in $allTDXAssets) {
                 $jamfInventoryDate = (Search-JamfComputers -serialNumber $tdxAsset.SerialNumber).General.report_date_utc
             }
 
-            if ($null -ne $mdmInventoryDate) {
+            # Verify there is an inventory date
+            if ($null -ne $jamfInventoryDate) {
                 $mdmInventoryDate = $jamfInventoryDate
             }else {
-                Write-Log -level WARN -message "Device not in JAMF" -assetSerialNumber $tdxAsset.SerialNumber
+                Write-Log -level WARN -message "Inventory date not found in JAMF" -assetSerialNumber $tdxAsset.SerialNumber
             }
         }
         Default {
 
             Write-Log -level INFO -message "Searching for asset in SCCM records" -assetSerialNumber $tdxAsset.SerialNumber
-            # Getting resource ID from searching by Serial Number and getting last hardware scan
+            # Getting last hardware scan data
             $sccmResourceID = ($allSccmSerialNumber | Where-Object -Property SerialNumber -EQ $tdxAsset.SerialNumber).ResourceID
             $sccmDeviceInfo = $allSccmDevices | Where-Object -Property ResourceID -eq $sccmResourceID
 
@@ -64,14 +72,14 @@ foreach ($tdxAsset in $allTDXAssets) {
             if ($null -ne $sccmDeviceInfo) {
                 Write-Log -level INFO -message "Found $($sccmDeviceInfo.Name) in SCCM" -assetSerialNumber $tdxAsset.SerialNumber
 
-                # There shouldnt be any duplicates because we are searching SCCM based on serial number, so save this info to the log for manual clean up
+                # There shouldnt be any duplicates because we are searching SCCM based on serial number
                 # Wishlist: Auto cleanup?
                 if ($sccmDeviceInfo.Count -gt 1) {
                     foreach ($resource in $sccmDeviceInfo) {
                         Write-Log -level ERROR -message "Duplicate Serial Number" -assetSerialNumber $tdxAsset.SerialNumber
                     }
+                    break
                 }
-
                 $mdmInventoryDate = $sccmDeviceInfo.LastDDR
             }
             else {
@@ -81,20 +89,20 @@ foreach ($tdxAsset in $allTDXAssets) {
         }
     }
         
-    # Get assets last inventory date data from TDX. If the asset has no inventory data, set a fake date
+    # Get assets last inventory date from TDX. If the asset has no inventory date, set a temporary date
     if ($null -ne ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
         $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
     }
     else {
-        $tdxAssetInventoryDate = get-date '05/03/1989' # Fake date
+        $tdxAssetInventoryDate = get-date '05/03/1989' # Temporary date
     }
 
-    # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the TDX asset
+    # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the asset in TDX
     if (($mdmInventoryDate - $tdxAssetInventoryDate).Days -gt 2) {
-        Write-Log -level INFO -message "Updating inventory date to $($mdmInventoryDate)" -assetSerialNumber $tdxAsset.SerialNumber
+        Write-Log -level INFO -message "Updating inventory date to $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
         Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $mdmInventoryDate
     }
     else {
-        Write-Log -level INFO -message "TDX inventory date of $($tdxAssetInventoryDate) is more recent than $($mdmInventoryDate)" -assetSerialNumber $tdxAsset.SerialNumber
+        Write-Log -level INFO -message "TDX inventory date of $tdxAssetInventoryDate is more recent than $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
     }
 }
