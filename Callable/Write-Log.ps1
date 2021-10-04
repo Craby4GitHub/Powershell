@@ -1,30 +1,22 @@
-Function Write-Log {
-    [CmdletBinding()]
-    Param(
-    [Parameter(Mandatory=$False)]
-    [ValidateSet("INFO","WARN","ERROR","FATAL","DEBUG")]
-    [String]
-    $Level = "INFO",
+function Write-Log {
+    
+    param (
+        [ValidateSet('ERROR', 'INFO', 'VERBOSE', 'WARN')]
+        [Parameter(Mandatory = $true)]
+        [string]$level,
 
-    [Parameter(Mandatory=$False)]
-    [bool]
-    $Status = $False,
+        [Parameter(Mandatory = $true)]
+        [string]$message,
 
-    [Parameter(Mandatory=$True)]
-    [string]
-    $Message,
-
-    [Parameter(Mandatory=$False)]
-    [string]
-    $logfile
+        $assetSerialNumber
     )
+    	
+    $timeStamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
+    $logString = "$timeStamp, $level, $assetSerialNumber, $message"
 
-    $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-    $Line = "$Stamp,$Level,$Status,$Message"
-    If($logfile) {
-        Add-Content $logfile -Value $Line
-    }
-    Else {
-        Write-Output $Line
+    Add-Content -Path $logFile -Value $logString -Force
+
+    if ($level -eq 'WARN' -or 'ERROR') {
+        Out-Host -InputObject "$logString"
     }
 }
