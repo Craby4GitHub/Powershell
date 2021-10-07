@@ -30,9 +30,7 @@ function Search-JamfComputers($serialNumber, $name) {
         }
         catch {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. Status Code - $($_.Exception.Response.StatusCode.value__)"
         }
     }
     else {
@@ -41,9 +39,7 @@ function Search-JamfComputers($serialNumber, $name) {
         }
         catch {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. Status Code - $($_.Exception.Response.StatusCode.value__)"
         }
     }
 }
@@ -57,9 +53,7 @@ function Search-JamfMobileDevices($serialNumber, $name) {
         }
         catch {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. Status Code - $($_.Exception.Response.StatusCode.value__)"
         }
     }
     else {
@@ -68,9 +62,7 @@ function Search-JamfMobileDevices($serialNumber, $name) {
         }
         catch {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. See the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message "Searching for $serialNumber $name in JAMF has failed. Status Code - $($_.Exception.Response.StatusCode.value__)"
         }
     }
 }
