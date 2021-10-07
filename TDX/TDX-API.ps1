@@ -8,9 +8,8 @@ $logFile = "$PSScriptroot\$logName.csv"
 #region API functions
 function Get-TDXAuth($beid, $key) {
     # https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = "/auth/loginadmin"
-    
+    $uri = $baseURI + "auth/loginadmin"
+
     # Creating body for post to TDX
     $body = [PSCustomObject]@{
         BEID           = $beid;
@@ -19,7 +18,7 @@ function Get-TDXAuth($beid, $key) {
 
     # Attempt the API call, exit script because we cant go further with out authorization
     $authToken = try {
-        Invoke-RestMethod -Method Post -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json"
+        Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json"
     }
     catch {
         Write-Log -level ERROR -message "API authentication failed, see the following log messages for more details."
@@ -38,8 +37,7 @@ function Search-TDXAssets($serialNumber) {
     # Finds all assets or searches based on a criteria
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = "/assets/search"
+    $uri = $baseURI + $appID + '/assets/search'
         
     # Currently only using the serial number to filter. More options can be added later. Link below for more options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
@@ -50,7 +48,7 @@ function Search-TDXAssets($serialNumber) {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
         return $response
     }
     catch {
@@ -82,11 +80,10 @@ function Get-TDXAssetAttributes($ID) {
     # Useful for getting atrributes and attachments
 
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = $uri + "/assets/$($ID)"
+    $uri = $baseURI + $appID + "/assets/$($ID)"
     
     try {
-        return (Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -ContentType "application/json" -UseBasicParsing).Attributes
+        return (Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing).Attributes
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -117,8 +114,7 @@ function Get-TDXAssetStatuses {
     # Unused, for the moment
     $statuses = @()
     # https://service.pima.edu/SBTDWebApi/Home/section/AssetStatuses#GETapi/{appId}/assets/statuses
-    $uri = $apiBaseUri + "$($appID)/assets/statuses"
-
+    $uri = $baseURI + $appID + "/assets/statuses"
     $response = $status = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
     
     # Find every active status
@@ -192,12 +188,11 @@ function Edit-TDXAsset {
     } | ConvertTo-Json
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/{id}
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = $uri + "/assets/$($Asset.ID)"
+    $uri = $baseURI + $appID + "/assets/$($Asset.ID)"
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -284,9 +279,12 @@ function Create-TDXTicket {
     $options.Add('AllowRequestorCreation', $false)
 
     # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets?EnableNotifyReviewer={EnableNotifyReviewer}&NotifyRequestor={NotifyRequestor}&NotifyResponsible={NotifyResponsible}&AllowRequestorCreation={AllowRequestorCreation}
+    # Currently doest work as the uri builder includes the port number in the url request, which we don use
     $apiBaseUri = [System.UriBuilder]$uri
     $apiBaseUri.Path = $uri + '/tickets'
     $apiBaseUri.Query = $options.ToString()
+    #$uri = $baseURI + $appID + "/assets/$($Asset.ID)"
+    
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
         $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
@@ -324,11 +322,10 @@ function Edit-TDXTicket {
 function Edit-TDXTicketAddAsset($ticketID, $assetID) {
     # POST https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/assets/{assetId}
     # Adds an asset to a ticket.
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = $uri + "tickets/$ticketID/assets/$assetID"
+    $uri = $baseURI + $appID + "/tickets/$ticketID/assets/$assetID"
     
     try {
-        return Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -370,6 +367,7 @@ function Get-TdxApiRateLimit($apiCallResponse) {
 #endregion
 
 # Get creds and create the base uri and header for all API calls
-$uri = "https://service.pima.edu/SBTDWebApi/api/1258"
+$appID = '1258'
+$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
 $TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
 $apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
