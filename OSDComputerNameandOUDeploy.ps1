@@ -391,8 +391,9 @@ Function AddNodes ( $Node, $CurrentOU) {
 }
 #endregion
 #region Actions
+
+# Populates the AD tree based on the campus and domain selected
 $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
-        # Populates the AD tree based on the campus and domain selected
         $ADOUTree.Nodes.Clear()
         if ($EDU_RadioButton.Checked -eq $true) {
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $ADOUTree $_ }
