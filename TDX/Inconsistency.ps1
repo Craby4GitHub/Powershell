@@ -51,6 +51,13 @@ foreach ($tdxAsset in $allTDXAssets) {
         # Wishlist: Add regex groups because searching on tag will search the WHOLE name, including the room
         $matchedPccTag = @()
         $matchedPccTag += $pccDomain | Where-Object -Property Name -Match "$($tdxAsset.tag)[a-z]{2}$"
+        $pccDomain | Where-Object -Property Name -Match "(?<other>.*)(?<PCCNumber>$($tdxAsset.tag))[a-z]{2}$" | foreach-object { 
+            if ($Matches['other'].StartsWith('DC')) {
+                $Matches['other'].substring(2, 4)
+            }else {
+                $Matches['other'].substring(3, 4)
+            }
+        }
 
         # Compare computer name to PCC Naming convention
         # https://docs.google.com/spreadsheets/d/1gLkgjxNlxwbNizH_EsQY_-ARmaStVOYra1pwcxIQvgM/edit#gid=0
