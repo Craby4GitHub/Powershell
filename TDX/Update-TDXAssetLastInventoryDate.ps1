@@ -56,8 +56,9 @@ foreach ($tdxAsset in $allTDXAssets) {
 
             # Verify there is an inventory date
             if ($null -ne $jamfInventoryDate) {
-                $mdmInventoryDate = $jamfInventoryDate
-            }else {
+                $mdmInventoryDate = Get-Date $jamfInventoryDate
+            }
+            else {
                 Write-Log -level WARN -message "Inventory date not found in JAMF" -assetSerialNumber $tdxAsset.SerialNumber
             }
         }
@@ -80,7 +81,14 @@ foreach ($tdxAsset in $allTDXAssets) {
                     }
                     break
                 }
-                $mdmInventoryDate = $sccmDeviceInfo.LastDDR
+
+                # Verify there is a last DDR scan for the device
+                if ($null -ne $sccmDeviceInfo.LastDDR) {
+                    $mdmInventoryDate = $sccmDeviceInfo.LastDDR
+                }
+                else {
+                    Write-Log -level INFO -message "Device does not have last DDR scan in SCCM" -assetSerialNumber $tdxAsset.SerialNumber
+                }
             }
             else {
                 Write-Log -level WARN -message "Device is not in SCCM" -assetSerialNumber $tdxAsset.SerialNumber
@@ -89,20 +97,20 @@ foreach ($tdxAsset in $allTDXAssets) {
         }
     }
         
-    # Get assets last inventory date from TDX. If the asset has no inventory date, set a temporary date
+    # Get assets last inventory date from TDX and verify it against the mdm inventory date
     if ($null -ne ($tdxAsset.Attributes | Where-Object -Property Name -eq 'Last Inventory Date').Value) {
         $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
-    }
-    else {
-        $tdxAssetInventoryDate = get-date '05/03/1989' # Temporary date
-    }
 
-    # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the asset in TDX
-    if (($mdmInventoryDate - $tdxAssetInventoryDate).Days -gt 2) {
-        Write-Log -level INFO -message "Updating inventory date to $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
-        Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $mdmInventoryDate
+        # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the asset in TDX
+        if (($mdmInventoryDate - $tdxAssetInventoryDate).Days -gt 2) {
+            Write-Log -level INFO -message "Updating inventory date to $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
+            #Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $mdmInventoryDate
+        }
+        else {
+            Write-Log -level INFO -message "TDX inventory date of $tdxAssetInventoryDate is more recent than $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
+        }
     }
     else {
-        Write-Log -level INFO -message "TDX inventory date of $tdxAssetInventoryDate is more recent than $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
+        Write-Log -level INFO -message "No TDX inventory date" -assetSerialNumber $tdxAsset.SerialNumber
     }
 }
