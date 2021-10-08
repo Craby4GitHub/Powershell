@@ -1,6 +1,9 @@
 # 0.5.0
 # Will Crabtree
 # 
+
+import-module activedirectory
+
 #region GUI
 
 Add-Type -AssemblyName System.Windows.Forms
