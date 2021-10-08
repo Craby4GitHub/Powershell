@@ -20,116 +20,29 @@ $pccDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server
   
 $eduDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server*') } -Properties OperatingSystem -Server EDU-Domain.pima.edu
 
+# Combine the domains together
 $pccDomain += $eduDomain
-#$pimaDomains = @($pccDomain, $eduDomain)
-
 #endregion
-
-#region Regex
-# 15 Characters
-$15Characters = [regex]"\w{15}"
-
-# 2 letter campus code - 1 or 2 Building letter 8-9 numbers(2-3 for room and 6 for PCC) 2 letter computer type
-$NormalCampus = [regex]"^([a-z]{4}\d{2}|(([a-z]{2}|\d{2})-([a-z]|[a-z]{2})))\d{7,9}[a-z]{2}$"
-
-# 2 letter campus code 2 Building letter 9 numbers(3 for room and 6 for PCC) 2 letter computer type
-$DownTownCampus = [regex]"^[a-zA-Z]{4}\d{9}[a-zA-Z]{2}$"
-
-# CARES
-$CaresAct = [regex]"[a-z]{3}-[a-z]{3}\d{6}[a-z]{2}"
-
-# VDI
-$VDI = [regex]"^(VDI-)\w{0,}$"
-
-# VM's Dont need em
-$VM = [regex]"[vV]\d{0,}$"
-#endregion
-
 
 foreach ($tdxAsset in $allTDXAssets) {
+    # Proress bar to show how far along we are
+    [int]$pct = ($allTDXAssets.IndexOf($tdxAsset) / $allTDXAssets.Count) * 100
+    Write-progress -Activity "Working on $($tdxAsset.Tag)" -PercentComplete $pct -status "$pct% Complete"
+
     if ($null -ne $tdxAsset.tag) {
-        # Wishlist: Add regex groups because searching on tag will search the WHOLE name, including the room
-        $matchedPccTag = @()
-        $matchedPccTag += $pccDomain | Where-Object -Property Name -Match "$($tdxAsset.tag)[a-z]{2}$"
         $pccDomain | Where-Object -Property Name -Match "(?<other>.*)(?<PCCNumber>$($tdxAsset.tag))[a-z]{2}$" | foreach-object { 
             if ($Matches['other'].StartsWith('DC')) {
-                $Matches['other'].substring(2, 4)
-            }else {
-                $Matches['other'].substring(3, 4)
-            }
-        }
-
-        # Compare computer name to PCC Naming convention
-        # https://docs.google.com/spreadsheets/d/1gLkgjxNlxwbNizH_EsQY_-ARmaStVOYra1pwcxIQvgM/edit#gid=0
-        $matchesRegex = @()
-        $notmatchRegEx = @()
-        foreach ($computer in $matchedPccTag) {
-            #Write-Log -level INFO -message "$($computer.Name) matched $($tdxAsset.tag)" -assetSerialNumber $tdxAsset.SerialNumber
-            Switch -regex ($computer.Name) {
-                !$15Characters {
-                    Write-Log -level ERROR -message "$($computer.Name) too long" -assetSerialNumber $tdxAsset.SerialNumber
-                    $notmatchRegEx += , @($computer.name)
-                    break
-                }
-                $NormalCampus {
-                    Write-Log -level INFO -message "$($computer.Name) passes verification of name" -assetSerialNumber $tdxAsset.SerialNumber
-                    $matchesRegex += , @($computer)
-                    break
-                }
-                $CaresAct {
-                    break
-                }
-                $VDI {
-                    break
-                }
-                $VM {
-                    break
-                }
-                default {
-                    Write-Log -level ERROR -message "$($computer.Name) name doesnt match regex logic" -assetSerialNumber $tdxAsset.SerialNumber
-                    $notmatchRegEx += , @($computer.name)
-                }
-            }
-        }
-
-        # For the computers that pass the name verification, pull the PCC number and room and compare it to TDX
-        foreach ($computer in $matchesRegex) {
-            if ($computer.name.StartsWith('DC')) {
-                $Campus = $computer.name.substring(0, 2)
-                $Room = $computer.name.substring(2, 4)
-                $PCCNumber = $computer.name.substring(7, 6)
-
-                if ($PCCNumber -eq $tdxAsset.Tag) {
-                    #Write-Log -level info -message "TDX:$($tdxAsset.tag) match AD:$PCCNumber for computer $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    if ($Room -ne $tdxAsset.LocationRoomName) {
-                        Write-Log -level WARN -message "TDX Room:$($tdxAsset.LocationRoomName) does not match $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
+                if ($Matches['PCCNumber'] -eq $tdxAsset.Tag) {
+                    if ($Matches['other'].substring(2, 5) -ne $tdxAsset.LocationRoomName) {
+                        Write-Log -level INFO -message "TDX Room:$($tdxAsset.LocationRoomName) does not match $($_.Name)" -assetSerialNumber $tdxAsset.SerialNumber
                     }
-                    else {
-                        #Write-Log -level INFO -message "TDX:$($tdxAsset.LocationRoomName) does match $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    }
-                }
-                else {
-                    Write-Log -level INFO -message "TDX PCC:$($tdxAsset.Tag) does not match computer $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
                 }
             }
             else {
-                $Campus = $computer.name.substring(0, 2)
-                $Room = $computer.name.substring(3, 4)
-                $PCCNumber = $computer.name.substring(7, 6)
-
-                if ($PCCNumber -eq $tdxAsset.Tag) {
-                    #Write-Log -level info -message "TDX:$($tdxAsset.tag) match AD:$PCCNumber for computer $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    if ($Room -ne $tdxAsset.LocationRoomName) {
-                        Write-Log -level WARN -message "TDX:$($tdxAsset.LocationRoomName) does not match $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    }
-                    else {
-                        #Write-Log -level INFO -message "TDX Room:$($tdxAsset.LocationRoomName) does match $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    }
+                $campus, $bldgAndRoom = $Matches['other'].split('-')
+                if ($bldgAndRoom -ne $tdxAsset.LocationRoomName) {
+                    Write-Log -level INFO -message "TDX Room:$($tdxAsset.LocationRoomName) does not match $($_.Name)" -assetSerialNumber $tdxAsset.SerialNumber
                 }
-                else {
-                    Write-Log -level INFO -message "TDX PCC:$($tdxAsset.Tag) does not match computer $($computer.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                }
-          
             }
         }
     }
