@@ -352,6 +352,73 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
     }
 }
 
+function Search-TDXPeople([string]$SearchString, [int]$MaxResults) {
+    #GET 
+    # https://pima.teamdynamix.com/SBTDWebApi/api/people/lookup?searchText={searchText}&maxResults={maxResults}
+    $uri = $baseURI + "people/lookup?searchText=$SearchString&maxResults=$MaxResults"
+
+    try {
+        # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying API call to edit the asset $($Asset.Tag)"
+            Get-TDXAssetAttributes -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
+function Get-TDXPersonDetails($UID) {
+    # https://pima.teamdynamix.com/SBTDWebApi/api/people/{uid}
+    $uri = $baseURI + "people/$UID"
+
+    try {
+        # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+   
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+   
+            Start-Sleep -Milliseconds $resetWaitInMs
+   
+            Write-Log -level WARN -message "Retrying API call to edit the asset $($Asset.Tag)"
+            Get-TDXAssetAttributes -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    } 
+}
+
 function Get-TdxApiRateLimit($apiCallResponse) {
     # Get the rate limit period reset.
     # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
