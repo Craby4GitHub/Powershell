@@ -43,17 +43,24 @@ foreach ($tdxAsset in $allTDXAssets) {
     $mdmInventoryDate = $null
     switch -regex ($tdxAsset.SupplierName) {
         'Apple' { 
-            # JAMF has different API calls for mobile devices and computers
-            # Wishlist: Also include iphones instead of just tablets?
-            if ($tdxAsset.ProductType -eq 'Tablet') {
-                #Write-Log -level INFO -message "Searching for mobile asset in JAMF records" -assetSerialNumber $tdxAsset.SerialNumber
-                $jamfInventoryDate = (Search-JamfMobileDevices -serialNumber $tdxAsset.SerialNumber).General.last_inventory_update_utc
-            }
-            else {
-                #Write-Log -level INFO -message "Searching for computer asset in JAMF records" -assetSerialNumber $tdxAsset.SerialNumber
-                $jamfInventoryDate = (Search-JamfComputers -serialNumber $tdxAsset.SerialNumber).General.report_date_utc
+            
+            # Some Apple products have an S in front that doesnt belong, so remove it
+            $tdxAsset.SerialNumber = $tdxAsset.SerialNumber.ToUpper()
+            if ($tdxAsset.SerialNumber.StartsWith('S')) {
+                Write-Log -level info -message "updated SN" -assetSerialNumber $tdxAsset.SerialNumber
+                $tdxAsset.SerialNumber = $tdxAsset.SerialNumber -replace '^S', ''
             }
 
+            # JAMF has different API calls for mobile devices and computers
+            switch -regex ($tdxAsset.ProductModelName) {
+                'iPad|iPod' { 
+                    $jamfInventoryDate = (Search-JamfMobileDevices -serialNumber $tdxAsset.SerialNumber).General.last_inventory_update_utc 
+                }
+                'Mac' { 
+                    $jamfInventoryDate = (Search-JamfComputers -serialNumber $tdxAsset.SerialNumber).General.report_date_utc 
+                }
+                Default { Write-Log -level WARN -message "Device is not a Mac or iPad" -assetSerialNumber $tdxAsset.SerialNumber }
+            }
             # Verify there is an inventory date
             if ($null -ne $jamfInventoryDate) {
                 $mdmInventoryDate = Get-Date $jamfInventoryDate
@@ -103,11 +110,17 @@ foreach ($tdxAsset in $allTDXAssets) {
     }
     if ($null -ne $mdmInventoryDate) {
         # Get assets last inventory date from TDX and verify it against the mdm inventory date
-        $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
+        try {
+            $tdxAssetInventoryDate = Get-date (Get-TDXAssetAttributes -ID $tdxAsset.ID | Where-Object -Property Name -eq 'Last Inventory Date').Value
+        }
+        catch {
+            
+        }
+        
 
         if ($null -ne $tdxAssetInventoryDate) {
             # Check to see if TDX inventory date is atleast X days older than the last SCCM heartbeat. If it is, edit the asset in TDX
-            if (($mdmInventoryDate - $tdxAssetInventoryDate).Days -gt 7) {
+            if (($mdmInventoryDate - $tdxAssetInventoryDate).Days -gt 30) {
                 Write-Log -level INFO -message "Updating inventory date to $mdmInventoryDate" -assetSerialNumber $tdxAsset.SerialNumber
                 Edit-TDXAsset -Asset $tdxAsset -sccmLastHardwareScan $mdmInventoryDate
             }
