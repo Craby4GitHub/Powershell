@@ -1,6 +1,11 @@
 # https://pccjamf.jamfcloud.com/api/doc/
 # https://pccjamf.jamfcloud.com/classicapi/doc/
 
+# Setting Log name
+$logName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
+$logFile = "$PSScriptroot\$logName.csv"
+. ((Get-Item $PSScriptRoot).Parent.FullName + '\Callable\Write-Log.ps1')
+
 function Get-JamfAuthClassic {
     # Create header used in all JAMF Classic API calls
     $classicHeader = New-Object "System.Collections.Generic.Dictionary[[String],[String]]"
@@ -147,7 +152,11 @@ function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'POST' -Headers $jamfProHeader -Body $params -ContentType application/json
 }
 
-$jamfCredentials = Get-Credential
+$jamfCredentialFile = Get-Content $PSScriptRoot\JAMFCreds.json | ConvertFrom-Json
+
+[SecureString]$securePassword = $jamfCredentialFile.password | ConvertTo-SecureString 
+
+[PSCredential]$jamfCredentials = New-Object System.Management.Automation.PSCredential -ArgumentList $jamfCredentialFile.username, $securePassword
 
 $jamfClassicHeader = Get-JamfAuthClassic
 $jamfProHeader = Get-JamfAuthPro
