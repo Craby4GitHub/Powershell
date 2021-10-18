@@ -1,7 +1,7 @@
 $oldServer = 'wc-vm-prtsvr'
 $newServer = 'WC-Print'
 
-$printers = Get-printer -Name '\\wc-vm-prtsvr*'
+$printers = Get-printer -Name "\\$oldServer*"
 
 ForEach ($printer in $printers) {
     $newprinter = $printer.name -replace $oldServer, $newServer
