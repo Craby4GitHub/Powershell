@@ -4,14 +4,19 @@ $newServer = 'WC-Print'
 $printers = Get-printer -Name "\\$oldServer*"
 
 ForEach ($printer in $printers) {
-    $newprinter = $printer.name -replace $oldServer, $newServer
 
     Write-Host "Removing $($printer.name)"
     Remove-printer $printer
 
-    # add logic to tverify printer exists on new server
-    Write-Host "Adding $($newprinter)"
-    Add-printer -connectionname $newprinter
+    $newprinter = $printer.name -replace $oldServer, $newServer
+
+    if (Get-printer -ComputerName $newServer -Name $newprinter) {
+        Write-Host "Adding $($newprinter)"
+        Add-printer -connectionname $newprinter
+    }
+    else {
+        Write-Host "$newprinter does not exist on $newServer"
+    } 
 }
 
 Write-Host "Completed, closing in 30 seconds"
