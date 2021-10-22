@@ -33,6 +33,7 @@ function Get-TDXAuth($beid, $key) {
     return $apiBearerToken
 }
 
+#region Assets
 function Search-TDXAssets($serialNumber) {
     # Finds all assets or searches based on a criteria
     
@@ -74,6 +75,39 @@ function Search-TDXAssets($serialNumber) {
             Exit(1)
         }
     }
+}
+
+function Get-ProductModels {
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
+    $uri = $baseURI + $appID + "/assets/models"
+    
+    try {
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying API call to retrieve all custom asset attributes" -assetSerialNumber $ID
+            Get-TDXAssetAttributes -ID $ID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+    
 }
 
 function Get-TDXAssetAttributes($ID) {
@@ -129,7 +163,8 @@ function Get-TDXAssetStatuses {
     
     return $statuses
 }
-
+#endregion
+#region Ticket
 function Edit-TDXAsset {
     param (
         [Parameter(Mandatory = $true)]
@@ -328,30 +363,14 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
         return Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
-        # If we got rate limited, try again after waiting for the reset period to pass.
-        $statusCode = $_.Exception.Response.StatusCode.value__
-        if ($statusCode -eq 429) {
-
-            # Get the amount of time we need to wait to retry in milliseconds.
-            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
-            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
-
-            Start-Sleep -Milliseconds $resetWaitInMs
-
-            Write-Log -level WARN -message "Retrying API call to add an asset to a ticket" -assetSerialNumber $ID
-            Get-TDXAssetAttributes -ID $ID
+        if (Get-TdxApiError -apiCallResponse $_.Exception.Response) {
+            Edit-TDXTicketAddAsset -$ticketID -$assetID
         }
-        else {
-            # Display errors and exit script.
-            Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
-            Exit(1)
-        }
+        
     }
 }
-
+#endregion
+#region People
 function Search-TDXPeople([string]$SearchString, [int]$MaxResults) {
     #GET 
     # https://pima.teamdynamix.com/SBTDWebApi/api/people/lookup?searchText={searchText}&maxResults={maxResults}
@@ -418,7 +437,9 @@ function Get-TDXPersonDetails($UID) {
         }
     } 
 }
+#endregion
 
+#region Helpers
 function Get-TdxApiRateLimit($apiCallResponse) {
     # Get the rate limit period reset.
     # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
@@ -431,6 +452,53 @@ function Get-TdxApiRateLimit($apiCallResponse) {
 
     return $rateLimitMsPeriod
 }
+
+function Get-TdxApiError($apiCallResponse) {
+    $statusCode = $_.StatusCode.value__
+    if ($statusCode -eq 429) {
+
+
+        # Get the rate limit period reset.
+        # Be sure to convert the reset date back to universal time because PS conversions will go to machine local.
+        $rateLimitReset = ([DateTime]$apiCallResponse.Headers["X-RateLimit-Reset"]).ToUniversalTime()
+
+        # Calculate the actual rate limit period in milliseconds.
+        # Add 5 seconds to the period for clock skew just to be safe.
+        $duration = New-TimeSpan -Start ((Get-Date).ToUniversalTime()) -End $rateLimitReset
+        $rateLimitMsPeriod = $duration.TotalMilliseconds + 5000
+
+        Write-Log -level WARN -message "Waiting $(($rateLimitMsPeriod / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+        Start-Sleep -Milliseconds $rateLimitMsPeriod
+
+        Write-Log -level WARN -message "Retrying API call to add an asset to a ticket" -assetSerialNumber $ID
+
+
+    }else {
+         # Display errors and exit script.
+         Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
+         Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+         Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+         Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+         Exit(1)
+    }
+}
+
+function Get-TDXApiResponseCode($statusCode) {
+    # If we got rate limited, try again after waiting for the reset period to pass.
+    $statusCode = $_.Exception.Response.StatusCode.value__
+    if ($statusCode -eq 429) {
+
+        # Get the amount of time we need to wait to retry in milliseconds.
+        $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+        
+        Get-TDXAssetAttributes -ID $ID
+    }
+    else {
+       
+    }
+}
+#endregion
 #endregion
 
 # Get creds and create the base uri and header for all API calls
