@@ -6,11 +6,11 @@ $printers = Get-printer -Name "\\$oldServer*"
 ForEach ($printer in $printers) {
 
     Write-Host "Removing $($printer.name)"
-    Remove-printer $printer
+    Remove-printer $printer.name
 
     $newprinter = $printer.name -replace $oldServer, $newServer
 
-    if (Get-printer -ComputerName $newServer -Name $newprinter) {
+    if (Get-printer -ComputerName $newServer -Name $newprinter.Split('\')[-1]) {
         Write-Host "Adding $($newprinter)"
         Add-printer -connectionname $newprinter
     }
