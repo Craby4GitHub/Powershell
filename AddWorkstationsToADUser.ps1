@@ -1,7 +1,10 @@
 Import-Module ActiveDirectory
 $userName = ''
-$computerOU = "DC=edu-domain,DC=pima,DC=edu"
+$computerOU = @('')
+$computerList = @()
 
-$computers = (Get-ADComputer -Filter * -SearchBase $computerOU).name
-$computersWithComma = $computers -join ","
-Set-ADUser -Identity $userName -LogonWorkstations $computersWithComma
+foreach ($ou in $computerOU) {
+    $computerList += (Get-ADComputer -Filter * -SearchBase $ou).name
+}
+
+Set-ADUser -Identity $userName -LogonWorkstations $($computerList -join ",")
