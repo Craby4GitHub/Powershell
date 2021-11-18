@@ -49,14 +49,10 @@ $TicketFile_Button = New-Object system.Windows.Forms.Button
 $TicketFile_Button.text = "Default Ticket File"
 $TicketFile_Button.Dock = 'Left'
 
-$EquipmentFile_Button = New-Object system.Windows.Forms.Button
-$EquipmentFile_Button.text = "Default Equipment File"
-$EquipmentFile_Button.Dock = 'Right'
-
 $Generate_Group = New-Object system.Windows.Forms.Groupbox
 $Generate_Group.text = "Generate Default Files"
 $Generate_Group.Dock = 'Fill'
-$Generate_Group.controls.AddRange(@($EquipmentFile_Button, $TicketFile_Button))
+$Generate_Group.controls.AddRange(@($TicketFile_Button))
 
 $Modify_Theme_Button = New-Object system.Windows.Forms.Button
 $Modify_Theme_Button.text = "Modify Theme"
@@ -101,7 +97,7 @@ $ColorSelector_IDNumber_Image.CheckAlign = 'BottomCenter'
 $ColorSelector_IDNumber_Group = New-Object system.Windows.Forms.Groupbox
 $ColorSelector_IDNumber_Group.text = "ID Number"
 $ColorSelector_IDNumber_Group.Dock = 'Fill'
-$ColorSelector_IDNumber_Group.controls.AddRange(@($ColorSelector_IDNumber_Color,$ColorSelector_IDNumber_Image))
+$ColorSelector_IDNumber_Group.controls.AddRange(@($ColorSelector_IDNumber_Color, $ColorSelector_IDNumber_Image))
 
 #region Layout
 $LayoutPanel.Controls.Add($Generate_Group, 1, 0)
@@ -116,11 +112,35 @@ $LayoutPanel.Controls.Add($Modify_Theme_Button, 1, 2)
 
 #endregion
 
-$WorkReport_Button.Add_MouseUp( {
-        . (Join-Path $PSSCRIPTROOT "Dental.ps1")
-        $Window.Show()
-    })
+#\\dentrix-prod-1\staff\front desk\tickets.csv
+$TicketPath = "$PSScriptRoot\tickets.csv"
 
+$TicketFile_Button.Add_MouseUp( {
+        $Submission = [pscustomobject]@{
+            'ID'                = ''
+            'Location'          = ''
+            'Equipment'         = ''
+            'Issue Description' = ''
+            'TimeStamp'         = ''
+            'Status'            = ''
+            'Res Date'          = ''
+            'Resolution'        = ''
+            'Who'               = ''
+            'Note'              = ''
+        }
+
+        Export-Csv -InputObject $Submission -Path $TicketPath -NoTypeInformation
+    })
+$WorkReport_Button.Add_MouseUp( {
+        # . (Join-Path $PSSCRIPTROOT "Dental.ps1")
+        #$Window.Show()
+        foreach ($issue in Get-File -filePath $TicketPath -fileName "Tickets") {
+            if (!$issue.'Res Date') {
+                # save file with OP, issue and a technotes field
+            }  
+        }
+    })
+<#
 $Modify_Theme_Button.Add_MouseUp( { 
         . (Join-Path $PSSCRIPTROOT "GUI.ps1")
         $Form.Show($AdminForm)
@@ -130,7 +150,7 @@ $Modify_Theme_Button.Add_MouseUp( {
         $Location_Dropdown.Text = 'OP1'
         $Equipment_Dropdown.Text = 'Computer'
         $Desc_Text.Text = 'The computer still isnt working.'
-        [void]$Current_Issues.Rows.Add('Computer', 'Computer isnt working.', '03May44')
+        [void]$Issue_History.Rows.Add('Computer', 'Computer isnt working.', '03May44')
         $Submit_Button.Add_MouseUp( { $Form.Close() })
 
         $ColorSelector_Popup.Show($Form)
@@ -142,11 +162,11 @@ $Modify_Theme_Button.Add_MouseUp( {
         $ColorSelector_Popup_Layout.Controls.Add($Desc_Group, 0, 1)
         $ColorSelector_Popup_Layout.SetColumnSpan($Desc_Group, 3)
 
-        $ColorSelector_Popup_Layout.Controls.Add($Current_Issues_Group, 0, 2)
-        $ColorSelector_Popup_Layout.SetColumnSpan($Current_Issues_Group, 3)
+        $ColorSelector_Popup_Layout.Controls.Add($Issue_History_Group, 0, 2)
+        $ColorSelector_Popup_Layout.SetColumnSpan($Issue_History_Group, 3)
 
         $ColorSelector_Popup_Layout.Controls.Add($Submit_Button, 1, 3)
     })
-
+#>
 
 [void]$AdminForm.ShowDialog()
