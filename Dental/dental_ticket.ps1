@@ -34,12 +34,12 @@ function Get-File($filePath, $fileName) {
 }
 
 function Update-CurrentIssues {
-    $Current_Issues.Rows.Clear()
+    $Issue_History.Rows.Clear()
 
     foreach ($issue in Get-File -filePath $TicketPath -fileName "Tickets") {
         if (($Location_Dropdown.Text -eq $issue.Location) -and ($issue.status -eq '')) {
             try {
-                [void]$Current_Issues.Rows.Add(
+                [void]$Issue_History.Rows.Add(
                     $($issue.'Equipment'), 
                     $($issue.'Issue Description'),
                     $([datetime]$issue.'TimeStamp'))
@@ -52,7 +52,7 @@ function Update-CurrentIssues {
         }  
     }
     # Sort the issues by most recent
-    $Current_Issues.Sort($Current_Issues.Columns[2], [System.ComponentModel.ListSortDirection]::Descending)
+    $Issue_History.Sort($Issue_History.Columns[2], [System.ComponentModel.ListSortDirection]::Descending)
 }
 
 function Update-CurrentEquipment {
@@ -182,7 +182,7 @@ function Confirm-Dropdown($Dropdown, $Group, $ErrorMSG) {
 }
 
 function Check-DuplicateIssue {
-    foreach ($row in $Current_Issues.Rows) {
+    foreach ($row in $Issue_History.Rows) {
         if ($Equipment_Dropdown.Text -eq 'Other') {
             break
         }
@@ -225,8 +225,6 @@ Function Write-Log {
 
 #endregion
 
-# Generate ticket file
-# Export-Csv -InputObject $Submission -Path $TicketPath -NoTypeInformation
 #\\dentrix-prod-1\staff\front desk\tickets.csv
 $TicketPath = "$PSScriptRoot\tickets.csv"
 $ErrorPath = "$PSScriptRoot\errors.csv"
@@ -244,7 +242,7 @@ Update-CurrentEquipment
 $Location_Dropdown.Add_SelectedValueChanged( {
         Update-CurrentIssues
         Update-CurrentEquipment
-        $Current_Issues_Group.text = "Current issues in $($Location_Dropdown.Text)"
+        $Issue_History_Group.text = "Current issues in $($Location_Dropdown.Text)"
     })
 
 $Equipment_Dropdown.Add_SelectedValueChanged( { 
