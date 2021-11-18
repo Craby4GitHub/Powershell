@@ -105,7 +105,7 @@ $LayoutPanel.Controls.Add($Submit_Button, 3, 3)
 #endregion
 
 #region UI Theme
-$Theme = Get-Content -Path .\theme.json | ConvertFrom-Json
+$Theme = Get-Content -Path $PSScriptRoot\theme.json | ConvertFrom-Json
 
 $Form.Font =  $Theme.Form.Font
 
@@ -243,4 +243,4 @@ else{
     $Submit_Button.BackColor =  $Theme.Submit_Button.BackColor
 }
 #endregion
-$form.ShowDialog()
+#$form.ShowDialog()
