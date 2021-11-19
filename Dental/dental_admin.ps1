@@ -18,41 +18,29 @@ $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $AdminForm = New-Object system.Windows.Forms.Form
 $AdminForm.FormBorderStyle = "Sizable"
-$AdminForm.ClientSize = "400,400"
-$AdminForm.text = "Equipment Repair Form"
+$AdminForm.ClientSize = "300,200"
+$AdminForm.text = "Admin Console"
 $AdminForm.TopMost = $true
 $AdminForm.StartPosition = 'CenterScreen'
 
 $LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $LayoutPanel.Dock = "Fill"
-$LayoutPanel.ColumnCount = 7
-$LayoutPanel.RowCount = 4
+$LayoutPanel.ColumnCount = 1
+$LayoutPanel.RowCount = 2
+$LayoutPanel.CellBorderStyle = 1
 [void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$LayoutPanel.ColumnStyles.Add((new-object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+[void]$LayoutPanel.RowStyles.Add((new-object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
 $AdminForm.controls.Add($LayoutPanel)
 
 $WorkReport_Button = New-Object system.Windows.Forms.Button
-$WorkReport_Button.text = "Work Report"
+$WorkReport_Button.text = "Print Work Report"
 $WorkReport_Button.Dock = 'Fill'
 #$WorkReport_Button.Anchor = 'Left,Right'
 
 $TicketFile_Button = New-Object system.Windows.Forms.Button
-$TicketFile_Button.text = "Default Ticket File"
-$TicketFile_Button.Dock = 'Left'
-
-$Generate_Group = New-Object system.Windows.Forms.Groupbox
-$Generate_Group.text = "Generate Default Files"
-$Generate_Group.Dock = 'Fill'
-$Generate_Group.controls.AddRange(@($TicketFile_Button))
+$TicketFile_Button.text = "Generate Default Ticket File"
+$TicketFile_Button.Dock = 'Fill'
 
 $Modify_Theme_Button = New-Object system.Windows.Forms.Button
 $Modify_Theme_Button.text = "Modify Theme"
@@ -100,12 +88,11 @@ $ColorSelector_IDNumber_Group.Dock = 'Fill'
 $ColorSelector_IDNumber_Group.controls.AddRange(@($ColorSelector_IDNumber_Color, $ColorSelector_IDNumber_Image))
 
 #region Layout
-$LayoutPanel.Controls.Add($Generate_Group, 1, 0)
-$LayoutPanel.SetColumnSpan($Generate_Group, 4)
+$LayoutPanel.Controls.Add($TicketFile_Button, 1, 0)
 $LayoutPanel.Controls.Add($WorkReport_Button, 1, 1)
 #$LayoutPanel.Controls.Add($Generate_EquipmentFile_Button, 5, 0)
 
-$LayoutPanel.Controls.Add($Modify_Theme_Button, 1, 2)
+#$LayoutPanel.Controls.Add($Modify_Theme_Button, 1, 2)
 
 #endregion
 
@@ -128,17 +115,17 @@ $TicketFile_Button.Add_MouseUp( {
             'Who'               = ''
             'Note'              = ''
         }
-
         Export-Csv -InputObject $Submission -Path $TicketPath -NoTypeInformation
     })
+
 $WorkReport_Button.Add_MouseUp( {
-        # . (Join-Path $PSSCRIPTROOT "Dental.ps1")
-        #$Window.Show()
+        $printOut = @()
         foreach ($issue in Get-File -filePath $TicketPath -fileName "Tickets") {
             if (!$issue.'Res Date') {
-                # save file with OP, issue and a technotes field
+                $printOut += $issue | Select-Object Location, Equipment, 'Issue Description', TimeStamp, Resolution
             }  
         }
+        $printOut | Format-Table -Wrap | Out-Printer
     })
 <#
 $Modify_Theme_Button.Add_MouseUp( { 
