@@ -1,4 +1,4 @@
-# 0.5.0
+# 0.6.0
 # Will Crabtree
 # 
 
@@ -11,7 +11,7 @@ Add-Type -AssemblyName System.Drawing
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $screen = [System.Windows.Forms.Screen]::AllScreens
-#region Computer Info
+#region Computer Info Window
 $ComputerInfo_Form = New-Object System.Windows.Forms.Form    
 $ComputerInfo_Form.AutoScaleDimensions = '7,15'
 $ComputerInfo_Form.AutoScaleMode = 'Font'
@@ -23,80 +23,71 @@ $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
 
-$ComputerName_Label = New-Object system.Windows.Forms.Label
-$ComputerName_Label.Text = 'Create Computer Name'
-$ComputerName_Label.Font = 'Segoe UI, 10pt,style=bold'
-$ComputerName_Label.Dock = 'Fill'
-$ComputerName_Label.Anchor = 'Bottom'
-$ComputerName_Label.AutoSize = $true
+$ComputerForm_Label = New-Object system.Windows.Forms.Label
+$ComputerForm_Label.Text = 'Computer Name'
+$ComputerForm_Label.Font = 'Segoe UI, 10pt,style=bold'
+$ComputerForm_Label.Dock = 'Fill'
+$ComputerForm_Label.Anchor = 'Bottom'
+$ComputerForm_Label.AutoSize = $true
 
+# Used for UI dropdown and useful AD OU to computername conversion
 $CampusList = @(('29', '29th St.'), ('ER', 'El Rio'), ('EP', 'El Pueblo'), ('DV', 'Desert Vista'), ('DO', 'District'), ('DC', 'Downtown'), ('DM', 'DM'), ('EC', 'East'), ('MS', 'Maintenance and Security'), ('NW', 'Northwest'), ('WC', 'West'), ('PCC', 'West'))
 
-$ComputerName_Campus_Label = New-Object system.Windows.Forms.Label
-$ComputerName_Campus_Label.Text = 'Campus'
-$ComputerName_Campus_Label.Font = 'Segoe UI, 8pt'
-$ComputerName_Campus_Label.Dock = 'Bottom'
-$ComputerName_Campus_Label.Anchor = 'Bottom'
-$ComputerName_Campus_Label.AutoSize = $true
-$ComputerName_Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
-$ComputerName_Campus_Dropdown.DropDownStyle = 'DropDown'
-$ComputerName_Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
-$ComputerName_Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
-$ComputerName_Campus_Dropdown.AutoCompleteSource = 'ListItems'
-$ComputerName_Campus_Dropdown.Font = 'Segoe UI, 8pt'
-$ComputerName_Campus_Dropdown.TabIndex = 1
-$ComputerName_Campus_Dropdown.Dock = 'Top'
+$Campus_Label = New-Object system.Windows.Forms.Label
+$Campus_Label.Text = 'Campus'
+$Campus_Label.Font = 'Segoe UI, 8pt'
+$Campus_Label.AutoSize = $true
+$Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
+$Campus_Dropdown.DropDownStyle = 'DropDown'
+$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
+$Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$Campus_Dropdown.AutoCompleteSource = 'ListItems'
+$Campus_Dropdown.Font = 'Segoe UI, 8pt'
+$Campus_Dropdown.TabIndex = 1
+$Campus_Dropdown.Dock = 'Top'
 
-$ComputerName_BuildingRoom_Label = New-Object system.Windows.Forms.Label
-$ComputerName_BuildingRoom_Label.Text = 'Bldg/Room'
-$ComputerName_BuildingRoom_Label.Font = 'Segoe UI, 8pt'
-$ComputerName_BuildingRoom_Label.Dock = 'Bottom'
-$ComputerName_BuildingRoom_Label.Anchor = 'Bottom'
-$ComputerName_BuildingRoom_Label.AutoSize = $true
-$ComputerName_BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_BuildingRoom_Textbox.Font = 'Segoe UI, 8pt'
-$ComputerName_BuildingRoom_Textbox.Dock = 'Top'
-$ComputerName_BuildingRoom_Textbox.TabIndex = 2
+$BuildingRoom_Label = New-Object system.Windows.Forms.Label
+$BuildingRoom_Label.Text = 'Bldg/Room'
+$BuildingRoom_Label.Font = 'Segoe UI, 8pt'
+$BuildingRoom_Label.AutoSize = $true
+$BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
+$BuildingRoom_Textbox.Font = 'Segoe UI, 8pt'
+$BuildingRoom_Textbox.Dock = 'Top'
+$BuildingRoom_Textbox.TabIndex = 2
 
-$ComputerName_PCCNumber_Label = New-Object system.Windows.Forms.Label
-$ComputerName_PCCNumber_Label.Text = 'PCC#'
-$ComputerName_PCCNumber_Label.Font = 'Segoe UI, 8pt'
-$ComputerName_PCCNumber_Label.Dock = 'Bottom'
-$ComputerName_PCCNumber_Label.Anchor = 'Bottom'
-$ComputerName_PCCNumber_Label.AutoSize = $true
-$ComputerName_PCCNumber_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_PCCNumber_Textbox.Font = 'Segoe UI, 8pt'
-$ComputerName_PCCNumber_Textbox.TabIndex = 3
-$ComputerName_PCCNumber_Textbox.Dock = 'Top'
+$pccNumber_Label = New-Object system.Windows.Forms.Label
+$pccNumber_Label.Text = 'PCC#'
+$pccNumber_Label.Font = 'Segoe UI, 8pt'
+$pccNumber_Label.AutoSize = $true
+$pccNumber_Textbox = New-Object System.Windows.Forms.TextBox
+$pccNumber_Textbox.Font = 'Segoe UI, 8pt'
+$pccNumber_Textbox.TabIndex = 3
+$pccNumber_Textbox.Dock = 'Top'
 
-$ComputerName_Suffix_Label = New-Object system.Windows.Forms.Label
-$ComputerName_Suffix_Label.Text = 'Suffix'
-$ComputerName_Suffix_Label.Font = 'Segoe UI, 8pt'
-$ComputerName_Suffix_Label.Dock = 'Bottom'
-$ComputerName_Suffix_Label.Anchor = 'Bottom'
-$ComputerName_Suffix_Label.AutoSize = $true
-$ComputerName_Suffix_Textbox = New-Object System.Windows.Forms.TextBox
-$ComputerName_Suffix_Textbox.TabIndex = 4
-$ComputerName_Suffix_Textbox.Font = 'Segoe UI, 8pt'
-$ComputerName_Suffix_Textbox.Dock = 'Top'
+$Suffix_Label = New-Object system.Windows.Forms.Label
+$Suffix_Label.Text = 'Suffix'
+$Suffix_Label.Font = 'Segoe UI, 8pt'
+$Suffix_Label.AutoSize = $true
+$Suffix_Textbox = New-Object System.Windows.Forms.TextBox
+$Suffix_Textbox.TabIndex = 4
+$Suffix_Textbox.Font = 'Segoe UI, 8pt'
+$Suffix_Textbox.Dock = 'Top'
 
-$ComputerName_Check_Button = New-Object System.Windows.Forms.Button
-$ComputerName_Check_Button.Text = 'Verify'
-$ComputerName_Check_Button.Font = 'Segoe UI, 8pt'
-$ComputerName_Check_Button.TabIndex = 6
-$ComputerName_Check_Button.Dock = 'Bottom'
-$ComputerName_Check_Button.Anchor = 'Bottom'
-$ComputerName_Check_Button.AutoSize = $true
-$ComputerName_Check_Button.BackColor = 'LightGray'
+$CheckPCC_Button = New-Object System.Windows.Forms.Button
+$CheckPCC_Button.Text = 'Check PCC'
+$CheckPCC_Button.Font = 'Segoe UI, 8pt'
+$CheckPCC_Button.TabIndex = 6
+$CheckPCC_Button.AutoSize = $true
+$CheckPCC_Button.BackColor = 'LightGray'
 
-$ADOUTree_Label = New-Object system.Windows.Forms.Label
-$ADOUTree_Label.Text = 'Select an OU'
-$ADOUTree_Label.Font = 'Segoe UI, 10pt,style=bold'
-$ADOUTree_Label.Dock = 'Bottom'
-$ADOUTree_Label.Anchor = 'Bottom'
-$ADOUTree_Label.AutoSize = $true
-$ADOUTree = New-Object System.Windows.Forms.TreeView
-$ADOUTree.Dock = 'Fill'
+$adTree_Label = New-Object system.Windows.Forms.Label
+$adTree_Label.Text = 'Select an OU'
+$adTree_Label.Font = 'Segoe UI, 10pt,style=bold'
+$adTree_Label.Dock = 'Bottom'
+$adTree_Label.Anchor = 'Bottom'
+$adTree_Label.AutoSize = $true
+$adTree = New-Object System.Windows.Forms.TreeView
+$adTree.Dock = 'Fill'
 
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Text = 'Submit'
@@ -176,8 +167,8 @@ $Cancel_Button_Login.Dock = 'Fill'
 $Login_Form.CancelButton = $Cancel_Button_Login
 $Login_Form.CancelButton.DialogResult = 'Cancel'
 
-#EndRegion
-#region All UI Layouts
+#endregion
+#region UI Layouts
 #region Login Layout
 $Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $Domain_LayoutPanel.Dock = "Fill"
@@ -194,90 +185,74 @@ $Domain_LayoutPanel.Controls.Add($DomainSelection_Label, 1, 0)
 $Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
 $Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
 
-$LayoutPanel_Login = New-Object System.Windows.Forms.TableLayoutPanel
-$LayoutPanel_Login.Dock = "Fill"
-$LayoutPanel_Login.ColumnCount = 4
-$LayoutPanel_Login.RowCount = 5
-#$LayoutPanel_Login.CellBorderStyle = 1
-[void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
-[void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$LayoutPanel_Login.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+$Login_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+$Login_LayoutPanel.Dock = "Fill"
+$Login_LayoutPanel.ColumnCount = 4
+$Login_LayoutPanel.RowCount = 5
+#$Login_LayoutPanel.CellBorderStyle = 1
+[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
-[void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$LayoutPanel_Login.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
-$LayoutPanel_Login.Controls.Add($Username_TextBox, 1, 0)
-$LayoutPanel_Login.SetColumnSpan($Username_TextBox, 2)
-$LayoutPanel_Login.Controls.Add($Password_TextBox, 1, 1)
-$LayoutPanel_Login.SetColumnSpan($Password_TextBox, 2)
-$LayoutPanel_Login.Controls.Add($Domain_LayoutPanel, 1, 2)
-$LayoutPanel_Login.SetColumnSpan($Domain_LayoutPanel, 2)
-$LayoutPanel_Login.Controls.Add($OK_Button_Login, 1, 3)
-$LayoutPanel_Login.Controls.Add($Cancel_Button_Login, 2, 3)
+$Login_LayoutPanel.Controls.Add($Username_TextBox, 1, 0)
+$Login_LayoutPanel.SetColumnSpan($Username_TextBox, 2)
+$Login_LayoutPanel.Controls.Add($Password_TextBox, 1, 1)
+$Login_LayoutPanel.SetColumnSpan($Password_TextBox, 2)
+$Login_LayoutPanel.Controls.Add($Domain_LayoutPanel, 1, 2)
+$Login_LayoutPanel.SetColumnSpan($Domain_LayoutPanel, 2)
+$Login_LayoutPanel.Controls.Add($OK_Button_Login, 1, 3)
+$Login_LayoutPanel.Controls.Add($Cancel_Button_Login, 2, 3)
 
-$Login_Form.controls.Add($LayoutPanel_Login)
-
-#endregion
-#region Main Layout
-#region Computer Name
-$ComputerName_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$ComputerName_LayoutPanel.Dock = "Fill"
-$ComputerName_LayoutPanel.ColumnCount = 5
-$ComputerName_LayoutPanel.RowCount = 3
-#$ComputerName_LayoutPanel.CellBorderStyle = 1
-[void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-[void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 25)))
-[void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-[void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-[void]$ComputerName_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-[void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 20)))
-[void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$ComputerName_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Label, 0, 0)
-$ComputerName_LayoutPanel.SetColumnSpan($ComputerName_Label, 5)
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Campus_Label, 0, 1)
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Campus_Dropdown, 0, 2)
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_BuildingRoom_Label, 1, 1)
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_BuildingRoom_Textbox, 1, 2)
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_PCCNumber_Label, 2, 1)
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_PCCNumber_Textbox, 2, 2)
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Suffix_Label, 3, 1)
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Suffix_Textbox, 3, 2)
-
-$ComputerName_LayoutPanel.Controls.Add($ComputerName_Check_Button, 4, 2)
+$Login_Form.controls.Add($Login_LayoutPanel)
 
 #endregion
+
+#region ComputerInfo UI Layout
 $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $ComputerInfo_LayoutPanel.Dock = "Fill"
-$ComputerInfo_LayoutPanel.ColumnCount = 3
-$ComputerInfo_LayoutPanel.RowCount = 4
+$ComputerInfo_LayoutPanel.ColumnCount = 4
+$ComputerInfo_LayoutPanel.RowCount = 5
 #$ComputerInfo_LayoutPanel.CellBorderStyle = 1
-[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
-[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 15)))
+[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
+[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
+[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
-$ComputerInfo_LayoutPanel.Controls.Add($ComputerName_LayoutPanel, 0, 0)
-$ComputerInfo_LayoutPanel.SetColumnSpan($ComputerName_LayoutPanel, 3)
+$ComputerInfo_LayoutPanel.Controls.Add($ComputerForm_Label, 0, 0)
+$ComputerInfo_LayoutPanel.SetColumnSpan($ComputerForm_Label, 2)
 
-$ComputerInfo_LayoutPanel.Controls.Add($ADOUTree_Label, 0, 1)
-$ComputerInfo_LayoutPanel.SetColumnSpan($ADOUTree_Label, 3)
-$ComputerInfo_LayoutPanel.Controls.Add($ADOUTree, 0, 2)
-$ComputerInfo_LayoutPanel.SetColumnSpan($ADOUTree, 3)
+$ComputerInfo_LayoutPanel.Controls.Add($Campus_Label, 0, 1)
+$ComputerInfo_LayoutPanel.Controls.Add($Campus_Dropdown, 1, 1)
 
-$ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 1, 3)
+$ComputerInfo_LayoutPanel.Controls.Add($BuildingRoom_Label, 0, 2)
+$ComputerInfo_LayoutPanel.Controls.Add($BuildingRoom_Textbox, 1, 2)
+
+$ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Label, 0, 3)
+$ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Textbox, 1, 3)
+
+$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Label, 0, 4)
+$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Textbox, 1, 4)
+
+$ComputerInfo_LayoutPanel.Controls.Add($CheckPCC_Button, 0, 5)
+
+$ComputerInfo_LayoutPanel.Controls.Add($adTree_Label, 3, 0)
+
+$ComputerInfo_LayoutPanel.Controls.Add($adTree, 3, 1)
+$ComputerInfo_LayoutPanel.SetrowSpan($adTree, 4)
+
+$ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 3, 5)
 $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
 #endregion
 #endregion
@@ -291,6 +266,7 @@ function Login-AD {
         $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
         $Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
     
+        # Checks what domain is selected and used for various useful uses
         try {
             if ($PCC_RadioButton.Checked) {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($PCC_RadioButton.text + '-domain.pima.edu')
@@ -299,11 +275,12 @@ function Login-AD {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($EDU_RadioButton.text + '-domain.pima.edu')
             }
         }
+        # Recurse when the login fails
         catch [System.Security.Authentication.AuthenticationException] {
             Login-AD
         }
         
-        # If login was successful, continue to computer info form
+        # Comparing pulled AD name against UI text to verify the login was successful. continue to main core script otherwise recurse
         if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
             [void]$ComputerInfo_Form.ShowDialog()
             break
@@ -321,69 +298,63 @@ function Login-AD {
         }
     }
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
-        # Wishlist: Reboot computer if cancelled(?)
+        # Wishlist: Reboot computer if cancelled
     }  
-}
-function Confirm-NoError {
-    # Looks to see if there are errors on the computer name or OU elements
-    if ($ErrorProvider.GetError($ComputerName_Label) -or $ErrorProvider.GetError($ADOUTree_Label)) {
-        return $false
-    }
-    else {
-        return $true
-    }
 }
 
 Function Confirm-ComputerName {
-    # Verify each text box agaisnt regex to verify they are valid entries and if not verified, set error on that element
-    $ComputerName_Check_Button.BackColor = 'LightGray'
-    if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
-        $ErrorProvider.SetError($ComputerName_Label, '')
-        if ($ComputerName_BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
-            $ErrorProvider.SetError($ComputerName_Label, '')
-            if ($ComputerName_PCCNumber_Textbox.Text -match '^\d{6}$') {
-                $ErrorProvider.SetError($ComputerName_Label, '')
 
-                # Searching AD to see if there is a computer in AD with the supplied PCC number and notify the technician
-                # Wishlist: Deal with those assets?
-                $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $ComputerName_PCCNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
-                if ($null -ne $PCCSearch) {
-                    # Wishlist: Loop through each entry to out put results on new line
-                    [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)", 'Warning', 'Ok', 'Warning')
-                }
-                if ($ComputerName_Suffix_Textbox.Text -match '^[a-z]{2}$|[v]\d') {
-                    $ErrorProvider.SetError($ComputerName_Label, '')
+    # Verify each text box agaisnt regex to verify they are valid entries and if not verified, set error on that element
+    $CheckPCC_Button.BackColor = 'LightGray'
+    if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
+        $ErrorProvider.SetError($ComputerForm_Label, '')
+        if ($BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
+            $ErrorProvider.SetError($ComputerForm_Label, '')
+            if ($pccNumber_Textbox.Text -match '^\d{6}$') {
+                $ErrorProvider.SetError($ComputerForm_Label, '')
+                # Suffix check
+                if ($Suffix_Textbox.Text -match '^[a-z]{2}$|[v]\d') {
+                    $ErrorProvider.SetError($ComputerForm_Label, '')
 
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
-                    switch ($ComputerName_Campus_Dropdown.Text) {
+                    switch ($Campus_Dropdown.Text) {
                         'DC' { 
-                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $Suffix_Textbox.Text
                         }
                         Default {
-                            $Global:ComputerName = $ComputerName_Campus_Dropdown.Text + '-' + $ComputerName_BuildingRoom_Textbox.Text + $ComputerName_PCCNumber_Textbox.Text + $ComputerName_Suffix_Textbox.Text
+                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $Suffix_Textbox.Text
                         }
                     }
                     if ($ComputerName.Length -gt 15) {
-                        $ErrorProvider.SetError($ComputerName_Label, 'Name too long')
+                        $ErrorProvider.SetError($ComputerForm_Label, 'Name too long')
                     }
                     else {
-                        $ComputerName_Check_Button.BackColor = 'Green'
+                        $CheckPCC_Button.BackColor = 'Green'
                     }
                 }
                 else {
-                    $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper suffix')
+                    $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper suffix')
                 }
             }
             else {
-                $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper PCC Number')
+                $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper PCC Number')
             }
         }
         else {
-            $ErrorProvider.SetError($ComputerName_Label, 'Enter a proper building/room')
+            $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper building/room')
         }
     }
     else {
-        $ErrorProvider.SetError($ComputerName_Label, 'Select a proper campus')
+        $ErrorProvider.SetError($ComputerForm_Label, 'Select a proper campus')
+    }
+
+    
+    # Search AD to see if there is a computer with the supplied PCC number and notify the technician
+    # Wishlist: Currently just notifies, deal with those assets?
+    $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
+    if ($null -ne $PCCSearch) {
+        # Wishlist: Loop through each entry to out put results on new line
+        [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)", 'Warning', 'Ok', 'Warning')
     }
 }
 
@@ -393,20 +364,21 @@ Function AddNodes ( $Node, $CurrentOU) {
     Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { AddNodes $NodeSub $_ $ADDomain.Forest }
 }
 #endregion
-#region Actions
+#region UI Actions
 
 # Populates the AD tree based on the campus and domain selected
-$ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
-        $ADOUTree.Nodes.Clear()
+$Campus_Dropdown.Add_SelectedIndexChanged( {
+        $adTree.Nodes.Clear()
         if ($EDU_RadioButton.Checked -eq $true) {
-            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $ADOUTree $_ }
+            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
         }
         elseif ($PCC_RadioButton.Checked -eq $true) {
-            if ($ComputerName_Campus_Dropdown.Items -contains $ComputerName_Campus_Dropdown.Text) {
-                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$ComputerName_Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $ADOUTree $_ }
+            # Verify submitted campus, otherwise search whole domain
+            if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
+                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
             else {
-                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $ADOUTree $_ }
+                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
         }  
     })
@@ -414,30 +386,30 @@ $ComputerName_Campus_Dropdown.Add_SelectedIndexChanged( {
 # If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
 $PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
 if ($PCCNumber -match '^\d{6}$') {
-    $ComputerName_PCCNumber_Textbox.Text = $PCCNumber
-    $ComputerName_PCCNumber_Textbox.ReadOnly = $true
+    $pccNumber_Textbox.Text = $PCCNumber
+    $pccNumber_Textbox.ReadOnly = $true
 }
 
-$ComputerName_Check_Button.Add_Click( { 
+$CheckPCC_Button.Add_Click( { 
         Confirm-ComputerName
     })
 
 $Submit_Button.Add_Click( { 
         Confirm-ComputerName
 
-        # Verify an OU is selected
-        if ($null -eq $ADOUTree.SelectedNode) {
-            $ErrorProvider.SetError($ADOUTree_Label, 'Select an OU')
+        # Verify a target OU is selected in UI
+        if ($null -eq $adTree.SelectedNode) {
+            $ErrorProvider.SetError($adTree_Label, 'Select an OU')
         }
         else {
-            $ErrorProvider.SetError($ADOUTree_Label, '')
+            $ErrorProvider.SetError($adTree_Label, '')
         }          
         
-        # If there are no errors, submit the data
-        if (Confirm-NoError) {
+        # Checks to see if there are errors on UI elements
+        if (-not($ErrorProvider.GetError($ComputerForm_Label) -or $ErrorProvider.GetError($adTree_Label))) {
             $TSEnvironment = New-Object -COMObject Microsoft.SMS.TSEnvironment 
             $TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
-            $TSEnvironment.Value("OSDDomainOUName") = "$("LDAP://$($ADOUTree.SelectedNode.Name)")"
+            $TSEnvironment.Value("OSDDomainOUName") = "$("LDAP://$($adTree.SelectedNode.Name)")"
             $TSEnvironment.Value("OSDDomainName") = "$($ADDomain.Forest)"               
             [void]$ComputerInfo_Form.Close()
         }
@@ -445,4 +417,6 @@ $Submit_Button.Add_Click( {
 
 #endregion
 
+# Gotta login
 Login-AD
+#[void]$ComputerInfo_Form.ShowDialog()
