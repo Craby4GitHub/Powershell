@@ -16,7 +16,7 @@ $ComputerInfo_Form = New-Object System.Windows.Forms.Form
 $ComputerInfo_Form.AutoScaleDimensions = '7,15'
 $ComputerInfo_Form.AutoScaleMode = 'Font'
 $ComputerInfo_Form.StartPosition = 'CenterScreen'
-$ComputerInfo_Form.Width = $($screen[0].bounds.Width / 5)
+$ComputerInfo_Form.Width = $($screen[0].bounds.Width / 4)
 $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
 $ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
 $ComputerInfo_Form.Text = 'Active Directory Information'
@@ -260,13 +260,13 @@ $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
 #region Functions
 
 function Login-AD {
-    # Show the login window and set the domain
+    # Show the login window and log the domain for later
     [void]$Login_Form.ShowDialog()
     if ($Login_Form.DialogResult -eq 'OK') {
         $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
         $Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
     
-        # Checks what domain is selected and used for various useful uses
+        # Checks what domain is selected and used for various useful... uses
         try {
             if ($PCC_RadioButton.Checked) {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($PCC_RadioButton.text + '-domain.pima.edu')
