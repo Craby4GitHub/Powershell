@@ -45,6 +45,7 @@ $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.Font = 'Segoe UI, 8pt'
 $Campus_Dropdown.TabIndex = 1
 $Campus_Dropdown.Dock = 'Top'
+$Campus_Dropdown.MinimumSize = '50,50'
 
 $BuildingRoom_Label = New-Object system.Windows.Forms.Label
 $BuildingRoom_Label.Text = 'Bldg/Room'
@@ -54,6 +55,7 @@ $BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
 $BuildingRoom_Textbox.Font = 'Segoe UI, 8pt'
 $BuildingRoom_Textbox.Dock = 'Top'
 $BuildingRoom_Textbox.TabIndex = 2
+$BuildingRoom_Textbox.MinimumSize = '50,20'
 
 $pccNumber_Label = New-Object system.Windows.Forms.Label
 $pccNumber_Label.Text = 'PCC#'
@@ -63,6 +65,7 @@ $pccNumber_Textbox = New-Object System.Windows.Forms.TextBox
 $pccNumber_Textbox.Font = 'Segoe UI, 8pt'
 $pccNumber_Textbox.TabIndex = 3
 $pccNumber_Textbox.Dock = 'Top'
+$pccNumber_Textbox.MinimumSize = '50,20'
 
 $Suffix_Label = New-Object system.Windows.Forms.Label
 $Suffix_Label.Text = 'Suffix'
@@ -72,18 +75,20 @@ $Suffix_Textbox = New-Object System.Windows.Forms.TextBox
 $Suffix_Textbox.TabIndex = 4
 $Suffix_Textbox.Font = 'Segoe UI, 8pt'
 $Suffix_Textbox.Dock = 'Top'
+$Suffix_Textbox.MinimumSize = '50,20'
 
 $CheckPCC_Button = New-Object System.Windows.Forms.Button
-$CheckPCC_Button.Text = 'Check PCC'
+$CheckPCC_Button.Text = 'Check Name'
 $CheckPCC_Button.Font = 'Segoe UI, 8pt'
 $CheckPCC_Button.TabIndex = 6
+$CheckPCC_Button.Dock = 'Bottom'
 $CheckPCC_Button.AutoSize = $true
 $CheckPCC_Button.BackColor = 'LightGray'
 
 $adTree_Label = New-Object system.Windows.Forms.Label
 $adTree_Label.Text = 'Select an OU'
 $adTree_Label.Font = 'Segoe UI, 10pt,style=bold'
-$adTree_Label.Dock = 'Bottom'
+$adTree_Label.Dock = 'Fill'
 $adTree_Label.Anchor = 'Bottom'
 $adTree_Label.AutoSize = $true
 $adTree = New-Object System.Windows.Forms.TreeView
@@ -92,7 +97,7 @@ $adTree.Dock = 'Fill'
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Text = 'Submit'
 $Submit_Button.Font = 'Segoe UI, 8pt'
-$Submit_Button.TabIndex = 6
+$Submit_Button.TabIndex = 7
 $Submit_Button.Dock = 'Bottom'
 $Submit_Button.AutoSize = $true
 $ComputerInfo_Form.AcceptButton = $Submit_Button
@@ -114,7 +119,7 @@ $Username_TextBox.multiline = $false
 $Username_TextBox.Text = 'Username'
 $Username_TextBox.TabIndex = 1
 $Username_TextBox.Dock = 'Bottom'
-$Username_TextBox.Anchor = 'Bottom'
+#$Username_TextBox.Anchor = 'Bottom'
 $Username_TextBox.AutoSize = $true
 
 $Password_TextBox = New-Object system.Windows.Forms.TextBox
@@ -123,7 +128,7 @@ $Password_TextBox.Text = "PimaRocks"
 $Password_TextBox.TabIndex = 2
 $Password_TextBox.PasswordChar = '*'
 $Password_TextBox.Dock = 'Bottom'
-$Password_TextBox.Anchor = 'Bottom'
+#$Password_TextBox.Anchor = 'Bottom'
 $Password_TextBox.AutoSize = $true
 
 $DomainSelection_Label = New-Object system.Windows.Forms.Label
@@ -174,12 +179,12 @@ $Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $Domain_LayoutPanel.Dock = "Fill"
 $Domain_LayoutPanel.ColumnCount = 3
 $Domain_LayoutPanel.RowCount = 2
-#$Domain_LayoutPanel.CellBorderStyle = 1
+#$Domain_LayoutPanel.CellBorderStyle = 2
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
-[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 50)))
+[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
 
 $Domain_LayoutPanel.Controls.Add($DomainSelection_Label, 1, 0)
 $Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
@@ -187,28 +192,22 @@ $Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
 
 $Login_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $Login_LayoutPanel.Dock = "Fill"
-$Login_LayoutPanel.ColumnCount = 4
-$Login_LayoutPanel.RowCount = 5
-#$Login_LayoutPanel.CellBorderStyle = 1
-[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
+$Login_LayoutPanel.ColumnCount = 2
+$Login_LayoutPanel.RowCount = 3
+$Login_LayoutPanel.CellBorderStyle = 3
 [void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 1)))
 
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
+[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
 
-$Login_LayoutPanel.Controls.Add($Username_TextBox, 1, 0)
-$Login_LayoutPanel.SetColumnSpan($Username_TextBox, 2)
-$Login_LayoutPanel.Controls.Add($Password_TextBox, 1, 1)
-$Login_LayoutPanel.SetColumnSpan($Password_TextBox, 2)
-$Login_LayoutPanel.Controls.Add($Domain_LayoutPanel, 1, 2)
+$Login_LayoutPanel.Controls.Add($Username_TextBox, 0, 0)
+$Login_LayoutPanel.Controls.Add($Password_TextBox, 1, 0)
+$Login_LayoutPanel.Controls.Add($Domain_LayoutPanel, 0, 1)
 $Login_LayoutPanel.SetColumnSpan($Domain_LayoutPanel, 2)
-$Login_LayoutPanel.Controls.Add($OK_Button_Login, 1, 3)
-$Login_LayoutPanel.Controls.Add($Cancel_Button_Login, 2, 3)
+$Login_LayoutPanel.Controls.Add($OK_Button_Login, 0, 2)
+$Login_LayoutPanel.Controls.Add($Cancel_Button_Login, 1, 2)
 
 $Login_Form.controls.Add($Login_LayoutPanel)
 
@@ -219,7 +218,7 @@ $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $ComputerInfo_LayoutPanel.Dock = "Fill"
 $ComputerInfo_LayoutPanel.ColumnCount = 4
 $ComputerInfo_LayoutPanel.RowCount = 5
-#$ComputerInfo_LayoutPanel.CellBorderStyle = 1
+$ComputerInfo_LayoutPanel.CellBorderStyle = 3
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -246,9 +245,9 @@ $ComputerInfo_LayoutPanel.Controls.Add($Suffix_Label, 0, 4)
 $ComputerInfo_LayoutPanel.Controls.Add($Suffix_Textbox, 1, 4)
 
 $ComputerInfo_LayoutPanel.Controls.Add($CheckPCC_Button, 0, 5)
+$ComputerInfo_LayoutPanel.SetcolumnSpan($CheckPCC_Button, 2)
 
 $ComputerInfo_LayoutPanel.Controls.Add($adTree_Label, 3, 0)
-
 $ComputerInfo_LayoutPanel.Controls.Add($adTree, 3, 1)
 $ComputerInfo_LayoutPanel.SetrowSpan($adTree, 4)
 
@@ -373,7 +372,7 @@ $Campus_Dropdown.Add_SelectedIndexChanged( {
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
         }
         elseif ($PCC_RadioButton.Checked -eq $true) {
-            # Verify submitted campus, otherwise search whole domain
+            # Verify submitted campus against campus list to load spcific campus AD tree. If not verified search whole domain
             if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
                 Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
@@ -388,6 +387,7 @@ $PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBios
 if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Textbox.Text = $PCCNumber
     $pccNumber_Textbox.ReadOnly = $true
+    $pccNumber_Label.Text = 'PCC# Loaded from BIOS'
 }
 
 $CheckPCC_Button.Add_Click( { 
