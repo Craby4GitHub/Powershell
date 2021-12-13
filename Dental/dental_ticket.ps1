@@ -147,20 +147,22 @@ function Confirm-UserInput($Regex, $CurrentField, $ErrorMSG) {
     }
 }
 
-$Submission = [pscustomobject]@{
-    'ID'                = ''
-    'Location'          = ''
-    'Equipment'         = ''
-    'Issue Description' = ''
-    'TimeStamp'         = ''
-    'Status'            = ''
-    'Res Date'          = ''
-    'Resolution'        = ''
-    'Who'               = ''
-    'Note'              = ''
-}
 
 function Update-Submission {
+
+    $Submission = [pscustomobject]@{
+        'ID'                = ''
+        'Location'          = ''
+        'Equipment'         = ''
+        'Issue Description' = ''
+        'TimeStamp'         = ''
+        'Status'            = ''
+        'Res Date'          = ''
+        'Resolution'        = ''
+        'Who'               = ''
+        'Note'              = ''
+    }
+
     $Submission.'Issue Description' = $Desc_Text.Text
     $Submission.'Location' = $Location_Dropdown.Text
     $Submission.'Equipment' = $Equipment_Dropdown.Text
@@ -246,8 +248,8 @@ $Location_Dropdown.Add_SelectedValueChanged( {
     })
 
 $Equipment_Dropdown.Add_SelectedValueChanged( { 
-    Check-DuplicateIssue 
-})
+        Check-DuplicateIssue 
+    })
 
 $Submit_Button.Add_MouseUp( { 
         Confirm-ID -CurrentField $ID_Num_Text -Group $ID_Num_Group -ErrorMSG 'INVALID STUDENT NUMBER' 
