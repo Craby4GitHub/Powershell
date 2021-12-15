@@ -1,9 +1,9 @@
 $oldServer = 'wc-vm-prtsvr'
 $newServer = 'WC-Print'
 
-$printers = Get-printer -Name "\\$oldServer*"
+$oldPrinterQueues = Get-printer -Name "\\$oldServer*"
 
-ForEach ($printer in $printers) {
+ForEach ($printer in $oldPrinterQueues) {
 
     Write-Host "Removing $($printer.name)"
     Remove-printer $printer.name
