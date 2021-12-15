@@ -22,6 +22,7 @@ $ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome +
 $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
+$ComputerInfo_Form.MinimumSize = '300,300'
 
 $ComputerForm_Label = New-Object system.Windows.Forms.Label
 $ComputerForm_Label.Text = 'Computer Name'
@@ -113,6 +114,7 @@ $Login_Form.Width = $($screen[0].bounds.Width / 5)
 $Login_Form.Height = $($screen[0].bounds.Height / 5)
 $Login_Form.ControlBox = $false
 $Login_Form.AutoSize = $true
+$Login_Form.MinimumSize = '100,100'
 
 $Username_TextBox = New-Object system.Windows.Forms.TextBox
 $Username_TextBox.multiline = $false
@@ -387,7 +389,7 @@ $PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBios
 if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Textbox.Text = $PCCNumber
     $pccNumber_Textbox.ReadOnly = $true
-    $pccNumber_Label.Text = 'PCC# Loaded from BIOS'
+    $pccNumber_Label.Text = 'PCC# : Loaded from BIOS'
 }
 
 $CheckPCC_Button.Add_Click( { 
@@ -419,4 +421,5 @@ $Submit_Button.Add_Click( {
 
 # Gotta login
 Login-AD
+# Enable to view computer info form
 #[void]$ComputerInfo_Form.ShowDialog()
