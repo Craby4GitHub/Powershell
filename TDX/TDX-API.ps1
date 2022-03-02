@@ -35,7 +35,9 @@ function Get-TDXAuth($beid, $key) {
 
 #region Assets
 function Search-TDXAssets($serialNumber) {
-    # Finds all assets or searches based on a criteria
+    # Finds all assets or searches based on a criteria. Attachments and Attributes are not in included in the results
+
+
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
     $uri = $baseURI + $appID + '/assets/search'
@@ -63,7 +65,7 @@ function Search-TDXAssets($serialNumber) {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying API call"
+            Write-Log -level WARN -message "Retrying Search-Assets call"
             Search-Assets -serialNumber $serialNumber
         }
         else {
@@ -96,7 +98,7 @@ function Get-ProductModels {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -message "Retrying API call to retrieve all custom asset attributes" -assetSerialNumber $ID
-            Get-TDXAssetAttributes -ID $ID
+            Get-ProductModels
         }
         else {
             # Display errors and exit script.
@@ -130,7 +132,7 @@ function Get-TDXAssetAttributes($ID) {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying API call to retrieve all custom asset attributes" -assetSerialNumber $ID
+            Write-Log -level WARN -message "Retrying Get-TDXAssetAttributes API call to retrieve all custom asset attributes" -assetSerialNumber $ID
             Get-TDXAssetAttributes -ID $ID
         }
         else {
@@ -240,8 +242,8 @@ function Edit-TDXAsset {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying API call to edit the asset $($Asset.Tag)"
-            Get-TDXAssetAttributes -ID $ID
+            Write-Log -level WARN -message "Retrying Edit-TDXAsset API call to edit the asset $($Asset.Tag)"
+            Edit-TDXAsset -asset $asset -sccmLastHardwareScan $sccmLastHardwareScan
         }
         else {
             # Display errors and exit script.
@@ -336,7 +338,7 @@ function Create-TDXTicket {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -message "Retrying API call to create the ticket: $Title"
-            Get-TDXAssetAttributes -ID $ID
+            Create-TDXTicket -AccountID $AccountID -PriorityID $PriorityID -RequestorUid $RequestorUid -StatusID $StatusID -Title $Title -TypeID $TypeID
         }
         else {
             # Display errors and exit script.
