@@ -4,49 +4,48 @@ import-module activedirectory
 # Load TDX API functions
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
 
-# Setting Log name
-$logName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
-$logFile = "$PSScriptroot\$logName.csv"
-. ((Get-Item $PSScriptRoot).Parent.FullName + '\Callable\Write-Log.ps1')
-
 # Pulling all TDX assets
 # Wishlist: Filter for only computers. Currently also pulls printers, TVs, ect
 $allTDXAssets = Search-TDXAssets
-Write-Log -level INFO -message "Loaded $($allTDXAssets.count) devices from TDX"
 
 #region Import from AD
-#Write-progress -Activity 'Getting computers from EDU and PCC Domain...'
-$pccDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server*') } -Properties OperatingSystem -Server PCC-Domain.pima.edu
-  
-$eduDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server*') } -Properties OperatingSystem -Server EDU-Domain.pima.edu
+Write-progress -Activity 'Getting computers from EDU and PCC Domain...'
+#$pccDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server*') } -Properties OperatingSystem -Server PCC-Domain.pima.edu
+$pccDomain = Get-ADComputer -Filter { (name -like 'wc*') } -Properties OperatingSystem -Server PCC-Domain.pima.edu 
+#$eduDomain = Get-ADComputer -Filter { (OperatingSystem -notlike '*windows*server*') } -Properties OperatingSystem -Server EDU-Domain.pima.edu
+$eduDomain = Get-ADComputer -Filter { (name -like 'wc*') } -Properties OperatingSystem -Server EDU-Domain.pima.edu
 
 # Combine the domains together
 $pccDomain += $eduDomain
 #endregion
 
-foreach ($tdxAsset in $allTDXAssets) {
-    # Proress bar to show how far along we are
-    [int]$pct = ($allTDXAssets.IndexOf($tdxAsset) / $allTDXAssets.Count) * 100
-    Write-progress -Activity "Working on $($tdxAsset.Tag)" -PercentComplete $pct -status "$pct% Complete"
+$InconsistentArray = @()
 
-    if ($null -ne $tdxAsset.tag) {
-        $pccDomain | Where-Object -Property Name -Match "(?<other>.*)(?<PCCNumber>$($tdxAsset.tag))[a-z]{2}$" | foreach-object { 
-            if ($Matches['other'].StartsWith('DC')) {
-                if ($Matches['PCCNumber'] -eq $tdxAsset.Tag) {
-                    if ($Matches['other'].substring(2, 5) -ne $tdxAsset.LocationRoomName) {
-                        Write-Log -level INFO -message "TDX Room:$($tdxAsset.LocationRoomName) does not match $($_.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                    }
-                }
-            }
-            else {
-                $campus, $bldgAndRoom = $Matches['other'].split('-')
-                if ($bldgAndRoom -ne $tdxAsset.LocationRoomName) {
-                    Write-Log -level INFO -message "TDX Room:$($tdxAsset.LocationRoomName) does not match $($_.Name)" -assetSerialNumber $tdxAsset.SerialNumber
-                }
+foreach ($computer in $pccDomain) {
+    $Matches = $null
+
+    $matchedComputer = $computer | Where-Object -Property DNSHostName -Match "(?<other>.*)(?<PCCNumber>\d{6})[a-z]{2}\.(?<Domain>PCC|EDU)"
+
+    # Verify there is a computer with a 6 digit number and 2 suffix characters
+    if ($null -ne $matchedComputer) {
+
+        $tdxAsset = $allTDXAssets | Where-Object -Property Tag -EQ $Matches['PCCNumber']
+        
+        # Verify TDX has an asset matching The PCC Number
+        if ($null -ne $tdxAsset) {
+            $campus, $bldgAndRoom = $Matches['other'].split('-')
+            if ($bldgAndRoom -ne $tdxAsset.LocationRoomName.Split(' ')[0]) {
+                $InconsistentArray += "$($tdxAsset.Tag),$($tdxAsset.SerialNumber),$($tdxAsset.LocationRoomName),$($computer.Name),$($Matches['Domain'])"
             }
         }
+        else {
+            $InconsistentArray += "$($Matches['PCCNumber']),Not in TDX,Not in TDX,$($computer.Name),$($Matches['Domain'])"
+        }
     }
-    else {
-        Write-Log -level ERROR -message "No PCC Number in TDX" -assetSerialNumber $tdxAsset.SerialNumber
-    }
+
+    
 }
+
+# Save to log
+New-Item -Path "$PSScriptroot\Inconsistent.csv" -value "PCC Number,Serial Number,TDX Room Number,AD Computer Name,Domain`n" -Force | Out-Null
+$InconsistentArray | Out-File -FilePath "$PSScriptroot\Inconsistent.csv" -Append -Encoding ASCII
