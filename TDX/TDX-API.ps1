@@ -65,7 +65,7 @@ function Search-TDXAssets($serialNumber) {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying Search-Assets call"
+            Write-Log -level WARN -message "Retrying Search-Assets API call"
             Search-Assets -serialNumber $serialNumber
         }
         else {
@@ -97,12 +97,12 @@ function Get-ProductModels {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying API call to retrieve all custom asset attributes" -assetSerialNumber $ID
+            Write-Log -level WARN -message "Retrying Get-ProductModels API call" -assetSerialNumber $ID
             Get-ProductModels
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Getting details on TDX ID $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message "Getting details on TDX Product ID# $ID has failed. See the following log messages for more details."
             Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
             Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
             Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
@@ -165,8 +165,7 @@ function Get-TDXAssetStatuses {
     
     return $statuses
 }
-#endregion
-#region Ticket
+
 function Edit-TDXAsset {
     param (
         [Parameter(Mandatory = $true)]
@@ -242,7 +241,7 @@ function Edit-TDXAsset {
 
             Start-Sleep -Milliseconds $resetWaitInMs
 
-            Write-Log -level WARN -message "Retrying Edit-TDXAsset API call to edit the asset $($Asset.Tag)"
+            Write-Log -level WARN -message "Retrying Edit-TDXAsset API call on PCC# $($Asset.Tag)"
             Edit-TDXAsset -asset $asset -sccmLastHardwareScan $sccmLastHardwareScan
         }
         else {
@@ -258,19 +257,26 @@ function Edit-TDXAsset {
 
 function Import-TDXAssets {
     param (
-        $OptionalParameters
+        $assets
     )
 
     # need to figure out what is needed for a importData object
     #https://pima.teamdynamix.com/SBTDWebApi/api/{appId}/assets/import
     $body = [PSCustomObject]@{
-        items    = @()
+        importdata    = @($assets)
         Settings = @{
-            UpdateItems = $true;
-            CreateItems = $true;
-            Mappings = @{}
+            UpdateItems = $true
+            CreateItems = $true
+            Mappings    = @(
+                @{
+                    FieldIdentifier   = $null	# This field is nullable.	The identifier of the field.     
+                    CustomAttributeID =	0 # The ID of the associated custom attribute, or 0 if the field is not a custom attribute.
+                    DefaultValue      = $null	# This field is nullable.	The default value of the field.
+                    ClearOnNull       =	$false # Whether the field on the API object should be cleared when a value has not been provided for it.
+                }
+            )
         }   
-    } | ConvertTo-Json
+    } | ConvertTo-Json #-Depth 4
     
     #https://pima.teamdynamix.com/SBTDWebApi/api/{appId}/assets/import
     $uri = $baseURI + $appID + "/assets/import"
@@ -278,6 +284,7 @@ function Import-TDXAssets {
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
         $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        Write-Host $response
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -295,7 +302,7 @@ function Import-TDXAssets {
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message "Import-TDXAssets API call has failed, see the following log messages for more details."
             Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
             Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
             Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
@@ -303,6 +310,8 @@ function Import-TDXAssets {
         }
     }
 }
+#endregion
+#region Ticket
 function Create-TDXTicket {
     param (
         [Parameter(Mandatory = $true)]
@@ -473,7 +482,7 @@ function Get-TDXPersonDetails($UID) {
    
             Start-Sleep -Milliseconds $resetWaitInMs
    
-            Write-Log -level WARN -message "Retrying API call to edit the asset $($Asset.Tag)"
+            Write-Log -level WARN -message "Retrying API call to  $($Asset.Tag)"
             Get-TDXAssetAttributes -ID $ID
         }
         else {
@@ -541,7 +550,7 @@ function Get-TDXApiResponseCode($statusCode) {
 
         # Get the amount of time we need to wait to retry in milliseconds.
         $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
-        
+        Start-Sleep -Milliseconds $resetWaitInMs
         Get-TDXAssetAttributes -ID $ID
     }
     else {
