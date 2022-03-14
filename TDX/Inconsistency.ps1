@@ -6,6 +6,7 @@ import-module activedirectory
 
 # Pulling all TDX assets
 # Wishlist: Filter for only computers. Currently also pulls printers, TVs, ect
+Write-progress -Activity 'Getting computers from TDX...'
 $allTDXAssets = Search-TDXAssets
 
 #region Import from AD
@@ -22,30 +23,56 @@ $pccDomain += $eduDomain
 $InconsistentArray = @()
 
 foreach ($computer in $pccDomain) {
+    [int]$pct = ($pccDomain.IndexOf($computer) / $pccDomain.count) * 100
+    Write-progress -Activity "Comparing $($computer.Name) to TDX data..." -percentcomplete $pct -status "$pct% Complete"
     $Matches = $null
 
-    $matchedComputer = $computer | Where-Object -Property DNSHostName -Match "(?<other>.*)(?<PCCNumber>\d{6})[a-z]{2}\.(?<Domain>PCC|EDU)"
+    # Verifying the computer name matches a relatively valid name
+    # Not currently using the campus match
+    $matchedComputer = $computer | Where-Object -Property DNSHostName -Match "(?<Campus>[a-z]{2})(?<BldgAndRoom>.{5})(?<PCCNumber>\d{6})[a-z]{2}$"
 
-    # Verify there is a computer with a 6 digit number and 2 suffix characters
+    # Verify there is a computer that matches
     if ($null -ne $matchedComputer) {
 
-        $tdxAsset = $allTDXAssets | Where-Object -Property Tag -EQ $Matches['PCCNumber']
-        
-        # Verify TDX has an asset matching The PCC Number
+        # Find tdx asset that matches Active Directory PCC number
+        $tdxAsset = $allTDXAssets | Where-Object -Property Tag -EQ $Matches.PCCNumber
+
+        <#
+        foreach ($tdxAsset in $allTDXAssets) {
+            if ($tdxAsset.Tag -eq $Matches.PCCNumber) {
+                if ($Matches.BldgAndRoom.Trim('-') -ne $tdxAsset.LocationRoomName.Split(' ')[0]) {
+                    $InconsistentArray += "Bldg or Room does not match, $($tdxAsset.Tag),$($tdxAsset.SerialNumber),$($tdxAsset.LocationRoomName),$($computer.Name),$($Matches.Domain)"
+                }#elseif($Matches.Campus -ne $tdxAsset.Location) {
+                #}
+                else {
+                    # Building or room match TDX
+                }
+            }
+            elseif ($allTDXAssets.IndexOf($tdxAsset) -eq $pccDomain.count) {
+                $InconsistentArray += "Not found in TDX,$($Matches.PCCNumber),Unknown,Unknown,$($computer.Name),Unknown)"
+            }
+        }
+        #>
+        # Compare AD object to tdxAsset
         if ($null -ne $tdxAsset) {
-            $campus, $bldgAndRoom = $Matches['other'].split('-')
-            if ($bldgAndRoom -ne $tdxAsset.LocationRoomName.Split(' ')[0]) {
-                $InconsistentArray += "$($tdxAsset.Tag),$($tdxAsset.SerialNumber),$($tdxAsset.LocationRoomName),$($computer.Name),$($Matches['Domain'])"
+            if ($Matches.BldgAndRoom.Trim('-') -ne $tdxAsset.LocationRoomName.Split(' ')[0]) {
+                $InconsistentArray += "Bldg or Room does not match, $($tdxAsset.Tag),$($tdxAsset.SerialNumber),$($tdxAsset.LocationRoomName),$($computer.Name),$($Matches.Domain)"
+            }#elseif($Matches.Campus -ne $tdxAsset.Location) {
+            #}
+            else {
+                # Building or room match TDX
             }
         }
         else {
-            $InconsistentArray += "$($Matches['PCCNumber']),Not in TDX,Not in TDX,$($computer.Name),$($Matches['Domain'])"
+            $InconsistentArray += "Not found in TDX,$($Matches.PCCNumber),Unknown,Unknown,$($computer.Name),$($Matches.Domain)"
         }
     }
-
-    
+    else {
+        $InconsistentArray += "Invalid AD name,Unknown,Unknown,Unknown,$($computer.Name),Unknown)"
+    }  
 }
 
 # Save to log
-New-Item -Path "$PSScriptroot\Inconsistent.csv" -value "PCC Number,Serial Number,TDX Room Number,AD Computer Name,Domain`n" -Force | Out-Null
+Write-progress -Activity 'Saving Log...'
+New-Item -Path "$PSScriptroot\Inconsistent.csv" -value "Issue,PCC Number,Serial Number,TDX Room Number,AD Computer Name,Domain`n" -Force | Out-Null
 $InconsistentArray | Out-File -FilePath "$PSScriptroot\Inconsistent.csv" -Append -Encoding ASCII
