@@ -51,7 +51,7 @@ function Search-TDXAssets($serialNumber) {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
         return $response
     }
     catch {
@@ -79,12 +79,57 @@ function Search-TDXAssets($serialNumber) {
     }
 }
 
-function Get-ProductModels {
+function Search-TDXAssetsBySavedSearch($searchID) {
+    # Gets a page of assets matching the provided saved search and pagination options.
+
+
+    
+    # https://service.pima.edu/SBTDWebApi/api/{appId}/assets/searches/{searchId}/results
+    $uri = $baseURI + $appID + "/assets/searches/$searchID/results"
+
+    # Creating body for post to TDX
+    $body = [PSCustomObject]@{
+        SearchText	= ""	#String	This field is nullable.	The search text to filter on. If specified, this will override any search text that may have been part of the saved search.
+        Page       = @{     #This field is required.	TeamDynamix.Api.RequestPage		The page of data being requested for the saved search.
+            PageIndex = 0	#This field is required.	Int32	The 0-based page index to request.
+            PageSize  = 1	#This field is required.	Int32	The size of each page being requested, ranging 1-200 (inclusive).
+        }	
+    } | ConvertTo-Json
+
+    try {
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety Search-TDXAssetsBySavedSearch API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Search-Assets API call"
+            Search-TDXAssetsBySavedSearch -$searchID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Search-TDXAssetsBySavedSearch failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
+function Get-TDXAssetProductModels {
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
     $uri = $baseURI + $appID + "/assets/models"
     
     try {
-        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -98,7 +143,7 @@ function Get-ProductModels {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -message "Retrying Get-ProductModels API call" -assetSerialNumber $ID
-            Get-ProductModels
+            Get-TDXAssetProductModels
         }
         else {
             # Display errors and exit script.
@@ -119,7 +164,7 @@ function Get-TDXAssetAttributes($ID) {
     $uri = $baseURI + $appID + "/assets/$($ID)"
     
     try {
-        return (Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing).Attributes
+        return (Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing).Attributes
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -151,7 +196,7 @@ function Get-TDXAssetStatuses {
     $statuses = @()
     # https://service.pima.edu/SBTDWebApi/Home/section/AssetStatuses#GETapi/{appId}/assets/statuses
     $uri = $baseURI + $appID + "/assets/statuses"
-    $response = $status = Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    $response = $status = Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     
     # Find every active status
     foreach ($status in $response) {
@@ -162,8 +207,20 @@ function Get-TDXAssetStatuses {
             }
         }
     }
-    
     return $statuses
+}
+
+function Search-TDXAssetsStatuses($status) {
+    # https://service.pima.edu/SBTDWebApi/api/{appId}/assets/statuses/search
+    $uri = $baseURI + $appID + "/assets/statuses/search"
+
+    $body = [PSCustomObject]@{
+        IsActive       = $true	# Boolean	This field is nullable.	The active status to filter on.
+        IsOutOfService	= $false # Boolean	This field is nullable.	The "out of service" status to filter on.
+        SearchText     = $status	# String	This field is nullable.	The search text to filter on. When set, results will be ordered by their text relevancy.
+    } | ConvertTo-Json
+
+    return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -body $body -ContentType "application/json" -UseBasicParsing
 }
 
 function Edit-TDXAsset {
@@ -228,7 +285,7 @@ function Edit-TDXAsset {
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -263,8 +320,8 @@ function Import-TDXAssets {
     # need to figure out what is needed for a importData object
     #https://pima.teamdynamix.com/SBTDWebApi/api/{appId}/assets/import
     $body = [PSCustomObject]@{
-        importdata    = @($assets)
-        Settings = @{
+        importdata = @($assets)
+        Settings   = @{
             UpdateItems = $true
             CreateItems = $true
             Mappings    = @(
@@ -283,7 +340,7 @@ function Import-TDXAssets {
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
         Write-Host $response
     }
     catch {
@@ -312,7 +369,7 @@ function Import-TDXAssets {
 }
 #endregion
 #region Ticket
-function Create-TDXTicket {
+function Submit-TDXTicket {
     param (
         [Parameter(Mandatory = $true)]
         [int32]$AccountID, # The ID of the account/department associated with the ticket.
@@ -380,7 +437,7 @@ function Create-TDXTicket {
     
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -394,7 +451,7 @@ function Create-TDXTicket {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -message "Retrying API call to create the ticket: $Title"
-            Create-TDXTicket -AccountID $AccountID -PriorityID $PriorityID -RequestorUid $RequestorUid -StatusID $StatusID -Title $Title -TypeID $TypeID
+            Submit-TDXTicket -AccountID $AccountID -PriorityID $PriorityID -RequestorUid $RequestorUid -StatusID $StatusID -Title $Title -TypeID $TypeID
         }
         else {
             # Display errors and exit script.
@@ -418,7 +475,7 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
     $uri = $baseURI + $appID + "/tickets/$ticketID/assets/$assetID"
     
     try {
-        return Invoke-RestMethod -Method POST -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         if (Get-TdxApiError -apiCallResponse $_.Exception.Response) {
@@ -436,7 +493,7 @@ function Search-TDXPeople([string]$SearchString, [int]$MaxResults) {
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -469,7 +526,7 @@ function Get-TDXPersonDetails($UID) {
 
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -563,5 +620,5 @@ function Get-TDXApiResponseCode($statusCode) {
 # Get creds and create the base uri and header for all API calls
 $appID = '1258'
 $baseURI = "https://service.pima.edu/SBTDWebApi/api/"
-$TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
-$apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
+$tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
+$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
