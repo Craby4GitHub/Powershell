@@ -166,11 +166,45 @@ function Get-TDXAssetStatuses {
     return $statuses
 }
 
+function Search-TDXAssetFeed($ID){
+        # Useful for getting atrributes and attachments
+
+    # GET https://service.pima.edu/SBTDWebApi/api/{appId}/assets/{id}/feed
+    $uri = $baseURI + $appID + "/assets/$id/feed"
+    
+    try {
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Get-TDXAssetAttributes API call to retrieve all custom asset attributes" -assetSerialNumber $ID
+            Search-TDXAssetFeed
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting asset feed on TDX ID $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
 function Edit-TDXAsset {
     param (
         [Parameter(Mandatory = $true)]
         [object]$asset,
-        $sccmLastHardwareScan
+        $lastHardwareScan
     )
     
     # Load all custom attributes and set the asset up with those values as the input asset liekly doesnt have this info
@@ -185,14 +219,14 @@ function Edit-TDXAsset {
 
     # Check for a SCCM hardware scan. Then check to see if asset has an inventory date. If it does, update that value. Otherwise create the attribute obcject and apply value.
     # Wishlist: Loop through all attributes and apply parameter value instead of only inventory date
-    if ($null -ne $sccmLastHardwareScan) {
+    if ($null -ne $lastHardwareScan) {
         if ($null -ne ($allAttributes | Where-Object -Property ID -eq '126172').Value) {
-            ($allAttributes | Where-Object -Property ID -eq '126172').Value = $sccmLastHardwareScan.ToString("o") #formating for TDX date/time format
+            ($allAttributes | Where-Object -Property ID -eq '126172').Value = $lastHardwareScan.ToString("o") #formating for TDX date/time format
         }
         else {
             $allAttributes += [PSCustomObject]@{
                 ID    = "126172";
-                Value = (Get-Date $sccmLastHardwareScan).ToString("o"); #formating for TDX date/time format
+                Value = (Get-Date $lastHardwareScan).ToString("o"); #formating for TDX date/time format
             }
         }        
     }
@@ -242,7 +276,7 @@ function Edit-TDXAsset {
             Start-Sleep -Milliseconds $resetWaitInMs
 
             Write-Log -level WARN -message "Retrying Edit-TDXAsset API call on PCC# $($Asset.Tag)"
-            Edit-TDXAsset -asset $asset -sccmLastHardwareScan $sccmLastHardwareScan
+            Edit-TDXAsset -asset $asset -lastHardwareScan $lastHardwareScan
         }
         else {
             # Display errors and exit script.
@@ -412,6 +446,38 @@ function Edit-TDXTicket {
     #Edits an existing ticket.
 }
 
+function Get-TDXTicket($ticketID) {
+    # GET https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}
+    $uri = $baseURI + $appID + "/tickets/$ticketID"
+
+    try {
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Get-TDXTicket API call on ticket $ticketID"
+            Get-TDXTicket -ticketID $ticketID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting the ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
 function Edit-TDXTicketAddAsset($ticketID, $assetID) {
     # POST https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/assets/{assetId}
     # Adds an asset to a ticket.
@@ -425,6 +491,38 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
             Edit-TDXTicketAddAsset -$ticketID -$assetID
         }
         
+    }
+}
+
+function Get-TDXTicketWorkflow($ticketID){
+    #GET https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/workflow
+    $uri = $baseURI + $appID + "/tickets/$ticketID/workflow"
+
+    try {
+        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Get-TDXTicketWorkflow API call on ticket $ticketID"
+            Get-TDXTicketWorkflow -ticketID $ticketID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting the workflow on ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
     }
 }
 #endregion
@@ -562,6 +660,6 @@ function Get-TDXApiResponseCode($statusCode) {
 
 # Get creds and create the base uri and header for all API calls
 $appID = '1258'
-$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+$baseURI = "https://service.pima.edu/TDWebApi/api/"
 $TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
 $apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
