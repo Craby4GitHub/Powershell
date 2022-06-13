@@ -110,6 +110,12 @@ function Update-JamfMobileGroups($ID, [array]$SerialNumbers) {
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledevicegroups/id/$ID" -Method 'PUT' -Headers $jamfClassicHeader -Body $body -ContentType application/xml
 }
 
+function Post-JamfComputerCommandDeviceLock($id,$passcode) {
+
+    
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/computercommands/command/DeviceLock/passcode/$passcode/id/$id" -Method 'POST' -Headers $jamfClassicHeader -ContentType application/xml
+}
+
 function Get-JamfMobileDevicePreStage {
     return (Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages?page=0&page-size=1000&sort=id%3Adesc" -Method 'GET' -Headers $jamfProHeader -ContentType application/json).results
 }
@@ -152,6 +158,25 @@ function Add-JamfMobileDeviceFromPreStageScope($ID, [array]$SerialNumbers) {
     Invoke-RestMethod "https://pccjamf.jamfcloud.com/api/v2/mobile-device-prestages/$ID/scope" -Method 'POST' -Headers $jamfProHeader -Body $params -ContentType application/json
 }
 
+function Post-JamfMobileDeviceCommandLostMode($deviceID, $message, $phone) {
+
+    $xmlData = @"
+    <mobile_device_command>
+        <general>
+            <command>EnableLostMode</command>
+            <lost_mode_message>$message</lost_mode_message>
+            <lost_mode_phone>$phone</lost_mode_phone>
+        </general>
+        <mobile_devices>
+            <mobile_device>
+                <id>$deviceID</id>
+            </mobile_device>
+        </mobile_devices>
+    </mobile_device_command>
+"@
+
+    Invoke-RestMethod "https://pccjamf.jamfcloud.com/JSSResource/mobiledevicecommands/command/EnableLostMode" -Headers $jamfClassicHeader -Method POST -Body $xmlData -ContentType application/xml 
+}
 $jamfCredentialFile = Get-Content $PSScriptRoot\JAMFCreds.json | ConvertFrom-Json
 
 [SecureString]$securePassword = $jamfCredentialFile.password | ConvertTo-SecureString 
