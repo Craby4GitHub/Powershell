@@ -210,9 +210,8 @@ function Get-TDXAssetStatuses {
     return $statuses
 }
 
-<<<<<<< HEAD
-function Search-TDXAssetFeed($ID){
-        # Useful for getting atrributes and attachments
+function Search-TDXAssetFeed($ID) {
+    # Useful for getting atrributes and attachments
 
     # GET https://service.pima.edu/SBTDWebApi/api/{appId}/assets/{id}/feed
     $uri = $baseURI + $appID + "/assets/$id/feed"
@@ -243,19 +242,6 @@ function Search-TDXAssetFeed($ID){
             Exit(1)
         }
     }
-=======
-function Search-TDXAssetsStatuses($status) {
-    # https://service.pima.edu/SBTDWebApi/api/{appId}/assets/statuses/search
-    $uri = $baseURI + $appID + "/assets/statuses/search"
-
-    $body = [PSCustomObject]@{
-        IsActive       = $true	# Boolean	This field is nullable.	The active status to filter on.
-        IsOutOfService	= $false # Boolean	This field is nullable.	The "out of service" status to filter on.
-        SearchText     = $status	# String	This field is nullable.	The search text to filter on. When set, results will be ordered by their text relevancy.
-    } | ConvertTo-Json
-
-    return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -body $body -ContentType "application/json" -UseBasicParsing
->>>>>>> 2595c526ce7dd972786c7188e7700a083313c0c0
 }
 
 function Edit-TDXAsset {
@@ -417,7 +403,27 @@ function Submit-TDXTicket {
         [Parameter(Mandatory = $true)]
         [string]$Title, # The title of the ticket.
         [Parameter(Mandatory = $true)]
-        [int32]$TypeID # The ID of the ticket type associated with the ticket.
+        [int32]$TypeID, # The ID of the ticket type associated with the ticket.
+        [Int32]$ArticleID, # The ID of the Knowledge Base article associated with the ticket.
+        [Int32]$ArticleShortcutID, # The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
+        $Attributes, # The custom attributes associated with the ticket.
+        [String]$Description, # The description of the ticket.
+        [DateTime]$EndDate, # The end date of the ticket.
+        [Int32]$EstimatedMinutes, # The estimated minutes of the ticket.
+        [Double]$ExpensesBudget, # The expense budget of the ticket.
+        [Int32]$FormID, # The ID of the form associated with the ticket.
+        [DateTime]$GoesOffHoldDate, # The date the ticket goes off hold.
+        [Int32]$ImpactID, # The ID of the impact associated with the ticket.
+        [Int32]$LocationID, # The ID of the location associated with the ticket.
+        [Int32]$LocationRoomID, # The ID of the location room associated with the ticket.
+        [Int32]$ResponsibleGroupID, # The ID of the responsible group associated with the ticket.
+        [Guid]$ResponsibleUid, # The UID of the responsible user associated with the ticket.
+        [Int32]$ServiceID, # The ID of the service associated with the ticket.
+        [Int32]$ServiceOfferingID, # The ID of the service offering associated with the ticket.
+        [Int32]$SourceID, # The ID of the ticket source associated with the ticket.
+        [DateTime]$StartDate, # The start date of the ticket.
+        [Double]$TimeBudget, # The time budget of the ticket.
+        [Int32]$UrgencyID# The ID of the urgency associated with the ticket.
     )
 
     # Body
@@ -425,33 +431,33 @@ function Submit-TDXTicket {
 
     $body = [PSCustomObject]@{
 
-        [Int32]$AccountID          = $value # The ID of the account/department associated with the ticket.
-        [Int32]$PriorityID         = $value # The ID of the priority associated with the ticket.
-        [Guid]$RequestorUid        = $value # The UID of the requestor associated with the ticket.
-        [Int32]$StatusID           = $value # The ID of the ticket status associated with the ticket.
-        [String]$Title             = $value # The title of the ticket.
-        [Int32]$TypeID             = $value # The ID of the ticket type associated with the ticket.
-
-        [Int32]$ArticleID          = $value # The ID of the Knowledge Base article associated with the ticket.
-        [Int32]$ArticleShortcutID  = $value # The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
-        [TDX]$Attributes           = @($attributes); # The custom attributes associated with the ticket.
-        [String]$Description       = $value # The description of the ticket.
-        [DateTime]$EndDate         = $value # The end date of the ticket.
-        [Int32]$EstimatedMinutes   = $value # The estimated minutes of the ticket.
-        [Double]$ExpensesBudget    = $value # The expense budget of the ticket.
-        [Int32]$FormID             = $value # The ID of the form associated with the ticket.
-        [DateTime]$GoesOffHoldDate = $value # The date the ticket goes off hold.
-        [Int32]$ImpactID           = $value # The ID of the impact associated with the ticket.
-        [Int32]$LocationID         = $value # The ID of the location associated with the ticket.
-        [Int32]$LocationRoomID     = $value # The ID of the location room associated with the ticket.
-        [Int32]$ResponsibleGroupID = $value # The ID of the responsible group associated with the ticket.
-        [Guid]$ResponsibleUid      = $value # The UID of the responsible user associated with the ticket.
-        [Int32]$ServiceID          = $value # The ID of the service associated with the ticket.
-        [Int32]$ServiceOfferingID  = $value # The ID of the service offering associated with the ticket.
-        [Int32]$SourceID           = $value # The ID of the ticket source associated with the ticket.
-        [DateTime]$StartDate       = $value # The start date of the ticket.
-        [Double]$TimeBudget        = $value # The time budget of the ticket.
-        [Int32]$UrgencyID          = $value # The ID of the urgency associated with the ticket.
+        AccountID                  = $AccountID # The ID of the account/department associated with the ticket.
+        PriorityID                 = $valPriorityIDue # The ID of the priority associated with the ticket.
+        RequestorUid               = $RequestorUid # The UID of the requestor associated with the ticket.
+        StatusID                   = $StatusID # The ID of the ticket status associated with the ticket.
+        Title                      = $Title # The title of the ticket.
+        TypeID                     = $TypeID # The ID of the ticket type associated with the ticket.
+        ArticleID          = $ArticleID # The ID of the Knowledge Base article associated with the ticket.
+        ArticleShortcutID  = $ArticleShortcutID # The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
+        Attributes           = @($attributes); # The custom attributes associated with the ticket.
+        Description       = $Description # The description of the ticket.
+        EndDate         = $EndDate # The end date of the ticket.
+        EstimatedMinutes   = $EstimatedMinutes # The estimated minutes of the ticket.
+        ExpensesBudget    = $ExpensesBudget # The expense budget of the ticket.
+        FormID             = $FormID # The ID of the form associated with the ticket.
+        GoesOffHoldDate = $GoesOffHoldDate # The date the ticket goes off hold.
+        ImpactID           = $ImpactID # The ID of the impact associated with the ticket.
+        LocationID         = $LocationID # The ID of the location associated with the ticket.
+        LocationRoomID     = $LocationRoomID # The ID of the location room associated with the ticket.
+        ResponsibleGroupID = $ResponsibleGroupID # The ID of the responsible group associated with the ticket.
+        ResponsibleUid      = $ResponsibleUid # The UID of the responsible user associated with the ticket.
+        ServiceID          = $ServiceID # The ID of the service associated with the ticket.
+        ServiceOfferingID  = $ServiceOfferingID # The ID of the service offering associated with the ticket.
+        SourceID           = $SourceID # The ID of the ticket source associated with the ticket.
+        StartDate       = $StartDate # The start date of the ticket.
+        TimeBudget        = $TimeBudget # The time budget of the ticket.
+        UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
+        
     } | ConvertTo-Json
 
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
@@ -465,14 +471,14 @@ function Submit-TDXTicket {
 
     # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets?EnableNotifyReviewer={EnableNotifyReviewer}&NotifyRequestor={NotifyRequestor}&NotifyResponsible={NotifyResponsible}&AllowRequestorCreation={AllowRequestorCreation}
     # Currently doest work as the uri builder includes the port number in the url request, which we don use
-    $apiBaseUri = [System.UriBuilder]$uri
-    $apiBaseUri.Path = $uri + '/tickets'
-    $apiBaseUri.Query = $options.ToString()
-    #$uri = $baseURI + $appID + "/assets/$($Asset.ID)"
+    #$apiBaseUri = [System.UriBuilder]$uri
+    #$apiBaseUri.Path = $uri + '/tickets'
+    #$apiBaseUri.Query = $options.ToString()
+    $uri = $baseURI + $appID + "/tickets?EnableNotifyReviewer=$false&NotifyRequestor=$true&NotifyResponsible=$false&AllowRequestorCreation=$false"
     
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $apiBaseUri.Uri.OriginalString -Body $body -ContentType "application/json" -UseBasicParsing
+        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -490,7 +496,7 @@ function Submit-TDXTicket {
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Editing the asset PCC Number $($Asset.Tag) has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message "Creating a ticket for $RequestorUid has failed, see the following log messages for more details."
             Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
             Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
             Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
@@ -499,9 +505,77 @@ function Submit-TDXTicket {
     }
 }
 
-function Edit-TDXTicket {
+function Edit-TDXTicket($ticketID, $TypeID, $AccountID, $StatusID, $PriorityID, $RequestorUid, $ServiceID) {
     #POST https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}?notifyNewResponsible={notifyNewResponsible}
     #Edits an existing ticket.
+
+    $uri = $baseURI + $appID + "/tickets/$ticketID"
+
+
+
+    [hashtable]$body = @{
+        op    = 'add' 
+        path  = '/title'
+        value = 'Updated Title'
+    } | ConvertTo-Json
+    <#$body = [PSCustomObject]@{
+
+        [Int32]$TypeID      = $TypeID	# The ID of the ticket type associated with the ticket.
+        #[Int32]$FormID=$FormID	# The ID of the form associated with the ticket.
+        #[String]$Title=$Title	# The title of the ticket.
+        # [String]	$Description	# The description of the ticket.
+        [Int32]	$AccountID  = $AccountID	# The ID of the account/department associated with the ticket.
+        #[Int32]	SourceID	# The ID of the ticket source associated with the ticket.
+        [Int32]	$StatusID   = $StatusID	# The ID of the ticket status associated with the ticket.
+        #[Int32]	ImpactID	# The ID of the impact associated with the ticket.
+        #[Int32]	UrgencyID	# The ID of the urgency associated with the ticket.
+        [Int32]	$PriorityID = $PriorityID	# The ID of the priority associated with the ticket.
+        #DateTime	GoesOffHoldDate	The date the ticket goes off hold.
+        $RequestorUid       = $RequestorUid	#The UID of the requestor associated with the ticket.
+        #[Int32]	EstimatedMinutes	# The estimated minutes of the ticket.
+        # [DateTime]StartDate	# The start date of the ticket.
+        #DateTime	EndDate	The end date of the ticket.
+        #Guid	ResponsibleUid	The UID of the responsible user associated with the ticket.
+        # [Int32]	ResponsibleGroupID	# The ID of the responsible group associated with the ticket.
+        # [Int32]	LocationID	# The ID of the location associated with the ticket.
+        # [Int32]	LocationRoomID	# The ID of the location room associated with the ticket.
+        [Int32]	$ServiceID  = $ServiceID	# The ID of the service associated with the ticket.
+        #[Int32]	ServiceOfferingID	# The ID of the service offering associated with the ticket.
+        # [Int32]	ArticleID	# The ID of the Knowledge Base article associated with the ticket.
+        #[Int32]	ArticleShortcutID	# The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
+        #TeamDynamix.Api.CustomAttributes.CustomAttribute[]	Attributes	The custom attributes associated with the ticket.
+    } | ConvertTo-Json
+#>
+
+    try {
+        return Invoke-RestMethod -Method PATCH -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing -Body $body
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Get-TDXTicket API call on ticket $ticketID"
+            Get-TDXTicket -ticketID $ticketID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting the ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+
+
+
 }
 
 function Get-TDXTicket($ticketID) {
@@ -509,7 +583,7 @@ function Get-TDXTicket($ticketID) {
     $uri = $baseURI + $appID + "/tickets/$ticketID"
 
     try {
-        return Invoke-RestMethod -Method GET -Headers $apiHeaders -Uri $uri -ContentType "application/json" -UseBasicParsing
+        return Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -552,7 +626,7 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
     }
 }
 
-function Get-TDXTicketWorkflow($ticketID){
+function Get-TDXTicketWorkflow($ticketID) {
     #GET https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/workflow
     $uri = $baseURI + $appID + "/tickets/$ticketID/workflow"
 
@@ -717,13 +791,7 @@ function Get-TDXApiResponseCode($statusCode) {
 #endregion
 
 # Get creds and create the base uri and header for all API calls
-$appID = '1258'
-<<<<<<< HEAD
-$baseURI = "https://service.pima.edu/TDWebApi/api/"
-$TDXCreds = Get-Content $PSScriptRoot\TDXCreds.json | ConvertFrom-Json
-$apiHeaders = Get-TDXAuth -beid $TDXCreds.BEID -key $TDXCreds.Key
-=======
-$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+$appID = '1257'
+$baseURI = "https://service.pima.edu/sbTDWebApi/api/"
 $tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
 $tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
->>>>>>> 2595c526ce7dd972786c7188e7700a083313c0c0
