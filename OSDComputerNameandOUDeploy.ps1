@@ -305,7 +305,7 @@ function Login-AD {
 
 Function Confirm-ComputerName {
 
-    # Verify each text box agaisnt regex to verify they are valid entries and if not verified, set error on that element
+    # Verify each text box against regex to verify they are valid entries and if not verified, set error on that element
     $CheckPCC_Button.BackColor = 'LightGray'
     if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
         $ErrorProvider.SetError($ComputerForm_Label, '')
@@ -374,7 +374,7 @@ $Campus_Dropdown.Add_SelectedIndexChanged( {
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
         }
         elseif ($PCC_RadioButton.Checked -eq $true) {
-            # Verify submitted campus against campus list to load spcific campus AD tree. If not verified search whole domain
+            # Verify submitted campus against campus list to load specific campus AD tree. If not verified search whole domain
             if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
                 Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
@@ -392,9 +392,11 @@ if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Label.Text = 'PCC# : Loaded from BIOS'
 }
 
+# Confirm entered computer name values are correct
 $CheckPCC_Button.Add_Click( { 
         Confirm-ComputerName
     })
+
 
 $Submit_Button.Add_Click( { 
         Confirm-ComputerName
@@ -419,7 +421,7 @@ $Submit_Button.Add_Click( {
 
 #endregion
 
-# Gotta login
+# Gotta login, launches main login windows to start everything
 Login-AD
-# Enable to view computer info form
+# Enable to view computer info form for testing
 #[void]$ComputerInfo_Form.ShowDialog()
