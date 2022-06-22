@@ -7,7 +7,7 @@ $allTDXAssets = Search-TDXAssets
 $assetOwners = $allTDXAssets | Where-Object -Property OwningCustomerName -NE 'None'
 
 # Set up an empty array for users already worked on
-$coveredUser = @()
+$coveredUser = New-Object System.Collections.Generic.List[System.Object]
 
 # Go through each Asset Owner
 foreach ($assetOwner in $assetOwners) {
@@ -18,7 +18,7 @@ foreach ($assetOwner in $assetOwners) {
     }
     else {
         # Add to covered list
-        $coveredUser = + $assetOwner.OwningCustomerName
+        $coveredUser.Add($assetOwner.OwningCustomerName) 
 
         # Get all assets assigned to user
         $allUserAssets = $assetOwners | Where-Object -Property OwningCustomerName -EQ $assetOwner.OwningCustomerName
