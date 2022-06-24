@@ -59,7 +59,7 @@ foreach ($assetOwner in $assetOwners) {
         }
 
         # Setup the ticket attributes
-        # issue: Sets the ticket as an incident instead of service???
+        # issue: Sets the ticket as an incident instead of service??? Incident is the default classification
         $ticketOptions = @{
             AccountID          = 75673 # Campus Staff(CAMSTF)
             PriorityID         = 4537 # Normal
@@ -70,6 +70,8 @@ foreach ($assetOwner in $assetOwners) {
             TypeID             = 41029 # Asset Management
             Description        = $Description 
             ServiceID          = 51998 # Asset Management
+            #FormID             = 57683 # Asset Service
+            $LocationID        = $userDetails.LocationID
         }
 
         # Create the ticket
