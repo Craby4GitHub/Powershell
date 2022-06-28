@@ -51,8 +51,7 @@ function Search-TDXAssets($serialNumber) {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
-        return $response
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -144,6 +143,60 @@ function Get-TDXAssetProductModels {
 
             Write-Log -level WARN -message "Retrying Get-ProductModels API call" -assetSerialNumber $ID
             Get-TDXAssetProductModels
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting details on TDX Product ID# $ID has failed. See the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+    
+}
+
+function Edit-TDXAssetProductModel {
+    param (
+        [Parameter(Mandatory = $true)]
+        $ID,
+        [Parameter(Mandatory = $true)]
+        $Name,
+        [Parameter(Mandatory = $true)]
+        $ManufacturerID,
+        [Parameter(Mandatory = $true)]
+        $ProductTypeID, $Description, $IsActive, $PartNumber, $Attributes
+    )
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#GETapi/{appId}/assets/{id}
+    $uri = $baseURI + $appIDAsset + "/assets/models/$ID"
+
+    $body = [PSCustomObject]@{
+
+        Name           =	$Name	#	String		The name of the product model.
+        Description    =	$Description	#	String	This field is nullable.	The description of the product model.
+        IsActive       =	$IsActive		#Boolean		The active status of the product model.
+        ManufacturerID	= $ManufacturerID #	This field is required.	Int32		The ID of the manufacturer associated with the product model.
+        ProductTypeID  =	$ProductTypeID#	This field is required.	Int32		The ID of the product type associated with the product model.
+        PartNumber     =	$PartNumber	# String	This field is nullable.	The part number of the product model.
+        Attributes     =	$Attributes# TeamDynamix.Api.CustomAttributes.CustomAttribute[]	This field is nullable.	The custom attributes associated with the product model.
+    } | ConvertTo-Json
+    
+    try {
+        return Invoke-RestMethod -Method PUT -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing -Body $body
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        $statusCode = $_.Exception.Response.StatusCode.value__
+        if ($statusCode -eq 429) {
+
+            # Get the amount of time we need to wait to retry in milliseconds.
+            $resetWaitInMs = Get-TdxApiRateLimit -apiCallResponse $_.Exception.Response
+            Write-Log -level WARN -message "Waiting $(($resetWaitInMs / 1000.0).ToString("N2")) seconds to rety API call due to rate-limiting."
+
+            Start-Sleep -Milliseconds $resetWaitInMs
+
+            Write-Log -level WARN -message "Retrying Get-ProductModels API call" -assetSerialNumber $ID
+            Edit-TDXAssetProductModel
         }
         else {
             # Display errors and exit script.
@@ -430,7 +483,6 @@ function Submit-TDXTicket {
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.Ticket
 
     $body = [PSCustomObject]@{
-
         AccountID          = $AccountID # The ID of the account/department associated with the ticket.
         PriorityID         = $valPriorityIDue # The ID of the priority associated with the ticket.
         RequestorUid       = $RequestorUid # The UID of the requestor associated with the ticket.
@@ -457,7 +509,6 @@ function Submit-TDXTicket {
         StartDate          = $StartDate # The start date of the ticket.
         TimeBudget         = $TimeBudget # The time budget of the ticket.
         UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
-        
     } | ConvertTo-Json
 
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
@@ -701,7 +752,7 @@ function Get-TDXPersonDetails($UID) {
             Start-Sleep -Milliseconds $resetWaitInMs
    
             Write-Log -level WARN -message "Retrying API call to  $($Asset.Tag)"
-            Get-TDXAssetAttributes -ID $ID
+            Get-TDXPersonDetails -UID $UID
         }
         else {
             # Display errors and exit script.
