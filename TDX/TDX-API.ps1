@@ -1,5 +1,13 @@
 # https://service.pima.edu/SBTDWebApi/
 
+# Get creds and create the base uri and header for all API calls
+$appIDTicket = '1257'
+$appIDAsset = '1258'
+#$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+$baseURI = "https://service.pima.edu/TDWebApi/api/"
+$tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
+$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
+
 # Setting Log name
 $logName = ($MyInvocation.MyCommand.Name -split '\.')[0] + ' log'
 $logFile = "$PSScriptroot\$logName.csv"
@@ -768,19 +776,17 @@ function Get-TDXPersonDetails($UID) {
 
 #region Reports
 function Get-TDXAssetReport($ID) {
-    # https://service.pima.edu/SBTDWebApi/api/{appId}/assets/searches/{searchId}/results
+    # https://service.pima.edu/SBTDWebApi/Home/section/AssetReports#POSTapi/{appId}/assets/searches/{searchId}/results
     $uri = $baseURI + $appIDAsset + "/assets/searches/$ID/results"
 
     $body = [PSCustomObject]@{
-
         SearchText =	$null #	String	This field is nullable.	The search text to filter on. If specified, this will override any search text that may have been part of the saved search.
         Page       =	@{ #This field is required.	TeamDynamix.Api.RequestPage		The page of data being requested for the saved search.
-            PageIndex = 1	#This field is required.	Int32	The 0-based page index to request.
-            PageSize  =	5 #This field is required.	Int32	The size of each page being requested, ranging 1-200 (inclusive).
+            PageIndex = 0	#This field is required.	Int32	The 0-based page index to request.
+            PageSize  =	200 #This field is required.	Int32	The size of each page being requested, ranging 1-200 (inclusive).
         }         
     } | ConvertTo-Json
     try {
-        # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
         return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing -Body $body
     }
     catch {
@@ -871,11 +877,3 @@ function Get-TDXApiResponseCode($statusCode) {
 }
 #endregion
 #endregion
-
-# Get creds and create the base uri and header for all API calls
-$appIDTicket = '1257'
-$appIDAsset = '1258'
-$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
-#$baseURI = "https://service.pima.edu/TDWebApi/api/"
-$tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
-$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
