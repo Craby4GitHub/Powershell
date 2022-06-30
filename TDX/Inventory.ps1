@@ -16,7 +16,7 @@ foreach ($assetOwner in $assetOwners) {
 
     # See if user already worked on and skip them if so
     if ($coveredUser.IndexOf($assetOwner.OwningCustomerName) -ge 0) {
-        Write-host 'User already covered'
+        # Skip
     }
     else {
         # Add to covered list
@@ -71,7 +71,7 @@ foreach ($assetOwner in $assetOwners) {
             Description        = $Description 
             ServiceID          = 51998 # Asset Management
             #FormID             = 57683 # Asset Service
-            $LocationID        = $userDetails.LocationID
+            LocationID        = $userDetails.LocationID
         }
 
         # Create the ticket
