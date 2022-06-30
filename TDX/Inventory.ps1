@@ -64,7 +64,7 @@ foreach ($assetOwner in $assetOwners) {
             AccountID          = 75673 # Campus Staff(CAMSTF)
             PriorityID         = 4537 # Normal
             RequestorUid       = $assetOwner.OwningCustomerID 
-            ResponsibleGroupID = $responsibleGroup
+            ResponsibleGroupID = $responsibleGroup # Based on the users home site
             StatusID           = 52423 # In Process
             Title              = 'IT Asset Inventory 2022' 
             TypeID             = 41029 # Asset Management
