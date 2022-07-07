@@ -59,7 +59,6 @@ foreach ($assetOwner in $assetOwners) {
         }
 
         # Setup the ticket attributes
-        # issue: Sets the ticket as an incident instead of service??? Incident is the default classification
         $ticketOptions = @{
             AccountID          = 75673 # Campus Staff(CAMSTF)
             PriorityID         = 4537 # Normal
@@ -68,6 +67,7 @@ foreach ($assetOwner in $assetOwners) {
             StatusID           = 52423 # In Process
             Title              = 'IT Asset Inventory 2022' 
             TypeID             = 41029 # Asset Management
+            ClassificationID = '46' # Service Request
             Description        = $Description 
             ServiceID          = 51998 # Asset Management
             #FormID             = 57683 # Asset Service
