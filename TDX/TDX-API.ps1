@@ -451,7 +451,8 @@ function Submit-TDXTicket {
         [Int32]$SourceID, # The ID of the ticket source associated with the ticket.
         [DateTime]$StartDate, # The start date of the ticket.
         [Double]$TimeBudget, # The time budget of the ticket.
-        [Int32]$UrgencyID# The ID of the urgency associated with the ticket.
+        [Int32]$UrgencyID, # The ID of the urgency associated with the ticket.
+        $ClassificationID # The classification associated with the ticket.
     )
 
     # Body
@@ -484,6 +485,8 @@ function Submit-TDXTicket {
         StartDate          = $StartDate # The start date of the ticket.
         TimeBudget         = $TimeBudget # The time budget of the ticket.
         UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
+        Classification     = $ClassificationID
+
     } | ConvertTo-Json
 
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
