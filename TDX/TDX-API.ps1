@@ -458,16 +458,16 @@ function Submit-TDXTicket {
     # Body
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.Ticket
 
-    $body = [PSCustomObject]@{
+    $ticketAttributes = [PSCustomObject]@{
         AccountID          = $AccountID # The ID of the account/department associated with the ticket.
-        PriorityID         = $valPriorityIDue # The ID of the priority associated with the ticket.
+        PriorityID         = $PriorityID # The ID of the priority associated with the ticket.
         RequestorUid       = $RequestorUid # The UID of the requestor associated with the ticket.
         StatusID           = $StatusID # The ID of the ticket status associated with the ticket.
         Title              = $Title # The title of the ticket.
         TypeID             = $TypeID # The ID of the ticket type associated with the ticket.
         ArticleID          = $ArticleID # The ID of the Knowledge Base article associated with the ticket.
         ArticleShortcutID  = $ArticleShortcutID # The ID of the shortcut that is used when viewing the ticket's Knowledge Base article. This is set when the ticket is associated with a cross client portal article shortcut.
-        Attributes         = @($attributes); # The custom attributes associated with the ticket.
+        Attributes         = @($Attributes); # The custom attributes associated with the ticket.
         Description        = $Description # The description of the ticket.
         EndDate            = $EndDate # The end date of the ticket.
         EstimatedMinutes   = $EstimatedMinutes # The estimated minutes of the ticket.
@@ -486,9 +486,9 @@ function Submit-TDXTicket {
         TimeBudget         = $TimeBudget # The time budget of the ticket.
         UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
         Classification     = $ClassificationID
+    }
 
-    } | ConvertTo-Json
-
+    $body = $ticketAttributes | ConvertTo-Json
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
 
     $uri = $baseURI + $appIDTicket + "/tickets?EnableNotifyReviewer=$false&NotifyRequestor=$true&NotifyResponsible=$false&AllowRequestorCreation=$false"
@@ -506,7 +506,7 @@ function Submit-TDXTicket {
             
             # Recursively call the function
             Write-Log -level WARN -message "Retrying API call to create the ticket: $Title"
-            return Submit-TDXTicket -AccountID $AccountID -PriorityID $PriorityID -RequestorUid $RequestorUid -StatusID $StatusID -Title $Title -TypeID $TypeID
+            return Submit-TDXTicket @ticketAttributes
         }
         else {
             # Display errors and exit script.
@@ -636,7 +636,7 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID) {
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Getting the ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message "Editing the ticket $ticketID with asset $assetID has failed, see the following log messages for more details."
             Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
             Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
             Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
@@ -801,7 +801,7 @@ function Get-TdxApiRateLimit($apiCallResponse) {
 # Get creds and create the base uri and header for all API calls
 $appIDTicket = '1257'
 $appIDAsset = '1258'
-#$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
-$baseURI = "https://service.pima.edu/TDWebApi/api/"
+$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+#$baseURI = "https://service.pima.edu/TDWebApi/api/"
 $tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
 $tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
