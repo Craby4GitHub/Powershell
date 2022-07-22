@@ -6,7 +6,7 @@ function Write-Log {
         [string]$level,
 
         [Parameter(Mandatory = $true)]
-        [string]$message,
+        [string]$message
     )
     	
     $timeStamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
