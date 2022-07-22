@@ -723,7 +723,7 @@ function Get-TDXPersonDetails($UID) {
             # Sleep based on the rate limit time
             Get-TdxApiRateLimit -apiCallResponse $apiError            
    
-            Write-Log -level WARN -message "Retrying API call to  $($Asset.Tag)"
+            Write-Log -level WARN -message "Retrying Get-TDXPersonDetails API call"
             Get-TDXPersonDetails -UID $UID
         }
         else {
@@ -801,7 +801,7 @@ function Get-TdxApiRateLimit($apiCallResponse) {
 # Get creds and create the base uri and header for all API calls
 $appIDTicket = '1257'
 $appIDAsset = '1258'
-$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
-#$baseURI = "https://service.pima.edu/TDWebApi/api/"
+#$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+$baseURI = "https://service.pima.edu/TDWebApi/api/"
 $tdxCreds = Get-Content $PSScriptRoot\tdxCreds.json | ConvertFrom-Json
 $tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
