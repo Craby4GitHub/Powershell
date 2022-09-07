@@ -36,13 +36,14 @@ function Get-TDXAuth($beid, $key) {
 }
 
 #region Assets
-function Search-TDXAssets($serialNumber) {
+function Search-TDXAssets($serialNumber,$AppName) {
     # Finds all assets or searches based on a criteria. Attachments and Attributes are not in included in the results
 
 
     
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
-    $uri = $baseURI + $appIDAsset + '/assets/search'
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + '/assets/search'
         
     # Currently only using the serial number to filter. More options can be added later. Link below for more options
     # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
@@ -452,7 +453,9 @@ function Submit-TDXTicket {
         [DateTime]$StartDate, # The start date of the ticket.
         [Double]$TimeBudget, # The time budget of the ticket.
         [Int32]$UrgencyID, # The ID of the urgency associated with the ticket.
-        $ClassificationID # The classification associated with the ticket.
+        $ClassificationID, # The classification associated with the ticket.
+        [bool]$IsRichHtml,			#Indicates if the ticket description is rich-text or plain-text.
+        $AppName
     )
 
     # Body
@@ -486,12 +489,13 @@ function Submit-TDXTicket {
         TimeBudget         = $TimeBudget # The time budget of the ticket.
         UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
         Classification     = $ClassificationID
+        $IsRichHtml        = $IsRichHtml #Indicates if the ticket description is rich-text or plain-text.
     }
 
     $body = $ticketAttributes | ConvertTo-Json
     # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketCreateOptions
-
-    $uri = $baseURI + $appIDTicket + "/tickets?EnableNotifyReviewer=$false&NotifyRequestor=$true&NotifyResponsible=$false&AllowRequestorCreation=$false"
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + "/tickets?EnableNotifyReviewer=$false&NotifyRequestor=$true&NotifyResponsible=$false&AllowRequestorCreation=$false"
     
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
@@ -615,9 +619,10 @@ function Get-TDXTicket($ticketID) {
     }
 }
 
-function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPrivate, $IsRichHtml) {
+function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPrivate, $IsRichHtml,$AppName) {
     # POST https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/feed
-    $uri = $baseURI + $appIDTicket + "/tickets/$ticketID/feed"
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + "/tickets/$ticketID/feed"
     $body = [PSCustomObject]@{
         NewStatusID	= $StatusID     #Int32	This field is nullable.	The ID of the new status for the ticket. Leave null or 0 to not change the status.
         Comments    = $Comment      #String		The comments of the feed entry.
@@ -650,10 +655,11 @@ function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPriva
     }
 }
 
-function Edit-TDXTicketAddAsset($ticketID, $assetID) {
+function Edit-TDXTicketAddAsset($ticketID, $assetID,$AppName) {
     # POST https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/assets/{assetId}
     # Adds an asset to a ticket.
-    $uri = $baseURI + $appIDTicket + "/tickets/$ticketID/assets/$assetID"
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + "/tickets/$ticketID/assets/$assetID"
     
     try {
         return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
@@ -830,13 +836,26 @@ function Get-TdxApiRateLimit($apiCallResponse) {
     }
     Write-progress -Activity 'Done...' -Completed
 }
+
+function Get-TDXAppID($AppName) {
+    switch ($AppName) {
+        ITTicket { '1257' }
+        ITAsset { '1258' }
+        D2LTicket { '1755' }
+        Default {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "$AppName does not exist"
+            Exit(1)
+        }
+    } 
+}
 #endregion
 #endregion
 
 # Get creds and create the base uri and header for all API calls
 $appIDTicket = '1257'
 $appIDAsset = '1258'
-$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
-#$baseURI = "https://service.pima.edu/TDWebApi/api/"
+#$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
+$baseURI = "https://service.pima.edu/TDWebApi/api/"
 $tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
 $tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
