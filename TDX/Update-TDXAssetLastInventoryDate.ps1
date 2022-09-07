@@ -32,7 +32,7 @@ Write-Log -level INFO -message "Loaded $($allSccmDevices.count) devices from SCC
 
 # Pulling all TDX assets
 # Wishlist: Filter for only computers. Currently also pulls printers, TVs, ect
-$allTDXAssets = Search-TDXAssets
+$allTDXAssets = Search-TDXAssets -AppName ITAsset
 Write-Log -level INFO -message "Loaded $($allTDXAssets.count) devices from TDX"
 
 foreach ($tdxAsset in $allTDXAssets) {

@@ -1,7 +1,7 @@
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
 
 # Get all TDX Assets
-$allTDXAssets = Search-TDXAssets
+$allTDXAssets = Search-TDXAssets -AppName ITAsset
 
 # Get all TDX Product Models
 $allProductModels = Get-TDXAssetProductModels
