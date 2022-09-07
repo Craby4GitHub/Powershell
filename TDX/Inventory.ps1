@@ -1,7 +1,7 @@
 . (Join-Path $PSSCRIPTROOT "TDX-API.ps1")
 
 # Get all TDX Assets
-$allTDXAssets = Search-TDXAssets
+$allTDXAssets = Search-TDXAssets -AppName ITAsset
 
 # Find all assets with an Owner that arent disposed
 $assetOwners = $allTDXAssets | Where-Object { ($_.OwningCustomerName -NE 'None') -and ($_.StatusName -ne 'Disposed') -and ($_.StatusName -ne 'Missing') }
@@ -107,6 +107,7 @@ foreach ($assetOwner in $assetOwners) {
                     Description        = $Description 
                     ServiceID          = 43361 # Campus IT Maintenance Tasks
                     FormID             = 37861 # Service Request
+                    AppName = ITTicket
                     #LocationID         = $userDetails.LocationID
                 }
                     
