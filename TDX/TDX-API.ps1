@@ -590,6 +590,53 @@ function Edit-TDXTicket($ticketID, $TypeID, $AccountID, $StatusID, $PriorityID, 
     }
 }
 
+function Set-TDXAttachment($ticketID,$AppName,$Attachment) {
+    # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/attachments
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + "/tickets/$ticketID/attachments"
+<#
+    $form = @{test = Get-Content "C:\Users\wrcrabtree\Downloads\d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3"}
+$1 = "`r`n-----------------------------313681257239897303243066788965"
+$2 = "`r`nContent-Disposition: form-data; name='d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3'; filename='d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3'"
+$3 = "`r`nContent-Type: audio/mpeg`r`n`n"
+$4 = "`r`n-----------------------------313681257239897303243066788965--`r`n"
+
+#>
+
+
+$1 = "--CHANGEME"
+$2 = "`nContent-Disposition: form-data; name=`"aeneid.txt`"; filename=`"aeneid.txt`""
+$3 = "`nContent-Type: audio/octet-stream`n`n"
+$4 = "`n--CHANGEME--"
+$5 = 'FORSAN ET HAEC OLIM MEMINISSE IUVABIT'
+$body = $1 + $2 + $3 + $5 + $4
+#$body = $1 + $2 + $3 + $($form.values) + $4
+    try {
+        Invoke-WebRequest -Method POST -Headers $tdxAPIAuth -Uri $uri -Form $body -ErrorVariable test -ContentType "multipart/form-data; boundary=CHANGEME"
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -body $body -ContentType "multipart/form-data;boundary=CHANGEME" -UseBasicParsing -ErrorVariable apiError
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        if ($apiError.ErrorRecord.Exception.Response.StatusCode -eq 429) {
+
+            # Sleep based on the rate limit time
+            Get-TdxApiRateLimit -apiCallResponse $apiError
+            
+            # Recursively call the function
+            Write-Log -level WARN -message "Retrying Set-TDXAttachment API call on ticket $ticketID"
+            Get-TDXTicket -ticketID $ticketID
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Setting the attaxhment in ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+
 function Get-TDXTicket($ticketID) {
     # GET https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}
     $uri = $baseURI + $appIDTicket + "/tickets/$ticketID"
@@ -641,8 +688,8 @@ function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPriva
             Get-TdxApiRateLimit -apiCallResponse $apiError
             
             # Recursively call the function
-            Write-Log -level WARN -message "Retrying Get-TDXTicket API call on ticket $ticketID"
-            Update-TDXTicket -ticketID $ticketID -StatusID $StatusID -Comment $Comment -NotifyEmail $NotifyEmail -IsPrivate $IsPrivate -IsRichHtml $IsRichHtml
+            Write-Log -level WARN -message "Retrying Update-TDXTicket API call on ticket $ticketID"
+            Update-TDXTicket -ticketID $ticketID -StatusID $StatusID -Comment $Comment -NotifyEmail $NotifyEmail -IsPrivate $IsPrivate -IsRichHtml $IsRichHtml -AppName $AppName
         }
         else {
             # Display errors and exit script.
