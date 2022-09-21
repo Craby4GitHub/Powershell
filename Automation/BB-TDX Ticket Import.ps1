@@ -4,7 +4,7 @@
 
 $baseURL = 'https://servicedesk.edusupportcenter.com/api/v1'
 
-$blackboardCredentials = Get-Credential
+#$blackboardCredentials = Get-Credential
 
 $body = [PSCustomObject]@{
     username = $blackboardCredentials.UserName
@@ -66,9 +66,10 @@ if ($authResponse.error_msg -eq 'login success') {
 
             $searchContacts = Invoke-RestMethod -Method POST -Uri "$baseURL/2028/searchContacts?token=$token&_pageSize_=5&_startPage_=1" -ErrorVariable apiError -ContentType "application/json" -body $body
     
-            # Verify only 1 result and set the phone number
+            # Verify only 1 result and set the phone number/email
             if ($searchContacts.return_body.count -eq 1) {
                 $userPhoneNumber = $searchContacts.return_body.items.primary_phone
+                $userEmail = $searchContacts.return_body.items.email
             }
             else {
                 $userPhoneNumber = 'None'
@@ -99,7 +100,7 @@ if ($authResponse.error_msg -eq 'login success') {
                     The IT Service Desk at Pima Community College has received your case from our Tier 1 support. We will be contacting you soon via the contact information listed below.`n
                         Case Details: $($caseDetailsConverted)
                         Phone Number: $userPhoneNumber
-                        Email: $($searchContacts.return_body.items.email) `n
+                        Email: $userEmail `n
                         If this is an urgent matter, please call us at (520) 206-4900 and reference this ticket.`n
                         "
                     $ticketAttributes = @{
@@ -132,7 +133,7 @@ if ($authResponse.error_msg -eq 'login success') {
                     The D2L Support team at Pima Community College has received your case from our Tier 1 support. We will be contacting you soon via the contact information listed below.`n
                         Case Details: $($caseDetailsConverted)
                         Phone Number: $userPhoneNumber
-                        Email: $($searchContacts.return_body.items.email) `n
+                        Email: $userEmail `n
                      "
 
                     $ticketAttributes = @{
@@ -192,7 +193,12 @@ if ($authResponse.error_msg -eq 'login success') {
                     write-host "chat log found" -ForegroundColor Yellow
                     foreach ($chat in $ticket.chatTranscriptAttachment) {
                         $chatLog = Invoke-RestMethod -Method GET -Uri "$baseURL/2028/file/$($chat.ID)?token=$token"
-                        $ticketChat = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
+                        
+                        $chatLog | Out-File -Encoding utf8 -Force -FilePath 'c:\users\wrcrabtree\desktop\casechat.txt'
+                        $chatLogConverted = Get-Content 'c:\users\wrcrabtree\desktop\casedetail.txt'
+                        #$chatLogConverted = $caseDetailsConverted -replace '&nbsp;', ' '
+                        
+                        $chatLogConverted = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
                     }
                 }
 
