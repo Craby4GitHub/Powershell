@@ -4,7 +4,7 @@
 
 $baseURL = 'https://servicedesk.edusupportcenter.com/api/v1'
 
-#$blackboardCredentials = Get-Credential
+$blackboardCredentials = Get-Credential
 
 $body = [PSCustomObject]@{
     username = $blackboardCredentials.UserName
@@ -73,6 +73,7 @@ if ($authResponse.error_msg -eq 'login success') {
             }
             else {
                 $userPhoneNumber = 'None'
+                $userEmail = 'None'
             }
        
             # Get details to be used in ticket description
@@ -80,7 +81,7 @@ if ($authResponse.error_msg -eq 'login success') {
             $caseDetails | Out-File -Encoding utf8 -Force -FilePath 'c:\users\wrcrabtree\desktop\casedetail.txt'
             $caseDetailsConverted = Get-Content 'c:\users\wrcrabtree\desktop\casedetail.txt'
             $caseDetailsConverted = $caseDetailsConverted -replace '&nbsp;', ' '
-            $caseDetailsConverted = $caseDetailsConverted -replace '<[^>]+>',''
+            $caseDetailsConverted = $caseDetailsConverted -replace '<[^>]+>', ''
             # Get user TDX user profile to have them as the requestor in the ticket
             $tdxUserUID = '05a7e4ad-3409-ed11-bd6e-0003ff5063cd' # Inactive Student
             if ($userANumber -match 'a\d{8}') {
@@ -171,6 +172,16 @@ if ($authResponse.error_msg -eq 'login success') {
                 if ($ticket.history.count -ge 1) {
                     [array]::Reverse($ticket.history)
                     foreach ($history in $ticket.history) {
+
+# Need to convert email responses as uploading to TDX causes errors.
+# This will select the most recent email comment and post it as a comment
+                        if ($history.action_type -eq 'EMAIL_RESPONSE') {
+                            $HTML = New-Object -Com "HTMLFile"
+                            $src = [System.Text.Encoding]::Unicode.GetBytes($history.comment)
+                            $html.write($src)
+                            $history.comment = $html.all.tags("div") | ForEach-Object innertext | Select-Object -first 1
+                        }
+
                         # converting unix time...
                         $UnixDate = [int64]$history.action_date / 1000
                         $time = [timezone]::CurrentTimeZone.ToLocalTime(([datetime]'1/1/1970').AddSeconds($UnixDate))
