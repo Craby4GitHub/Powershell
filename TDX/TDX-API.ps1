@@ -25,7 +25,7 @@ function Get-TDXAuth($beid, $key) {
     catch {
         Write-Log -level ERROR -message "API authentication failed, see the following log messages for more details."
         Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-        Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+        Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.headers)
         Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
         Exit(1)
     }
@@ -531,10 +531,10 @@ function Edit-TDXTicket($ticketID, $TypeID, $AccountID, $StatusID, $PriorityID, 
 
 
 
-    [hashtable]$body = @{
+    $body = @{
         op    = 'add' 
-        path  = '/title'
-        value = 'Updated Title'
+        path  = '/ServiceID'
+        value = '32656'
     } | ConvertTo-Json
     <#$body = [PSCustomObject]@{
 
@@ -581,7 +581,7 @@ function Edit-TDXTicket($ticketID, $TypeID, $AccountID, $StatusID, $PriorityID, 
         }
         else {
             # Display errors and exit script.
-            Write-Log -level ERROR -message "Getting the ticket $ticketID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message "Editing the ticket $ticketID has failed, see the following log messages for more details."
             Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
             Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
             Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
@@ -678,7 +678,7 @@ function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPriva
         IsRichHtml  = $IsRichHtml   #Boolean		Indicates if the feed entry is rich-text or plain-text.     
     } | ConvertTo-Json
     try {
-        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -ErrorVariable apiError
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -867,7 +867,7 @@ function Get-TDXAssetReport($ID) {
 
 #region Helpers
 function Get-TdxApiRateLimit($apiCallResponse) {
-
+<#
     # Get the total wait API limit
     $apiResetSeconds = $apiCallResponse.ErrorRecord.Exception.Response.GetResponseHeader("X-RateLimit-limit")
     Write-Log -level WARN -message "Waiting $apiResetSeconds seconds to rety API call due to rate-limiting."
@@ -882,6 +882,9 @@ function Get-TdxApiRateLimit($apiCallResponse) {
         Start-Sleep 1
     }
     Write-progress -Activity 'Done...' -Completed
+    #>
+    Write-Log -level WARN -message "Waiting 60 seconds to rety API call due to rate-limiting."
+    Start-Sleep -Seconds 60
 }
 
 function Get-TDXAppID($AppName) {
