@@ -173,8 +173,8 @@ if ($authResponse.error_msg -eq 'login success') {
                     [array]::Reverse($ticket.history)
                     foreach ($history in $ticket.history) {
 
-# Need to convert email responses as uploading to TDX causes errors.
-# This will select the most recent email comment and post it as a comment
+                        # Need to convert email responses as uploading to TDX causes errors.
+                        # This will select the most recent email comment and post it as a comment
                         if ($history.action_type -eq 'EMAIL_RESPONSE') {
                             $HTML = New-Object -Com "HTMLFile"
                             $src = [System.Text.Encoding]::Unicode.GetBytes($history.comment)
@@ -205,11 +205,11 @@ if ($authResponse.error_msg -eq 'login success') {
                     foreach ($chat in $ticket.chatTranscriptAttachment) {
                         $chatLog = Invoke-RestMethod -Method GET -Uri "$baseURL/2028/file/$($chat.ID)?token=$token"
                         
-                        $chatLog | Out-File -Encoding utf8 -Force -FilePath 'c:\users\wrcrabtree\desktop\casechat.txt'
-                        $chatLogConverted = Get-Content 'c:\users\wrcrabtree\desktop\casedetail.txt'
-                        #$chatLogConverted = $caseDetailsConverted -replace '&nbsp;', ' '
+                        #$chatLog | Out-File -Encoding utf8 -Force -FilePath 'c:\users\wrcrabtree\desktop\casechat.txt'
+                        #$chatLogConverted = Get-Content 'c:\users\wrcrabtree\desktop\casedetail.txt'
+                        $chatLogConverted = $chatLog -replace '<[^>]+>', ''
                         
-                        $chatLogConverted = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
+                        $tdxChatLog = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLogConverted -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
                     }
                 }
 
