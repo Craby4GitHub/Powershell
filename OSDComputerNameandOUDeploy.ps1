@@ -16,7 +16,7 @@ $ComputerInfo_Form = New-Object System.Windows.Forms.Form
 $ComputerInfo_Form.AutoScaleDimensions = '7,15'
 $ComputerInfo_Form.AutoScaleMode = 'Font'
 $ComputerInfo_Form.StartPosition = 'CenterScreen'
-$ComputerInfo_Form.Width = $($screen[0].bounds.Width / 4)
+$ComputerInfo_Form.Width = $($screen[0].bounds.Width / 3)
 $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
 #$ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
 $ComputerInfo_Form.Text = 'Active Directory Information'
@@ -31,16 +31,12 @@ $ComputerForm_Label.Dock = 'Fill'
 $ComputerForm_Label.Anchor = 'Bottom'
 $ComputerForm_Label.AutoSize = $true
 
-# Used for UI dropdown and useful AD OU to computername conversion
-$CampusList = @(('29', '29th St.'), ('ER', 'El Rio'), ('EP', 'El Pueblo'), ('DV', 'Desert Vista'), ('DO', 'District'), ('DC', 'Downtown'), ('DM', 'DM'), ('EC', 'East'), ('MS', 'Maintenance and Security'), ('NW', 'Northwest'), ('WC', 'West'), ('PCC', 'West'))
-
 $Campus_Label = New-Object system.Windows.Forms.Label
 $Campus_Label.Text = 'Campus'
 $Campus_Label.Font = 'Segoe UI, 8pt'
 $Campus_Label.AutoSize = $true
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
-$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.Font = 'Segoe UI, 8pt'
@@ -68,15 +64,31 @@ $pccNumber_Textbox.TabIndex = 3
 $pccNumber_Textbox.Dock = 'Top'
 $pccNumber_Textbox.MinimumSize = '50,20'
 
-$Suffix_Label = New-Object system.Windows.Forms.Label
-$Suffix_Label.Text = 'Suffix'
-$Suffix_Label.Font = 'Segoe UI, 8pt'
-$Suffix_Label.AutoSize = $true
-$Suffix_Textbox = New-Object System.Windows.Forms.TextBox
-$Suffix_Textbox.TabIndex = 4
-$Suffix_Textbox.Font = 'Segoe UI, 8pt'
-$Suffix_Textbox.Dock = 'Top'
-$Suffix_Textbox.MinimumSize = '50,20'
+$userSuffix_Label = New-Object system.Windows.Forms.Label
+$userSuffix_Label.Text = 'User Type Suffix'
+$userSuffix_Label.Font = 'Segoe UI, 8pt'
+$userSuffix_Label.AutoSize = $true
+$userSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
+$userSuffix_Dropdown.DropDownStyle = 'DropDown'
+$userSuffix_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$userSuffix_Dropdown.AutoCompleteSource = 'ListItems'
+$userSuffix_Dropdown.Font = 'Segoe UI, 8pt'
+$userSuffix_Dropdown.TabIndex = 4
+$userSuffix_Dropdown.Dock = 'Top'
+$userSuffix_Dropdown.MinimumSize = '50,50'
+
+$hardwareSuffix_Label = New-Object system.Windows.Forms.Label
+$hardwareSuffix_Label.Text = 'Hardware Type Suffix'
+$hardwareSuffix_Label.Font = 'Segoe UI, 8pt'
+$hardwareSuffix_Label.AutoSize = $true
+$hardwareSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
+$hardwareSuffix_Dropdown.DropDownStyle = 'DropDown'
+$hardwareSuffix_Dropdown.AutoCompleteMode = 'SuggestAppend'
+$hardwareSuffix_Dropdown.AutoCompleteSource = 'ListItems'
+$hardwareSuffix_Dropdown.Font = 'Segoe UI, 8pt'
+$hardwareSuffix_Dropdown.TabIndex = 5
+$hardwareSuffix_Dropdown.Dock = 'Top'
+$hardwareSuffix_Dropdown.MinimumSize = '50,50'
 
 $CheckPCC_Button = New-Object System.Windows.Forms.Button
 $CheckPCC_Button.Text = 'Check Name'
@@ -230,6 +242,7 @@ $ComputerInfo_LayoutPanel.CellBorderStyle = 3
 [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
 
 $ComputerInfo_LayoutPanel.Controls.Add($ComputerForm_Label, 0, 0)
 $ComputerInfo_LayoutPanel.SetColumnSpan($ComputerForm_Label, 2)
@@ -243,17 +256,20 @@ $ComputerInfo_LayoutPanel.Controls.Add($BuildingRoom_Textbox, 1, 2)
 $ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Label, 0, 3)
 $ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Textbox, 1, 3)
 
-$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Label, 0, 4)
-$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Textbox, 1, 4)
+$ComputerInfo_LayoutPanel.Controls.Add($userSuffix_Label, 0, 4)
+#$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Textbox, 1, 4)
+$ComputerInfo_LayoutPanel.Controls.Add($userSuffix_Dropdown, 1, 4)
+$ComputerInfo_LayoutPanel.Controls.Add($hardwareSuffix_Label, 0, 5)
+$ComputerInfo_LayoutPanel.Controls.Add($hardwareSuffix_Dropdown, 1, 5)
 
-$ComputerInfo_LayoutPanel.Controls.Add($CheckPCC_Button, 0, 5)
+$ComputerInfo_LayoutPanel.Controls.Add($CheckPCC_Button, 0, 6)
 $ComputerInfo_LayoutPanel.SetcolumnSpan($CheckPCC_Button, 2)
 
 $ComputerInfo_LayoutPanel.Controls.Add($adTree_Label, 3, 0)
 $ComputerInfo_LayoutPanel.Controls.Add($adTree, 3, 1)
-$ComputerInfo_LayoutPanel.SetrowSpan($adTree, 4)
+$ComputerInfo_LayoutPanel.SetrowSpan($adTree, 5)
 
-$ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 3, 5)
+$ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 3, 6)
 $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
 #endregion
 #endregion
@@ -322,18 +338,18 @@ Function Confirm-ComputerName {
                 $ErrorProvider.SetError($ComputerForm_Label, '')
 
                 # Verify suffix
-                # Current only checks for 2 letters, add a set list like the $Campus_Dropdown ?
-                if ($Suffix_Textbox.Text -match '^[a-z]{2}$|[v]\d') {
+                if (($userSuffix_Dropdown.Items -contains $userSuffix_Dropdown.Text) -and ($hardwareSuffix_Dropdown.Items -contains $hardwareSuffix_Dropdown.Text)) {
                     $ErrorProvider.SetError($ComputerForm_Label, '')
 
                     # Build $ComputerName which will be used to name the computer
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
                     switch ($Campus_Dropdown.Text) {
                         'DC' { 
-                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $Suffix_Textbox.Text
+                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$userSuffix_Dropdown.SelectedIndex][0]
+                      
                         }
                         Default {
-                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $Suffix_Textbox.Text
+                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$userSuffix_Dropdown.SelectedIndex][0]
                         }
                     }
                     if ($ComputerName.Length -gt 15) {
@@ -429,13 +445,59 @@ $Submit_Button.Add_Click( {
         
         # Checks to see if there are errors on UI elements and if not, submit data to TS
         if (-not($ErrorProvider.GetError($ComputerForm_Label) -or $ErrorProvider.GetError($adTree_Label))) {
+            [System.Windows.Forms.MessageBox]::Show("Submitted Data:`n`nComputer Name: $($ComputerName.ToUpper())`n`nOU: $("LDAP://$($adTree.SelectedNode.Name)")`n`nDomain: $($ADDomain.Forest)", 'Warning', 'Ok', 'Warning')
+
+            <#
             $TSEnvironment = New-Object -COMObject Microsoft.SMS.TSEnvironment 
             $TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
             $TSEnvironment.Value("OSDDomainOUName") = "$("LDAP://$($adTree.SelectedNode.Name)")"
-            $TSEnvironment.Value("OSDDomainName") = "$($ADDomain.Forest)"               
+            $TSEnvironment.Value("OSDDomainName") = "$($ADDomain.Forest)"     
+            #>          
             [void]$ComputerInfo_Form.Close()
         }
     })
+
+#endregion
+
+#region Likely Values to be updated
+
+# Used for Campus UI dropdown and useful Active Directory OU to computer name conversion
+$CampusList = @(
+    ('29', '29th St.'), 
+    ('ER', 'El Rio'), 
+    ('EP', 'El Pueblo'), 
+    ('DV', 'Desert Vista'), 
+    ('DO', 'District'), 
+    ('DC', 'Downtown'), 
+    ('DM', 'DM'), 
+    ('EC', 'East'), 
+    ('MS', 'Maintenance and Security'), 
+    ('NW', 'Northwest'), 
+    ('WC', 'West'), 
+    ('PCC', 'West')
+)
+$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
+
+# Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
+$userSuffixList = @(
+    ('A', 'Administrator'), 
+    ('S', 'Staff'), 
+    ('F', 'Faculty'), 
+    ('I', 'Instructor'), 
+    ('C', 'Class'), 
+    ('L', 'Lab'), 
+    ('P', 'Public'), 
+    ('M', 'Meeting/conference'), 
+    ('D', 'DPS')
+)
+$userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
+
+$hardwareSuffixList = @(
+    ('C', 'Computer'), 
+    ('N', 'Notebook'),
+    ('K', 'Kiosk')
+)
+$hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
 
 #endregion
 
