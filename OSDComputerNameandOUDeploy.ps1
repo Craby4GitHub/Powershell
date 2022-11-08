@@ -18,7 +18,7 @@ $ComputerInfo_Form.AutoScaleMode = 'Font'
 $ComputerInfo_Form.StartPosition = 'CenterScreen'
 $ComputerInfo_Form.Width = $($screen[0].bounds.Width / 4)
 $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
-$ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
+#$ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
 $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
@@ -299,24 +299,34 @@ function Login-AD {
         }
     }
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
-        # Wishlist: Reboot computer if cancelled
+        [System.Windows.Forms.MessageBox]::Show("Login was cancelled, rebooting the computer.", 'Warning', 'Ok', 'Warning')
+        Start-Sleep -Seconds 5
+        Restart-Computer -Force -WhatIf
     }  
 }
 
 Function Confirm-ComputerName {
 
-    # Verify each text box against regex to verify they are valid entries and if not verified, set error on that element
+    # Verify each text box against regex to verify they are valid entries and if not verified, set error on that text box
     $CheckPCC_Button.BackColor = 'LightGray'
+    # Verify a Campus from approved list is selected
     if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
         $ErrorProvider.SetError($ComputerForm_Label, '')
+
+        # Verify the building/room text
         if ($BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
             $ErrorProvider.SetError($ComputerForm_Label, '')
+
+            # Verify a 6 digit number for PCC number
             if ($pccNumber_Textbox.Text -match '^\d{6}$') {
                 $ErrorProvider.SetError($ComputerForm_Label, '')
-                # Suffix check
+
+                # Verify suffix
+                # Current only checks for 2 letters, add a set list like the $Campus_Dropdown ?
                 if ($Suffix_Textbox.Text -match '^[a-z]{2}$|[v]\d') {
                     $ErrorProvider.SetError($ComputerForm_Label, '')
 
+                    # Build $ComputerName which will be used to name the computer
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
                     switch ($Campus_Dropdown.Text) {
                         'DC' { 
@@ -351,15 +361,19 @@ Function Confirm-ComputerName {
 
     
     # Search AD to see if there is a computer with the supplied PCC number and notify the technician
-    # Wishlist: Currently just notifies, deal with those assets?
+    # Wishlist: Currently just shows a warning, deal with those results in some way?
     $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
     if ($null -ne $PCCSearch) {
         # Wishlist: Loop through each entry to out put results on new line
-        [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$($PCCSearch.Name)", 'Warning', 'Ok', 'Warning')
+        $duplicateComputerList = $null
+        foreach ($adComputer in $PCCSearch) {
+            $duplicateComputerList += $adComputer.Name + "`n"
+        }
+        [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$duplicateComputerList`nYou may need to remove these entries!", 'Warning', 'Ok', 'Warning')
     }
 }
 
-Function AddNodes ( $Node, $CurrentOU) {
+Function AddNodes ($Node, $CurrentOU) {
     # Used to populate AD tree
     $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
     Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { AddNodes $NodeSub $_ $ADDomain.Forest }
@@ -369,12 +383,14 @@ Function AddNodes ( $Node, $CurrentOU) {
 
 # Populates the AD tree based on the campus and domain selected
 $Campus_Dropdown.Add_SelectedIndexChanged( {
+        $adTree_Label.Text = "Loading OU's..."
+        $adTree.Visible = $false
         $adTree.Nodes.Clear()
         if ($EDU_RadioButton.Checked -eq $true) {
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
         }
         elseif ($PCC_RadioButton.Checked -eq $true) {
-            # Verify submitted campus against campus list to load specific campus AD tree. If not verified search whole domain
+            # Verify submitted campus against campus list to load specific campus AD tree. If not verified, search whole domain
             if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
                 Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
@@ -382,17 +398,19 @@ $Campus_Dropdown.Add_SelectedIndexChanged( {
                 Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
             }
         }  
+        $adTree_Label.Text = 'Select an OU'
+        $adTree.Visible = $true
     })
 
 # If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
-$PCCNumber = (Get-WmiObject -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
+$PCCNumber = (Get-CimInstance -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
 if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Textbox.Text = $PCCNumber
     $pccNumber_Textbox.ReadOnly = $true
     $pccNumber_Label.Text = 'PCC# : Loaded from BIOS'
 }
 
-# Confirm entered computer name values are correct
+# Confirms entered computer name values are correct
 $CheckPCC_Button.Add_Click( { 
         Confirm-ComputerName
     })
@@ -401,7 +419,7 @@ $CheckPCC_Button.Add_Click( {
 $Submit_Button.Add_Click( { 
         Confirm-ComputerName
 
-        # Verify a target OU is selected in UI
+        # Verify a target OU is selected
         if ($null -eq $adTree.SelectedNode) {
             $ErrorProvider.SetError($adTree_Label, 'Select an OU')
         }
@@ -409,7 +427,7 @@ $Submit_Button.Add_Click( {
             $ErrorProvider.SetError($adTree_Label, '')
         }          
         
-        # Checks to see if there are errors on UI elements
+        # Checks to see if there are errors on UI elements and if not, submit data to TS
         if (-not($ErrorProvider.GetError($ComputerForm_Label) -or $ErrorProvider.GetError($adTree_Label))) {
             $TSEnvironment = New-Object -COMObject Microsoft.SMS.TSEnvironment 
             $TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
@@ -421,7 +439,7 @@ $Submit_Button.Add_Click( {
 
 #endregion
 
-# Gotta login, launches main login windows to start everything
+# Launches main login window function which the gets AD creds needed for the rest of the script
 Login-AD
 # Enable to view computer info form for testing
 #[void]$ComputerInfo_Form.ShowDialog()
