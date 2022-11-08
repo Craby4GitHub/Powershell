@@ -168,9 +168,12 @@ if ($authResponse.error_msg -eq 'login success') {
             if ($null -ne $tdxTicket.id) {
                 write-host $tdxTicket.id
 
-                # Add ticket history to TDX ticket
+                # Add BB ticket history to TDX ticket
                 if ($ticket.history.count -ge 1) {
+
+                    # Reversing history as it would put the newest comment at the bottom
                     [array]::Reverse($ticket.history)
+
                     foreach ($history in $ticket.history) {
 
                         # Need to convert email responses as uploading to TDX causes errors.
@@ -194,6 +197,7 @@ if ($authResponse.error_msg -eq 'login success') {
 
                         Comment: $($history.comment)"
 
+
                         $ticketHistory = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $comment -IsPrivate $true -IsRichHtml $true -AppName $queue.TDXAppName
                     }
                 }
@@ -201,20 +205,18 @@ if ($authResponse.error_msg -eq 'login success') {
                 # Check if there are chat transcripts and add as a comment to TDX ticket
                 # TODO: have it so it outputs to tdx in a more clean manner
                 if ($ticket.chatTranscriptAttachment.count -ge 1) {
-                    write-host "chat log found" -ForegroundColor Yellow
+                    write-host "External chat log found, adding to the ticket" -ForegroundColor Yellow
                     foreach ($chat in $ticket.chatTranscriptAttachment) {
                         $chatLog = Invoke-RestMethod -Method GET -Uri "$baseURL/2028/file/$($chat.ID)?token=$token"
                         
-                        #$chatLog | Out-File -Encoding utf8 -Force -FilePath 'c:\users\wrcrabtree\desktop\casechat.txt'
-                        #$chatLogConverted = Get-Content 'c:\users\wrcrabtree\desktop\casedetail.txt'
-                        $chatLogConverted = $chatLog -replace '<[^>]+>', ''
+                        #$chatLogConverted = $chatLog -replace '<[^>]+>', ''
                         
-                        $tdxChatLog = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLogConverted -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
+                        $tdxChatLog = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $false -AppName $queue.TDXAppName
                     }
                 }
 
                 # Check if there are attachments and add to TX ticket
-                # Current: does not attach to the ticket
+                # Current: does not attach to the ticket as I dont have the API command setup to add attachments
                 # Ideas: check for .txt | .html and add as commnt to ticket?
                 if ($ticket.Attachment.count -ge 1) {
                     #$ticketattachment = Update-TDXTicket -ticketID $tdxTicket.ID -Comment "There are attachments related to this ticket. Please navigate to this ticket in Blackboard to download." -IsPrivate $true -IsRichHtml $true -AppName $queue.TDXAppName
@@ -225,8 +227,7 @@ if ($authResponse.error_msg -eq 'login success') {
                 }
 
 
-                # L3 Grab ticket
-
+                # Create a blank object which will be used for an API that assigns the ticket to us
                 $body = [PSCustomObject]@{
                     attachment           = @()
                     comment              = ""
@@ -243,7 +244,9 @@ if ($authResponse.error_msg -eq 'login success') {
 
                 $grabTicket = Invoke-RestMethod -Method POST -Uri "$baseURL/2028/case/$($ticketNumber)/action/31745?token=$token" -ErrorVariable apiError -ContentType "application/json" -Body $body
                 write-host $grabTicket
-                # close BB ticket
+
+
+                # Create a object with a comment which will be used for an API that closes the ticket
 
                 $body = [PSCustomObject]@{
                     attachment           = @()
