@@ -22,7 +22,7 @@ $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
 $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
-$ComputerInfo_Form.MinimumSize = '300,300'
+$ComputerInfo_Form.MinimumSize = '400,300'
 
 $ComputerForm_Label = New-Object system.Windows.Forms.Label
 $ComputerForm_Label.Text = 'Computer Name'
@@ -114,6 +114,7 @@ $Submit_Button.TabIndex = 7
 $Submit_Button.Dock = 'Bottom'
 $Submit_Button.AutoSize = $true
 $ComputerInfo_Form.AcceptButton = $Submit_Button
+
 #endregion
 #region Login Window
 $Login_Form = New-Object system.Windows.Forms.Form
@@ -231,7 +232,7 @@ $Login_Form.controls.Add($Login_LayoutPanel)
 $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $ComputerInfo_LayoutPanel.Dock = "Fill"
 $ComputerInfo_LayoutPanel.ColumnCount = 4
-$ComputerInfo_LayoutPanel.RowCount = 5
+$ComputerInfo_LayoutPanel.RowCount = 6
 $ComputerInfo_LayoutPanel.CellBorderStyle = 3
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
@@ -345,11 +346,11 @@ Function Confirm-ComputerName {
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
                     switch ($Campus_Dropdown.Text) {
                         'DC' { 
-                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$userSuffix_Dropdown.SelectedIndex][0]
+                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
                       
                         }
                         Default {
-                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$userSuffix_Dropdown.SelectedIndex][0]
+                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
                         }
                     }
                     if ($ComputerName.Length -gt 15) {
