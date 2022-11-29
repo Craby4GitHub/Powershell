@@ -11,6 +11,7 @@ $logFile = "$PSScriptroot\$logName.csv"
 function Get-TDXAuth($beid, $key) {
     # https://service.pima.edu/SBTDWebApi/Home/section/Auth#POSTapi/auth/loginadmin
     $uri = $baseURI + "auth/loginadmin"
+    #$uri = $baseURI + "auth/login"
 
     # Creating body for post to TDX
     $body = [PSCustomObject]@{
@@ -36,7 +37,7 @@ function Get-TDXAuth($beid, $key) {
 }
 
 #region Assets
-function Search-TDXAssets($serialNumber,$AppName) {
+function Search-TDXAssets($serialNumber, $AppName) {
     # Finds all assets or searches based on a criteria. Attachments and Attributes are not in included in the results
 
 
@@ -425,7 +426,6 @@ function Submit-TDXTicket {
         [int32]$AccountID, # The ID of the account/department associated with the ticket.
         [Parameter(Mandatory = $true)]
         [int32]$PriorityID, # The ID of the priority associated with the ticket.
-        [Parameter(Mandatory = $true)]
         $RequestorUid, # The UID of the requestor associated with the ticket.
         [Parameter(Mandatory = $true)]
         [int32]$StatusID, # The ID of the ticket status associated with the ticket.
@@ -454,7 +454,12 @@ function Submit-TDXTicket {
         [Double]$TimeBudget, # The time budget of the ticket.
         [Int32]$UrgencyID, # The ID of the urgency associated with the ticket.
         $ClassificationID, # The classification associated with the ticket.
-        [bool]$IsRichHtml,			#Indicates if the ticket description is rich-text or plain-text.
+        [bool]$IsRichHtml, #Indicates if the ticket description is rich-text or plain-text.
+        [String]$RequestorName, #					The full name of the requestor associated with the ticket.
+        [String]$RequestorFirstName	, #				The first name of the requestor associated with the ticket.
+        [String]$RequestorLastName	, #				The last name of the requestor associated with the ticket.
+        [String]$RequestorEmail		, #			The email address of the requestor associated with the ticket.
+        [String]$RequestorPhone	, #				The phone number of the requestor associated with the ticket.
         $AppName
     )
 
@@ -489,7 +494,12 @@ function Submit-TDXTicket {
         TimeBudget         = $TimeBudget # The time budget of the ticket.
         UrgencyID          = $UrgencyID # The ID of the urgency associated with the ticket.
         Classification     = $ClassificationID
-        $IsRichHtml        = $IsRichHtml #Indicates if the ticket description is rich-text or plain-text.
+        IsRichHtml         = $IsRichHtml #Indicates if the ticket description is rich-text or plain-text.
+        RequestorName      = $RequestorName #					The full name of the requestor associated with the ticket.
+        RequestorFirstName = $RequestorFirstName	 #				The first name of the requestor associated with the ticket.
+        RequestorLastName  = $RequestorLastName	 #				The last name of the requestor associated with the ticket.
+        RequestorEmail     = $RequestorEmail		 #			The email address of the requestor associated with the ticket.
+        RequestorPhone     = $RequestorPhone	 #				The phone number of the requestor associated with the ticket.
     }
 
     $body = $ticketAttributes | ConvertTo-Json
@@ -499,7 +509,7 @@ function Submit-TDXTicket {
     
     try {
         # Wishlist: Create logic to verify edit. Will need to use Invoke-Webrequest in order to get header info if it isnt an error
-        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json; charset=utf-8" -UseBasicParsing -ErrorVariable apiError
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -590,11 +600,11 @@ function Edit-TDXTicket($ticketID, $TypeID, $AccountID, $StatusID, $PriorityID, 
     }
 }
 
-function Set-TDXAttachment($ticketID,$AppName,$Attachment) {
+function Set-TDXAttachment($ticketID, $AppName, $Attachment) {
     # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/attachments
     $appID = Get-TDXAppID -AppName $AppName
     $uri = $baseURI + $appID + "/tickets/$ticketID/attachments"
-<#
+    <#
     $form = @{test = Get-Content "C:\Users\wrcrabtree\Downloads\d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3"}
 $1 = "`r`n-----------------------------313681257239897303243066788965"
 $2 = "`r`nContent-Disposition: form-data; name='d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3'; filename='d3dba960-3397-11ed-a175-2f0ed4c829bb.mp3'"
@@ -604,13 +614,13 @@ $4 = "`r`n-----------------------------313681257239897303243066788965--`r`n"
 #>
 
 
-$1 = "--CHANGEME"
-$2 = "`nContent-Disposition: form-data; name=`"aeneid.txt`"; filename=`"aeneid.txt`""
-$3 = "`nContent-Type: audio/octet-stream`n`n"
-$4 = "`n--CHANGEME--"
-$5 = 'FORSAN ET HAEC OLIM MEMINISSE IUVABIT'
-$body = $1 + $2 + $3 + $5 + $4
-#$body = $1 + $2 + $3 + $($form.values) + $4
+    $1 = "--CHANGEME"
+    $2 = "`nContent-Disposition: form-data; name=`"aeneid.txt`"; filename=`"aeneid.txt`""
+    $3 = "`nContent-Type: audio/octet-stream`n`n"
+    $4 = "`n--CHANGEME--"
+    $5 = 'FORSAN ET HAEC OLIM MEMINISSE IUVABIT'
+    $body = $1 + $2 + $3 + $5 + $4
+    #$body = $1 + $2 + $3 + $($form.values) + $4
     try {
         Invoke-WebRequest -Method POST -Headers $tdxAPIAuth -Uri $uri -Form $body -ErrorVariable test -ContentType "multipart/form-data; boundary=CHANGEME"
         return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -body $body -ContentType "multipart/form-data;boundary=CHANGEME" -UseBasicParsing -ErrorVariable apiError
@@ -666,7 +676,7 @@ function Get-TDXTicket($ticketID) {
     }
 }
 
-function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPrivate, $IsRichHtml,$AppName) {
+function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPrivate, $IsRichHtml, $AppName) {
     # POST https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/feed
     $appID = Get-TDXAppID -AppName $AppName
     $uri = $baseURI + $appID + "/tickets/$ticketID/feed"
@@ -702,7 +712,7 @@ function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPriva
     }
 }
 
-function Edit-TDXTicketAddAsset($ticketID, $assetID,$AppName) {
+function Edit-TDXTicketAddAsset($ticketID, $assetID, $AppName) {
     # POST https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/{id}/assets/{assetId}
     # Adds an asset to a ticket.
     $appID = Get-TDXAppID -AppName $AppName
@@ -865,9 +875,40 @@ function Get-TDXAssetReport($ID) {
 }
 #endregion
 
+#region Attributes
+function Get-TDXAttribute($ID,$AppName) {
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + "/attributes/$ID/choices"
+
+    try {
+        return Invoke-RestMethod -Method GET -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json; charset=utf-8" -UseBasicParsing -ErrorVariable apiError
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        if ($apiError.ErrorRecord.Exception.Response.StatusCode -eq 429) {
+
+            # Sleep based on the rate limit time
+            Get-TdxApiRateLimit -apiCallResponse $apiError
+            
+            # Recursively call the function
+            Write-Log -level WARN -message "Retrying Get-TDXAttribute API call on ticket $ID"
+            Get-TDXAttribute -ID $ID -AppName $AppName
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Getting attribute info for $ID has failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
+            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
+            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Exit(1)
+        }
+    }
+}
+#endregion
+
 #region Helpers
 function Get-TdxApiRateLimit($apiCallResponse) {
-<#
+    <#
     # Get the total wait API limit
     $apiResetSeconds = $apiCallResponse.ErrorRecord.Exception.Response.GetResponseHeader("X-RateLimit-limit")
     Write-Log -level WARN -message "Waiting $apiResetSeconds seconds to rety API call due to rate-limiting."
@@ -907,5 +948,9 @@ $appIDTicket = '1257'
 $appIDAsset = '1258'
 #$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
 $baseURI = "https://service.pima.edu/TDWebApi/api/"
+
+#$tdxCreds = Get-Credential
+#$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.UserName -key $tdxCreds.GetNetworkCredential().Password
+
 $tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
 $tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
