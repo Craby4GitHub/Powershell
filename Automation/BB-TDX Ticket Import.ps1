@@ -129,8 +129,12 @@ if ($authResponse.error_msg -eq 'login success') {
                         $html.write($src)
                         $history.comment = $html.all.tags("div") | ForEach-Object innertext | Select-Object -first 1
                     }
-                    $ticketHistory = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $history.comment -IsPrivate $true -IsRichHtml $true -AppName 'ITTicket'
-                }
+                    
+                    # Make sure there is a comment made
+                    if ($history.comment.Length -gt 0) {
+                        $ticketHistory = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $history.comment -IsPrivate $true -IsRichHtml $true -AppName 'ITTicket'
+                    }
+                }     
             }
 
             # Check if there are chat transcripts and add as a comment to TDX ticket
