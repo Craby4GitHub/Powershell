@@ -949,8 +949,8 @@ $appIDAsset = '1258'
 #$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
 $baseURI = "https://service.pima.edu/TDWebApi/api/"
 
-#$tdxCreds = Get-Credential
-#$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.UserName -key $tdxCreds.GetNetworkCredential().Password
+$tdxCreds = Get-Credential
+$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.UserName -key $tdxCreds.GetNetworkCredential().Password
 
-$tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
-$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
+#$tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
+#$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
