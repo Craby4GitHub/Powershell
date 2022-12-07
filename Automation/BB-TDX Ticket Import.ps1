@@ -142,8 +142,10 @@ if ($authResponse.error_msg -eq 'login success') {
             if ($ticket.chatTranscriptAttachment.count -ge 1) {
                 write-host "External chat log found, adding to the ticket" -ForegroundColor Yellow
                 foreach ($chat in $ticket.chatTranscriptAttachment) {
-                    $chatLog = Invoke-RestMethod -Method GET -Uri "$baseURL/2028/file/$($chat.ID)?token=$token"                       
-                    $tdxChatLog = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $true -AppName 'ITTicket'
+                    $chatLog = Invoke-RestMethod -Method GET -Uri "$baseURL/2028/file/$($chat.ID)?token=$token"
+                    #$convertedChatLog = $Chatlog.split("`n")  
+                    #$convertedChatLog[8..($convertedChatLog.getupperbound(0) - 1)]                   
+                    $tdxChatLog = Update-TDXTicket -ticketID $tdxTicket.ID -Comment $chatLog -IsPrivate $true -IsRichHtml $false -AppName 'ITTicket'
                 }
             }
 
