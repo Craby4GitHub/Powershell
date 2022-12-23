@@ -37,21 +37,27 @@ function Get-TDXAuth($beid, $key) {
 }
 
 #region Assets
-function Search-TDXAssets($serialNumber, $AppName) {
+function Search-TDXAssets {
+    # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
+    Param(
+        [ValidateSet("SerialLike","SearchText","SavedSearchID","StatusIDs","ExternalIDs","IsInService","StatusIDsPast","SupplierIDs","ManufacturerIDs","LocationIDs","RoomID","ParentIDs","ContractIDs","ExcludeContractIDs","TicketIDs","ExcludeTicketIDs","FormIDs","ProductModelIDs","MaintenanceScheduleIDs","UsingDepartmentIDs","RequestingDepartmentIDs","OwningDepartmentIDs","OwningDepartmentIDsPast","UsingCustomerIDs","RequestingCustomerIDs","OwningCustomerIDs","OwningCustomerIDsPast","CustomAttributes","PurchaseCostFrom","PurchaseCostTo","ContractProviderID","AcquisitionDateFrom","AcquisitionDateTo","ExpectedReplacementDateFrom","ExpectedReplacementDateTo","ContractEndDateFrom","ContractEndDateTo","OnlyParentAssets")]
+        $Term,
+        $Value,
+        [int32]$MaxResults,
+        [Parameter(Mandatory)]
+        [ValidateSet("ITTicket", "ITAsset", "D2LTicket")]
+        $AppName
+    )
     # Finds all assets or searches based on a criteria. Attachments and Attributes are not in included in the results
 
-
-    
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
     $appID = Get-TDXAppID -AppName $AppName
     $uri = $baseURI + $appID + '/assets/search'
-        
-    # Currently only using the serial number to filter. More options can be added later. Link below for more options
-    # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
-
+    
     # Creating body for post to TDX
     $body = [PSCustomObject]@{
-        SerialLike = $serialNumber;
+        $term = $value;
+        MaxResults = $MaxResults;
     } | ConvertTo-Json
 
     try {
@@ -66,7 +72,7 @@ function Search-TDXAssets($serialNumber, $AppName) {
             
             # Recursively call the function
             Write-Log -level WARN -message "Retrying Search-Assets API call"
-            Search-Assets -serialNumber $serialNumber
+            Search-Assets -SearchTerm $SearchValue
         }
         else {
             # Display errors and exit script.
@@ -876,7 +882,7 @@ function Get-TDXAssetReport($ID) {
 #endregion
 
 #region Attributes
-function Get-TDXAttribute($ID,$AppName) {
+function Get-TDXAttribute($ID, $AppName) {
     $appID = Get-TDXAppID -AppName $AppName
     $uri = $baseURI + "/attributes/$ID/choices"
 
@@ -949,8 +955,8 @@ $appIDAsset = '1258'
 #$baseURI = "https://service.pima.edu/SBTDWebApi/api/"
 $baseURI = "https://service.pima.edu/TDWebApi/api/"
 
-$tdxCreds = Get-Credential
-$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.UserName -key $tdxCreds.GetNetworkCredential().Password
+#$tdxCreds = Get-Credential
+#$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.UserName -key $tdxCreds.GetNetworkCredential().Password
 
-#$tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
-#$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
+$tdxCreds = Get-Content $PSScriptRoot\tdx.json | ConvertFrom-Json
+$tdxAPIAuth = Get-TDXAuth -beid $tdxCreds.BEID -key $tdxCreds.Key
