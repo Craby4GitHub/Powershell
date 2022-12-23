@@ -84,7 +84,9 @@ if ($authResponse.error_msg -eq 'login success') {
         }
 
         # Get user TDX user profile to have them as the requestor in the ticket
-        $tdxUser = Search-TDXPeople -SearchString $userANumber
+        if ($userANumber -match "A\d{8}") {
+            $tdxUser = Search-TDXPeople -SearchString $userANumber
+        }
         if ($null -ne $tdxUser.UID) {
             $ticketAttributes.RequestorUid = $tdxUser.UID 
         }
