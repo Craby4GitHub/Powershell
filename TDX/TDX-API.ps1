@@ -1059,6 +1059,41 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID, $AppName) {
         
 }
 
+function Set-TDXTicketContact {
+    param (
+        [Parameter(Mandatory)]
+        [int]$ID,
+        [Parameter(Mandatory)]
+        [guid]$Contact
+    )
+    
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + "/tickets/$ID/contacts/$Contact"
+
+    try {
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        if ($apiError.ErrorRecord.Exception.Response.StatusCode -eq 429) {
+
+            # Sleep based on the rate limit time
+            Get-TdxApiRateLimit -apiCallResponse $apiError
+            
+            # Recursively call the function
+            Write-Log -level WARN -message "Retrying Set-TDXTicketContact API call"
+            Set-TDXTicketContact -ID $ID -Contact $Contact
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Setting contact for $ID with $Contact failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $apiError.ErrorRecord.Exception.Response.StatusCode)
+            Write-Log -level ERROR -message ("Status Description - " + $apiError.ErrorRecord.Exception.Response.StatusDescription)
+            Exit(1)
+        }
+    }
+
+}
 
 function Get-TDXTicketWorkflow($ticketID) {
     #GET https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/workflow
