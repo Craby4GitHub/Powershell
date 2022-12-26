@@ -48,75 +48,84 @@ foreach ($termination in $importedTerminations) {
         if ($null -eq $tdxUser.UID) {
             Write-Host "$($termination.EMPLOYEE_NAME), $($termination.EMPLOYEE_ID) is not in TDX"
         }
-        else {
-            #
-            $Description = "Hello $($tdxUser.FullName),`nAs you may be aware, you are required to return all IT equipment issued to you upon your departure from Pima CC. This includes the following equipment:`n"
-            
-            # Look up users assigned assets
-            $assignedAssets = Search-TDXAssets -Term OwningCustomerIDs -Value @($tdxUser.UID) -AppName ITAsset
-            if ($assignedAssets.count -le 0) {
-                write-host "No IT assets for $($tdxUser.FullName), $($tdxUser.PrimaryEmail)"
-                break
+        else { 
+            # Verify no other termination tickets have been created for this user
+            $terminationTicket = Search-TDXTicket -RequestorUids $tdxUser.UID -SearchText $ticketAttributes.Title
+            if ($terminationTicket.count -ge 1) {
+                Write-Host "Ticket already created for $(tdxUser.FullName), $($tdxUser.PrimaryEmail)"
             }
             else {
-                # Adding all of user's assets to Description
-                foreach ($asset in $assignedAssets) {
-                    # Note: add product type? ie laptop, desktop
-                    $Description += "
-                        PCC Number: $($asset.Tag)`n
-                        Asset Model: $($asset.ManufacturerName) $($asset.ProductModelName)`n
-                        Campus and Room: $($asset.LocationName) $($asset.LocationRoomName)`n
-                        "  
-                }
-                $Description += "
-                Please make sure to fully power down before returning it to the IT department. If you are unable to return the equipment to your local IT shop, please let us know and we will arrange for it to be picked up.`n
-                If you have any questions or concerns about returning your IT equipment, or if you believe there is an error in the equipment listed above, please reply to this email with any updates or corrections.`n
-                Thank you for your cooperation.`n
-                Best regards,`n
-                PCC IT
-                "
-    
-                # Get user details
-                $userDetails = Get-TDXPersonDetails -UID $tdxUser.UID
-
-                # Get the user's home location based on the work address
-                switch ($userDetails.WorkAddress.Split(' ')[0]) {
-                    "29" { $responsibleGroup = 11684 } # DO
-                    "CC" { $responsibleGroup = 11684 } # DO
-                    "49" { $responsibleGroup = 11684 } # DO
-                    "DV" { $responsibleGroup = 11682 } # DV
-                    "DO" { $responsibleGroup = 11684 } # DO
-                    "DC" { $responsibleGroup = 11681 } # DC
-                    "East" { $responsibleGroup = 11683 } # EC
-                    "EC" { $responsibleGroup = 11683 } # EC
-                    "El" { $responsibleGroup = 11684 } # DO
-                    "M" { $responsibleGroup = 11684 } # DO - M&S
-                    "NW" { $responsibleGroup = 11680 } # NW
-                    "Santa" { $responsibleGroup = 11682 } # DV
-                    "WC" { $responsibleGroup = 11679 } # WC
-                    Default { $responsibleGroup = 11412 } # SD
-                }
-
-                # Setting important ticket values
-                $ticketAttributes.Description = $Description
-                $ticketAttributes.ResponsibleGroupID = $responsibleGroup
-                $ticketAttributes.RequestorUid = $tdxUser.UID 
-
-                # Create the ticket
-                $tdxTicket = $null
-                $tdxTicket = Submit-TDXTicket @ticketAttributes
-
-                if ($null -eq $tdxTicket.id) {
-                    Write-Host "Failed to create ticket for $($tdxUser.FullName), $($tdxUser.PrimaryEmail)"                
+                # Look up users assigned assets
+                $assignedAssets = Search-TDXAssets -Term OwningCustomerIDs -Value @($tdxUser.UID) -AppName ITAsset
+                if ($assignedAssets.count -le 0) {
+                    write-host "No IT assets for $($tdxUser.FullName), $($tdxUser.PrimaryEmail)"
+                    break
                 }
                 else {
-                
-                    # Add assets directly to the ticket
+                    # Setup Ticket description and details
+                    $Description = "Hello $($tdxUser.FullName),`nAs you may be aware, you are required to return all IT equipment issued to you upon your departure from Pima CC. This includes the following equipment:`n"
+                           
+                    # Adding all of user's assets to Description
                     foreach ($asset in $assignedAssets) {
-                        Edit-TDXTicketAddAsset -ticketID $tdxTicket.ID -assetID $asset.ID -AppName 'ITTicket'
+                        # Note: add product type? ie laptop, desktop
+                        $Description += "
+                                        PCC Number: $($asset.Tag)`n
+                                        Asset Model: $($asset.ManufacturerName) $($asset.ProductModelName)`n
+                                        Campus and Room: $($asset.LocationName) $($asset.LocationRoomName)`n
+                                        "  
                     }
+                    $Description += "
+                                Please make sure to fully power down before returning it to the IT department. If you are unable to return the equipment to your local IT shop, please let us know and we will arrange for it to be picked up.`n
+                                If you have any questions or concerns about returning your IT equipment, or if you believe there is an error in the equipment listed above, please reply to this email with any updates or corrections.`n
+                                Thank you for your cooperation.`n
+                                Best regards,`n
+                                PCC IT
+                                "
                     
-                    Write-Host "Ticket created for $($tdxUser.FullName), $($tdxTicket.ID)"
+                    # Get user details
+                    $userDetails = Get-TDXPersonDetails -UID $tdxUser.UID
+                
+                    # Get the user's home location based on the work address
+                    switch ($userDetails.WorkAddress.Split(' ')[0]) {
+                        "29" { $responsibleGroup = 11684 } # DO
+                        "CC" { $responsibleGroup = 11684 } # DO
+                        "49" { $responsibleGroup = 11684 } # DO
+                        "DV" { $responsibleGroup = 11682 } # DV
+                        "DO" { $responsibleGroup = 11684 } # DO
+                        "DC" { $responsibleGroup = 11681 } # DC
+                        "East" { $responsibleGroup = 11683 } # EC
+                        "EC" { $responsibleGroup = 11683 } # EC
+                        "El" { $responsibleGroup = 11684 } # DO
+                        "M" { $responsibleGroup = 11684 } # DO - M&S
+                        "NW" { $responsibleGroup = 11680 } # NW
+                        "Santa" { $responsibleGroup = 11682 } # DV
+                        "WC" { $responsibleGroup = 11679 } # WC
+                        Default { $responsibleGroup = 11412 } # SD
+                    }
+                
+                    # Setting important ticket values
+                    $ticketAttributes.Description = $Description
+                    $ticketAttributes.ResponsibleGroupID = $responsibleGroup
+                    $ticketAttributes.RequestorUid = $tdxUser.UID 
+                
+                    # Create the ticket
+                    $tdxTicket = $null
+                    $tdxTicket = Submit-TDXTicket @ticketAttributes
+                
+                    if ($null -eq $tdxTicket.id) {
+                        Write-Host "Failed to create ticket for $($tdxUser.FullName), $($tdxUser.PrimaryEmail)"                
+                    }
+                    else {
+                        # Add supervisor to ticket
+                        Set-TDXTicketContact -ID $tdxTicket.ID -Contact $tdxUser.ReportsToUID
+
+                        # Add assets directly to the ticket
+                        foreach ($asset in $assignedAssets) {
+                            Edit-TDXTicketAddAsset -ticketID $tdxTicket.ID -assetID $asset.ID -AppName 'ITTicket'
+                        }
+                        
+                        Write-Host "Ticket created for $($tdxUser.FullName), $($tdxTicket.ID)"
+                    }
                 }
             }
         }
