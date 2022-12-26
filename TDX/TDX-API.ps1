@@ -682,6 +682,55 @@ function Get-TDXTicket($ticketID) {
     }
 }
 
+function Search-TDXTicket {
+    # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/search
+    Param(
+        # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketSearch
+        [ValidateSet("TicketClassification", "MaxResults", "TicketID", "ParentTicketID", "SearchText", "StatusIDs", "PastStatusIDs", "StatusClassIDs", "PriorityIDs", "UrgencyIDs", "ImpactIDs", "AccountIDs", "TypeIDs", "SourceIDs", "UpdatedDateFrom", "UpdatedDateTo", "UpdatedByUid", "ModifiedDateFrom", "ModifiedDateTo", "ModifiedByUid", "StartDateFrom", "StartDateTo", "EndDateFrom", "EndDateTo", "RespondedDateFrom", "RespondedDateTo", "RespondedByUid", "ClosedDateFrom", "ClosedDateTo", "ClosedByUid", "RespondByDateFrom", "RespondByDateTo", "CloseByDateFrom", "CloseByDateTo", "CreatedDateFrom", "CreatedDateTo", "CreatedByUid", "DaysOldFrom", "DaysOldTo", "ResponsibilityUids", "ResponsibilityGroupIDs", "CompletedTaskResponsibilityFilter", "PrimaryResponsibilityUids", "PrimaryResponsibilityGroupIDs", "SlaIDs", "SlaViolationStatus", "SlaUnmetConstraints", "KBArticleIDs", "AssignmentStatus", "ConvertedToTask", "ReviewerUid", "RequestorUids", "RequestorNameSearch", "RequestorEmailSearch", "RequestorPhoneSearch", "ConfigurationItemIDs", "ExcludeConfigurationItemIDs", "IsOnHold", "GoesOffHoldFrom", "GoesOffHoldTo", "LocationIDs", "LocationRoomIDs", "ServiceIDs", "CustomAttributes", "HasReferenceCode")]
+        $Term,
+        $Value,
+        [int32]$MaxResults,
+        [Parameter(Mandatory)]
+        [ValidateSet("ITTicket", "ITAsset", "D2LTicket")]
+        $AppName
+    )
+
+    # Finds all tickets based on a criteria. Not all properties will be provided for each ticket. 
+    # For example, ticket descriptions and custom attributes will not be returned. To retrieve such information, you must load a ticket individually.
+
+    $appID = Get-TDXAppID -AppName $AppName
+    $uri = $baseURI + $appID + '/tickets/search'
+    
+    # Creating body for post to TDX
+    $body = [PSCustomObject]@{
+        $term      = $value;
+        MaxResults = $MaxResults;
+    } | ConvertTo-Json
+
+    try {
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+    }
+    catch {
+        # If we got rate limited, try again after waiting for the reset period to pass.
+        if ($apiError.ErrorRecord.Exception.Response.StatusCode -eq 429) {
+
+            # Sleep based on the rate limit time
+            Get-TdxApiRateLimit -apiCallResponse $apiError
+            
+            # Recursively call the function
+            Write-Log -level WARN -message "Retrying Search-TDXTickets API call"
+            Search-TDXTicket -Term $term -value $value
+        }
+        else {
+            # Display errors and exit script.
+            Write-Log -level ERROR -message "Searching for ticket with $($term) for $($value) failed, see the following log messages for more details."
+            Write-Log -level ERROR -message ("Status Code - " + $apiError.ErrorRecord.Exception.Response.StatusCode)
+            Write-Log -level ERROR -message ("Status Description - " + $apiError.ErrorRecord.Exception.Response.StatusDescription)
+            Exit(1)
+        }
+    }
+}
+
 function Update-TDXTicket($ticketID, $StatusID, $Comment, $NotifyEmail, $IsPrivate, $IsRichHtml, $AppName) {
     # POST https://service.pima.edu/SBTDWebApi/api/{appId}/tickets/{id}/feed
     $appID = Get-TDXAppID -AppName $AppName
