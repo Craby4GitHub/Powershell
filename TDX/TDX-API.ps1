@@ -40,11 +40,108 @@ function Search-TDXAssets {
     # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
     Param(
         # https://service.pima.edu/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
-        [ValidateSet("SerialLike", "SearchText", "SavedSearchID", "StatusIDs", "ExternalIDs", "IsInService", "StatusIDsPast", "SupplierIDs", "ManufacturerIDs", "LocationIDs", "RoomID", "ParentIDs", "ContractIDs", "ExcludeContractIDs", "TicketIDs", "ExcludeTicketIDs", "FormIDs", "ProductModelIDs", "MaintenanceScheduleIDs", "UsingDepartmentIDs", "RequestingDepartmentIDs", "OwningDepartmentIDs", "OwningDepartmentIDsPast", "UsingCustomerIDs", "RequestingCustomerIDs", "OwningCustomerIDs", "OwningCustomerIDsPast", "CustomAttributes", "PurchaseCostFrom", "PurchaseCostTo", "ContractProviderID", "AcquisitionDateFrom", "AcquisitionDateTo", "ExpectedReplacementDateFrom", "ExpectedReplacementDateTo", "ContractEndDateFrom", "ContractEndDateTo", "OnlyParentAssets")]
-        $Term,
-        $Value,
-        [int32]$MaxResults,
+
+        [Parameter(ParameterSetName = "Basic")]
+        [int]$MaxResults,
+
+        # Identifiers
+        [Parameter(ParameterSetName = "Identifiers")]
+        [string[]]$SerialLike,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [string]$SearchText,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [int]$SavedSearchID,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [int[]]$StatusIDs,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [string[]]$ExternalIDs,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [bool]$IsInService,
+        [Parameter(ParameterSetName = "Identifiers")]
+        [int[]]$StatusIDsPast,
+
+        # Supplier and manufacturer
+        [Parameter(ParameterSetName = "Supplier and manufacturer")]
+        [int[]]$SupplierIDs,
+        [Parameter(ParameterSetName = "Supplier and manufacturer")]
+        [int[]]$ManufacturerIDs,
+
+        # Location and room
+        [Parameter(ParameterSetName = "Location and room")]
+        [int[]]$LocationIDs,
+        [Parameter(ParameterSetName = "Location and room")]
+        [int]$RoomID,
+
+        # Parent and contract
+        [Parameter(ParameterSetName = "Parent and contract")]
+        [int[]]$ParentIDs,
+        [Parameter(ParameterSetName = "Parent and contract")]
+        [int[]]$ContractIDs,
+        [Parameter(ParameterSetName = "Parent and contract")]
+        [int[]]$ExcludeContractIDs,
+
+        # Tickets and forms
+        [Parameter(ParameterSetName = "Tickets and forms")]
+        [int[]]$TicketIDs,
+        [Parameter(ParameterSetName = "Tickets and forms")]
+        [int[]]$ExcludeTicketIDs,
+        [Parameter(ParameterSetName = "Tickets and forms")]
+        [int[]]$FormIDs,
+
+        # Product and maintenance
+        [Parameter(ParameterSetName = "Product and maintenance")]
+        [int[]]$ProductModelIDs,
+        [Parameter(ParameterSetName = "Product and maintenance")]
+        [int[]]$MaintenanceScheduleIDs,
+
+        # Departments
+        [Parameter(ParameterSetName = "Departments")]
+        [int[]]$UsingDepartmentIDs,
+        [Parameter(ParameterSetName = "Departments")]
+        [int[]]$RequestingDepartmentIDs,
+        [Parameter(ParameterSetName = "Departments")]
+        [int[]]$OwningDepartmentIDs,
+        [Parameter(ParameterSetName = "Departments")]
+        [int[]]$OwningDepartmentIDsPast,
+
+        # Customers
+        [Parameter(ParameterSetName = "Customers")]
+        [guid[]]$UsingCustomerIDs,
+        [Parameter(ParameterSetName = "Customers")]
+        [guid[]]$RequestingCustomerIDs,
+        [Parameter(ParameterSetName = "Customers")]
+        [guid[]]$OwningCustomerIDs,
+        [Parameter(ParameterSetName = "Customers")]
+        [guid[]]$OwningCustomerIDsPast,
+
+        # Custom attributes
+        [Parameter(ParameterSetName = "Custom attributes")]
+        [hashtable]$CustomAttributes,
+
+        # Purchase and acquisition
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [double]$PurchaseCostFrom,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [double]$PurchaseCostTo,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [int]$ContractProviderID,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$AcquisitionDateFrom,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$AcquisitionDateTo,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$ExpectedReplacementDateFrom,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$ExpectedReplacementDateTo,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$ContractEndDateFrom,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [datetime]$ContractEndDateTo,
+        [Parameter(ParameterSetName = "Purchase and acquisition")]
+        [bool]$OnlyParentAssets,
+
         [Parameter(Mandatory)]
+        [Parameter(ParameterSetName = "TDX")]
         [ValidateSet("ITTicket", "ITAsset", "D2LTicket")]
         $AppName
     )
@@ -56,13 +153,17 @@ function Search-TDXAssets {
     $uri = $baseURI + $appID + '/assets/search'
     
     # Creating body for post to TDX
-    $body = [PSCustomObject]@{
-        $term      = $value;
-        MaxResults = $MaxResults;
-    } | ConvertTo-Json
+    $body = [PSCustomObject]@{}
+    foreach ($param in $PSBoundParameters.GetEnumerator()) {
+        if ($param.Key.ParameterSetName -ne 'TDX') {
+            $body[$param.Key] = $param.Value
+        } 
+    }
+
+    $json = $body | ConvertTo-Json
 
     try {
-        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $json -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -73,7 +174,7 @@ function Search-TDXAssets {
             
             # Recursively call the function
             Write-Log -level WARN -message "Retrying Search-TDXAssets API call"
-            Search-TDXAssets -Term $term -value $value
+            Search-TDXAssets $PSBoundParameters
         }
         else {
             # Display errors and exit script.
