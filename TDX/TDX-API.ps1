@@ -684,16 +684,172 @@ function Get-TDXTicket($ticketID) {
 
 function Search-TDXTicket {
     # https://service.pima.edu/SBTDWebApi/Home/section/Tickets#POSTapi/{appId}/tickets/search
-    Param(
+
+    [CmdletBinding(DefaultParameterSetName = "Basic")]
+    param(
         # https://service.pima.edu/SBTDWebApi/Home/type/TeamDynamix.Api.Tickets.TicketSearch
-        [ValidateSet("TicketClassification", "MaxResults", "TicketID", "ParentTicketID", "SearchText", "StatusIDs", "PastStatusIDs", "StatusClassIDs", "PriorityIDs", "UrgencyIDs", "ImpactIDs", "AccountIDs", "TypeIDs", "SourceIDs", "UpdatedDateFrom", "UpdatedDateTo", "UpdatedByUid", "ModifiedDateFrom", "ModifiedDateTo", "ModifiedByUid", "StartDateFrom", "StartDateTo", "EndDateFrom", "EndDateTo", "RespondedDateFrom", "RespondedDateTo", "RespondedByUid", "ClosedDateFrom", "ClosedDateTo", "ClosedByUid", "RespondByDateFrom", "RespondByDateTo", "CloseByDateFrom", "CloseByDateTo", "CreatedDateFrom", "CreatedDateTo", "CreatedByUid", "DaysOldFrom", "DaysOldTo", "ResponsibilityUids", "ResponsibilityGroupIDs", "CompletedTaskResponsibilityFilter", "PrimaryResponsibilityUids", "PrimaryResponsibilityGroupIDs", "SlaIDs", "SlaViolationStatus", "SlaUnmetConstraints", "KBArticleIDs", "AssignmentStatus", "ConvertedToTask", "ReviewerUid", "RequestorUids", "RequestorNameSearch", "RequestorEmailSearch", "RequestorPhoneSearch", "ConfigurationItemIDs", "ExcludeConfigurationItemIDs", "IsOnHold", "GoesOffHoldFrom", "GoesOffHoldTo", "LocationIDs", "LocationRoomIDs", "ServiceIDs", "CustomAttributes", "HasReferenceCode")]
-        $Term,
-        $Value,
-        [int32]$MaxResults,
+        # Basic search parameters
+        [Parameter(ParameterSetName = "Basic")]
+        [string]$TicketID,
+        [Parameter(ParameterSetName = "Basic")]
+        [string]$ParentTicketID,
+        [Parameter(ParameterSetName = "Basic")]
+        [string]$SearchText,
+        [Parameter(ParameterSetName = "Basic")]
+        [int]$MaxResults,
+
+        # Status parameters
+        [Parameter(ParameterSetName = "Status")]
+        [int[]]$StatusIDs,
+        [Parameter(ParameterSetName = "Status")]
+        [int[]]$PastStatusIDs,
+        [Parameter(ParameterSetName = "Status")]
+        [int[]]$StatusClassIDs,
+
+        # Priority and urgency parameters
+        [Parameter(ParameterSetName = "PriorityAndUrgency")]
+        [int[]]$PriorityIDs,
+        [Parameter(ParameterSetName = "PriorityAndUrgency")]
+        [int[]]$UrgencyIDs,
+        [Parameter(ParameterSetName = "PriorityAndUrgency")]
+        [int[]]$ImpactIDs,
+
+        # Account and type parameters
+        [Parameter(ParameterSetName = "AccountAndType")]
+        [int[]]$AccountIDs,
+        [Parameter(ParameterSetName = "AccountAndType")]
+        [int[]]$TypeIDs,
+        [Parameter(ParameterSetName = "AccountAndType")]
+        [int[]]$SourceIDs,
+
+        # Date range parameters
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$CreatedDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$CreatedDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$UpdatedDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$UpdatedDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$ModifiedDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$ModifiedDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$StartDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$StartDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$EndDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$EndDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$RespondedDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$RespondedDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$RespondByDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$RespondByDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$ClosedDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$ClosedDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$CloseByDateFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [datetime]$CloseByDateTo,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [int]$DaysOldFrom,
+        [Parameter(ParameterSetName = "DateRanges")]
+        [int]$DaysOldTo,
+
+        # Responsibility parameters
+        [Parameter(ParameterSetName = "Responsibility")]
+        [guid[]]$ResponsibilityUids,
+        [Parameter(ParameterSetName = "Responsibility")]
+        [int[]]$ResponsibilityGroupIDs,
+        [Parameter(ParameterSetName = "Responsibility")]
+        [bool]$CompletedTaskResponsibilityFilter,
+        [Parameter(ParameterSetName = "Responsibility")]
+        [guid[]]$PrimaryResponsibilityUids,
+        [Parameter(ParameterSetName = "Responsibility")]
+        [int[]]$PrimaryResponsibilityGroupIDs,
+
+        # SLA parameters
+        [Parameter(ParameterSetName = "SLA")]
+        [int[]]$SlaIDs,
+        [Parameter(ParameterSetName = "SLA")]
+        [bool]$SlaViolationStatus,
+        [Parameter(ParameterSetName = "SLA")]
+        [string[]]$SlaUnmetConstraints,
+       
+        # KB article parameters
+        [Parameter(ParameterSetName = "KBArticle")]
+        [int[]]$KBArticleIDs,
+
+        # Requestor parameters
+        [Parameter(ParameterSetName = "Requestor")]
+        [guid[]]$RequestorUids,
+        [Parameter(ParameterSetName = "Requestor")]
+        [string]$RequestorNameSearch,
+        [Parameter(ParameterSetName = "Requestor")]
+        [string]$RequestorEmailSearch,
+        [Parameter(ParameterSetName = "Requestor")]
+        [string]$RequestorPhoneSearch,
+
+        # Parameters for filtering by user IDs
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$UpdatedByUid,
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$ModifiedByUid,
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$RespondedByUid,
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$ClosedByUid,
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$CreatedByUid,
+        [Parameter(ParameterSetName = 'Uid')]
+        [guid]$ReviewerUid,
+
+        # Parameters for filtering by hold status
+        [Parameter(ParameterSetName = 'Hold')]
+        [bool]$IsOnHold,
+        [Parameter(ParameterSetName = 'Hold')]
+        [DateTime]$GoesOffHoldFrom,
+        [Parameter(ParameterSetName = 'Hold')]
+        [DateTime]$GoesOffHoldTo,
+
+        # Parameters for filtering by location IDs
+        [Parameter(ParameterSetName = 'Location')]
+        [int[]]$LocationIDs,
+        [Parameter(ParameterSetName = 'Location')]
+        [int[]]$LocationRoomIDs,
+
+        # Others
+        [Parameter(ParameterSetName = 'Other')]
+        [string[]]$TicketClassification,
+        [Parameter(ParameterSetName = 'Other')]
+        [bool[]]$AssignmentStatus,
+        [Parameter(ParameterSetName = 'Other')]
+        [bool]$ConvertedToTask,
+        [Parameter(ParameterSetName = 'Other')]
+        [int32[]]$ConfigurationItemIDs,
+        [Parameter(ParameterSetName = 'Other')]
+        [int32[]]$ExcludeConfigurationItemIDs,
+        [Parameter(ParameterSetName = 'Other')]
+        [int32[]]$ServiceIDs,
+        [Parameter(ParameterSetName = 'Other')]
+        [string[]]$CustomAttributes,
+        [Parameter(ParameterSetName = 'Other')]
+        [bool]$HasReferenceCode,
+
         [Parameter(Mandatory)]
+        [Parameter(ParameterSetName = 'TDX')]
         [ValidateSet("ITTicket", "ITAsset", "D2LTicket")]
         $AppName
     )
+
 
     # Finds all tickets based on a criteria. Not all properties will be provided for each ticket. 
     # For example, ticket descriptions and custom attributes will not be returned. To retrieve such information, you must load a ticket individually.
@@ -702,13 +858,17 @@ function Search-TDXTicket {
     $uri = $baseURI + $appID + '/tickets/search'
     
     # Creating body for post to TDX
-    $body = [PSCustomObject]@{
-        $term      = $value;
-        MaxResults = $MaxResults;
-    } | ConvertTo-Json
+    $body = [PSCustomObject]@{}
+    foreach ($param in $PSBoundParameters.GetEnumerator()) {
+        if ($param.Key.ParameterSetName -ne 'TDX') {
+            $body[$param.Key] = $param.Value
+        } 
+    }
+
+    $json = $body | ConvertTo-Json
 
     try {
-        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $body -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
+        return Invoke-RestMethod -Method POST -Headers $tdxAPIAuth -Uri $uri -Body $json -ContentType "application/json" -UseBasicParsing -ErrorVariable apiError
     }
     catch {
         # If we got rate limited, try again after waiting for the reset period to pass.
@@ -719,7 +879,7 @@ function Search-TDXTicket {
             
             # Recursively call the function
             Write-Log -level WARN -message "Retrying Search-TDXTickets API call"
-            Search-TDXTicket -Term $term -value $value
+            Search-TDXTicket $PSBoundParameters
         }
         else {
             # Display errors and exit script.
