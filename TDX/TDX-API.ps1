@@ -21,13 +21,12 @@ function Get-TDXAuth($beid, $key) {
 
     # Attempt the API call, exit script because we cant go further with out authorization
     $authToken = try {
-        Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json"
+        Invoke-RestMethod -Method Post -Uri $uri -Body $body -ContentType "application/json" -ErrorVariable apiError
     }
     catch {
         Write-Log -level ERROR -message "API authentication failed, see the following log messages for more details."
-        Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-        Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.headers)
-        Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+        Write-Log -level ERROR -message ("Status Code - " + $apiError.ErrorRecord.Exception.Response.StatusCode)
+        Write-Log -level ERROR -message ("Status Description - " + $apiError.ErrorRecord.Exception.Response.StatusDescription)
         Exit(1)
     }
 
@@ -38,9 +37,10 @@ function Get-TDXAuth($beid, $key) {
 
 #region Assets
 function Search-TDXAssets {
-    # https://api.teamdynamix.com/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
+    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
     Param(
-        [ValidateSet("SerialLike","SearchText","SavedSearchID","StatusIDs","ExternalIDs","IsInService","StatusIDsPast","SupplierIDs","ManufacturerIDs","LocationIDs","RoomID","ParentIDs","ContractIDs","ExcludeContractIDs","TicketIDs","ExcludeTicketIDs","FormIDs","ProductModelIDs","MaintenanceScheduleIDs","UsingDepartmentIDs","RequestingDepartmentIDs","OwningDepartmentIDs","OwningDepartmentIDsPast","UsingCustomerIDs","RequestingCustomerIDs","OwningCustomerIDs","OwningCustomerIDsPast","CustomAttributes","PurchaseCostFrom","PurchaseCostTo","ContractProviderID","AcquisitionDateFrom","AcquisitionDateTo","ExpectedReplacementDateFrom","ExpectedReplacementDateTo","ContractEndDateFrom","ContractEndDateTo","OnlyParentAssets")]
+        # https://service.pima.edu/TDWebApi/Home/type/TeamDynamix.Api.Assets.AssetSearch
+        [ValidateSet("SerialLike", "SearchText", "SavedSearchID", "StatusIDs", "ExternalIDs", "IsInService", "StatusIDsPast", "SupplierIDs", "ManufacturerIDs", "LocationIDs", "RoomID", "ParentIDs", "ContractIDs", "ExcludeContractIDs", "TicketIDs", "ExcludeTicketIDs", "FormIDs", "ProductModelIDs", "MaintenanceScheduleIDs", "UsingDepartmentIDs", "RequestingDepartmentIDs", "OwningDepartmentIDs", "OwningDepartmentIDsPast", "UsingCustomerIDs", "RequestingCustomerIDs", "OwningCustomerIDs", "OwningCustomerIDsPast", "CustomAttributes", "PurchaseCostFrom", "PurchaseCostTo", "ContractProviderID", "AcquisitionDateFrom", "AcquisitionDateTo", "ExpectedReplacementDateFrom", "ExpectedReplacementDateTo", "ContractEndDateFrom", "ContractEndDateTo", "OnlyParentAssets")]
         $Term,
         $Value,
         [int32]$MaxResults,
@@ -48,15 +48,16 @@ function Search-TDXAssets {
         [ValidateSet("ITTicket", "ITAsset", "D2LTicket")]
         $AppName
     )
+
     # Finds all assets or searches based on a criteria. Attachments and Attributes are not in included in the results
 
-    # https://service.pima.edu/SBTDWebApi/Home/section/Assets#POSTapi/{appId}/assets/search
+
     $appID = Get-TDXAppID -AppName $AppName
     $uri = $baseURI + $appID + '/assets/search'
     
     # Creating body for post to TDX
     $body = [PSCustomObject]@{
-        $term = $value;
+        $term      = $value;
         MaxResults = $MaxResults;
     } | ConvertTo-Json
 
@@ -71,15 +72,14 @@ function Search-TDXAssets {
             Get-TdxApiRateLimit -apiCallResponse $apiError
             
             # Recursively call the function
-            Write-Log -level WARN -message "Retrying Search-Assets API call"
-            Search-Assets -SearchTerm $SearchValue
+            Write-Log -level WARN -message "Retrying Search-TDXAssets API call"
+            Search-TDXAssets -Term $term -value $value
         }
         else {
             # Display errors and exit script.
             Write-Log -level ERROR -message "Searching for assets failed, see the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Write-Log -level ERROR -message ("Status Code - " + $apiError.ErrorRecord.Exception.Response.StatusCode)
+            Write-Log -level ERROR -message ("Status Description - " + $apiError.ErrorRecord.Exception.Response.StatusDescription)
             Exit(1)
         }
     }
@@ -736,14 +736,13 @@ function Edit-TDXTicketAddAsset($ticketID, $assetID, $AppName) {
             
             # Recursively call the function
             Write-Log -level WARN -message "Retrying Edit-TDXTicketAddAsset API call on ticket $ticketID"
-            Edit-TDXTicketAddAsset -ticketID $ticketID -assetID $assetID
+            Edit-TDXTicketAddAsset -ticketID $ticketID -assetID $assetID -AppName $AppName
         }
         else {
             # Display errors and exit script.
             Write-Log -level ERROR -message "Editing the ticket $ticketID with asset $assetID has failed, see the following log messages for more details."
-            Write-Log -level ERROR -message ("Status Code - " + $_.Exception.Response.StatusCode.value__)
-            Write-Log -level ERROR -message ("Status Description - " + $_.Exception.Response.StatusDescription)
-            Write-Log -level ERROR -message ("Error Message - " + $_.ErrorDetails.Message)
+            Write-Log -level ERROR -message ("Status Code - " + $apiError.ErrorRecord.Exception.Response.StatusCode)
+            Write-Log -level ERROR -message ("Status Description - " + $apiError.ErrorRecord.Exception.Response.StatusDescription)
             Exit(1)
         }
     }
