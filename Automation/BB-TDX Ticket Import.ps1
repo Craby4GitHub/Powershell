@@ -4,7 +4,7 @@
 
 $baseURL = 'https://servicedesk.edusupportcenter.com/api/v1'
 
-$blackboardCredentials = Get-Credential
+#$blackboardCredentials = Get-Credential
 
 $body = [PSCustomObject]@{
     username = $blackboardCredentials.UserName
@@ -88,7 +88,20 @@ if ($authResponse.error_msg -eq 'login success') {
             $tdxUser = Search-TDXPeople -SearchString $userANumber
         }
         if ($null -ne $tdxUser.UID) {
-            $ticketAttributes.RequestorUid = $tdxUser.UID 
+
+            # Verify A Numbers match
+            $tdxUserDetails = Get-TDXPersonDetails -UID $tdxUser.UID
+            if ($tdxUserDetails.ExternalID -match $userANumber) {
+                $ticketAttributes.RequestorUid = $tdxUser.UID 
+            }
+            else {
+                $ticketAttributes.RequestorUid = $null
+                $ticketAttributes.RequestorName = $request.customer.name                         # The full name of the requestor associated with the ticket.
+                $ticketAttributes.RequestorFirstName = "$($request.customer.name.split(' ')[0])" # The first name of the requestor associated with the ticket.
+                $ticketAttributes.RequestorLastName = "$($request.customer.name.split(' ')[1])"	 # The last name of the requestor associated with the ticket.
+                $ticketAttributes.RequestorEmail = $userEmail		                             # The email address of the requestor associated with the ticket.
+                $ticketAttributes.RequestorPhone = $userPhoneNumber	                             # The phone number of the requestor associated with the ticket.
+            }
         }
         else {
             $ticketAttributes.RequestorUid = $null
@@ -125,7 +138,7 @@ if ($authResponse.error_msg -eq 'login success') {
 
                 foreach ($history in $ticket.history) {
                     # This will select the most recent email comment and post it as a comment
-                    if ($history.action_type -eq 'EMAIL_RESPONSE') {
+                    if ($history.action_type -eq 'EMAIL_RESPONSE' -and $history.comment.Length -gt 0) {
                         $HTML = New-Object -Com "HTMLFile"
                         $src = [System.Text.Encoding]::Unicode.GetBytes($history.comment)
                         $html.write($src)
