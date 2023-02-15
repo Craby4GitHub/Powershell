@@ -343,6 +343,7 @@ Function Confirm-ComputerName {
                     $ErrorProvider.SetError($ComputerForm_Label, '')
 
                     # Build $ComputerName which will be used to name the computer
+
                     # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
                     switch ($Campus_Dropdown.Text) {
                         'DC' { 
@@ -471,6 +472,7 @@ $CampusList = @(
     ('DO', 'District'), 
     ('DC', 'Downtown'), 
     ('DM', 'DM'), 
+    ('DP', 'Douglas Prison'), 
     ('EC', 'East'), 
     ('MS', 'Maintenance and Security'), 
     ('NW', 'Northwest'), 
@@ -496,7 +498,9 @@ $userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] })
 $hardwareSuffixList = @(
     ('C', 'Computer'), 
     ('N', 'Notebook'),
-    ('K', 'Kiosk')
+    ('K', 'Kiosk'),
+    ('T', 'Tablet'),
+    ('V', 'Virtual Machine')
 )
 $hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
 
