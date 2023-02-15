@@ -399,6 +399,14 @@ Function AddNodes ($Node, $CurrentOU) {
 #endregion
 #region UI Actions
 
+$Username_TextBox.Add_Click( { 
+    $Username_TextBox.Clear()
+})
+
+$Password_TextBox.Add_Click( { 
+    $Password_TextBox.Clear()
+})
+
 # Populates the AD tree based on the campus and domain selected
 $Campus_Dropdown.Add_SelectedIndexChanged( {
         $adTree_Label.Text = "Loading OU's..."
