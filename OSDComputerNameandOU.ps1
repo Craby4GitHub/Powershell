@@ -1,4 +1,4 @@
-# 0.6.0
+# 0.7.0
 # Will Crabtree
 # 
 
@@ -11,6 +11,7 @@ Add-Type -AssemblyName System.Drawing
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $screen = [System.Windows.Forms.Screen]::AllScreens
+$font = New-Object System.Drawing.Font("Segoe UI", 8)
 #region Computer Info Window
 $ComputerInfo_Form = New-Object System.Windows.Forms.Form    
 $ComputerInfo_Form.AutoScaleDimensions = '7,15'
@@ -33,66 +34,55 @@ $ComputerForm_Label.AutoSize = $true
 
 $Campus_Label = New-Object system.Windows.Forms.Label
 $Campus_Label.Text = 'Campus'
-$Campus_Label.Font = 'Segoe UI, 8pt'
 $Campus_Label.AutoSize = $true
 $Campus_Dropdown = New-Object System.Windows.Forms.ComboBox
 $Campus_Dropdown.DropDownStyle = 'DropDown'
 $Campus_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $Campus_Dropdown.AutoCompleteSource = 'ListItems'
-$Campus_Dropdown.Font = 'Segoe UI, 8pt'
 $Campus_Dropdown.TabIndex = 1
 $Campus_Dropdown.Dock = 'Top'
 $Campus_Dropdown.MinimumSize = '50,50'
 
 $BuildingRoom_Label = New-Object system.Windows.Forms.Label
 $BuildingRoom_Label.Text = 'Bldg/Room'
-$BuildingRoom_Label.Font = 'Segoe UI, 8pt'
 $BuildingRoom_Label.AutoSize = $true
 $BuildingRoom_Textbox = New-Object System.Windows.Forms.TextBox
-$BuildingRoom_Textbox.Font = 'Segoe UI, 8pt'
 $BuildingRoom_Textbox.Dock = 'Top'
 $BuildingRoom_Textbox.TabIndex = 2
 $BuildingRoom_Textbox.MinimumSize = '50,20'
 
 $pccNumber_Label = New-Object system.Windows.Forms.Label
 $pccNumber_Label.Text = 'PCC#'
-$pccNumber_Label.Font = 'Segoe UI, 8pt'
 $pccNumber_Label.AutoSize = $true
 $pccNumber_Textbox = New-Object System.Windows.Forms.TextBox
-$pccNumber_Textbox.Font = 'Segoe UI, 8pt'
 $pccNumber_Textbox.TabIndex = 3
 $pccNumber_Textbox.Dock = 'Top'
 $pccNumber_Textbox.MinimumSize = '50,20'
 
 $userSuffix_Label = New-Object system.Windows.Forms.Label
 $userSuffix_Label.Text = 'User Type Suffix'
-$userSuffix_Label.Font = 'Segoe UI, 8pt'
 $userSuffix_Label.AutoSize = $true
 $userSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
 $userSuffix_Dropdown.DropDownStyle = 'DropDown'
 $userSuffix_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $userSuffix_Dropdown.AutoCompleteSource = 'ListItems'
-$userSuffix_Dropdown.Font = 'Segoe UI, 8pt'
 $userSuffix_Dropdown.TabIndex = 4
 $userSuffix_Dropdown.Dock = 'Top'
 $userSuffix_Dropdown.MinimumSize = '50,50'
 
 $hardwareSuffix_Label = New-Object system.Windows.Forms.Label
 $hardwareSuffix_Label.Text = 'Hardware Type Suffix'
-$hardwareSuffix_Label.Font = 'Segoe UI, 8pt'
 $hardwareSuffix_Label.AutoSize = $true
 $hardwareSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
 $hardwareSuffix_Dropdown.DropDownStyle = 'DropDown'
 $hardwareSuffix_Dropdown.AutoCompleteMode = 'SuggestAppend'
 $hardwareSuffix_Dropdown.AutoCompleteSource = 'ListItems'
-$hardwareSuffix_Dropdown.Font = 'Segoe UI, 8pt'
 $hardwareSuffix_Dropdown.TabIndex = 5
 $hardwareSuffix_Dropdown.Dock = 'Top'
 $hardwareSuffix_Dropdown.MinimumSize = '50,50'
 
 $CheckPCC_Button = New-Object System.Windows.Forms.Button
 $CheckPCC_Button.Text = 'Check Name'
-$CheckPCC_Button.Font = 'Segoe UI, 8pt'
 $CheckPCC_Button.TabIndex = 6
 $CheckPCC_Button.Dock = 'Bottom'
 $CheckPCC_Button.AutoSize = $true
@@ -109,7 +99,6 @@ $adTree.Dock = 'Fill'
 
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Text = 'Submit'
-$Submit_Button.Font = 'Segoe UI, 8pt'
 $Submit_Button.TabIndex = 7
 $Submit_Button.Dock = 'Bottom'
 $Submit_Button.AutoSize = $true
@@ -134,7 +123,6 @@ $Username_TextBox.multiline = $false
 $Username_TextBox.Text = 'Username'
 $Username_TextBox.TabIndex = 1
 $Username_TextBox.Dock = 'Bottom'
-#$Username_TextBox.Anchor = 'Bottom'
 $Username_TextBox.AutoSize = $true
 
 $Password_TextBox = New-Object system.Windows.Forms.TextBox
@@ -143,7 +131,6 @@ $Password_TextBox.Text = "PimaRocks"
 $Password_TextBox.TabIndex = 2
 $Password_TextBox.PasswordChar = '*'
 $Password_TextBox.Dock = 'Bottom'
-#$Password_TextBox.Anchor = 'Bottom'
 $Password_TextBox.AutoSize = $true
 
 $DomainSelection_Label = New-Object system.Windows.Forms.Label
@@ -155,7 +142,6 @@ $DomainSelection_Label.AutoSize = $true
 
 $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
 $EDU_RadioButton.Text = 'EDU'
-$EDU_RadioButton.Font = 'Segoe UI, 8pt'
 $EDU_RadioButton.TabStop = $true
 $EDU_RadioButton.Dock = 'Fill'
 $EDU_RadioButton.AutoSize = $true
@@ -165,7 +151,6 @@ $EDU_RadioButton.Checked = $true
 
 $PCC_RadioButton = New-Object System.Windows.Forms.RadioButton
 $PCC_RadioButton.Text = 'PCC'
-$PCC_RadioButton.Font = 'Segoe UI, 8pt'
 $PCC_RadioButton.TabStop = $true
 $PCC_RadioButton.Dock = 'Fill'
 $PCC_RadioButton.AutoSize = $true
@@ -194,7 +179,6 @@ $Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $Domain_LayoutPanel.Dock = "Fill"
 $Domain_LayoutPanel.ColumnCount = 3
 $Domain_LayoutPanel.RowCount = 2
-#$Domain_LayoutPanel.CellBorderStyle = 2
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
 [void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
@@ -258,7 +242,6 @@ $ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Label, 0, 3)
 $ComputerInfo_LayoutPanel.Controls.Add($pccNumber_Textbox, 1, 3)
 
 $ComputerInfo_LayoutPanel.Controls.Add($userSuffix_Label, 0, 4)
-#$ComputerInfo_LayoutPanel.Controls.Add($Suffix_Textbox, 1, 4)
 $ComputerInfo_LayoutPanel.Controls.Add($userSuffix_Dropdown, 1, 4)
 $ComputerInfo_LayoutPanel.Controls.Add($hardwareSuffix_Label, 0, 5)
 $ComputerInfo_LayoutPanel.Controls.Add($hardwareSuffix_Dropdown, 1, 5)
@@ -277,14 +260,17 @@ $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
 #endregion
 #region Functions
 
-function Login-AD {
+function Show-ADLoginWindow {
     # Show the login window and log the domain for later
     [void]$Login_Form.ShowDialog()
+
+    # Check if user clicks 'OK'
     if ($Login_Form.DialogResult -eq 'OK') {
+        # Convert password to secure string for security reasons
         $Password = ConvertTo-SecureString $Password_TextBox.Text -AsPlainText -Force
         $Credentials = New-Object System.Management.Automation.PSCredential ($Username_TextBox.text, $Password)
     
-        # Checks what domain is selected and used for various useful... uses
+        # Determine which radio button is checked to determine which domain to query
         try {
             if ($PCC_RadioButton.Checked) {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($PCC_RadioButton.text + '-domain.pima.edu')
@@ -293,28 +279,27 @@ function Login-AD {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($EDU_RadioButton.text + '-domain.pima.edu')
             }
         }
-        # Recurse when the login fails
+        # If login fails, recursively call the function again
         catch [System.Security.Authentication.AuthenticationException] {
-            Login-AD
+            Show-ADLoginWindow
+            return
         }
         
-        # Comparing pulled AD name against UI text to verify the login was successful. continue to main core script otherwise recurse
-        if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
+        # Check if the domain name matches with either PCC or EDU to determine if login is successful
+        if ($ADDomain.Name -in $PCC_RadioButton.text, $EDU_RadioButton.text) {
             [void]$ComputerInfo_Form.ShowDialog()
             break
         }
+        # If login fails, ask user if they want to retry or cancel
         else {
             $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed, please relaunch.", 'Warning', 'RetryCancel', 'Warning')
             switch ($RelogChoice) {
-                'Retry' { 
-                    Login-AD
-                }
-                'Cancel' {
-                    exit
-                }
+                'Retry' { Show-ADLoginWindow }
+                'Cancel' { exit }
             }        
         }
     }
+    # If user clicks 'Cancel', prompt a warning message and reboot the computer after 5 seconds
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
         [System.Windows.Forms.MessageBox]::Show("Login was cancelled, rebooting the computer.", 'Warning', 'Ok', 'Warning')
         Start-Sleep -Seconds 5
@@ -326,104 +311,109 @@ Function Confirm-ComputerName {
 
     # Verify each text box against regex to verify they are valid entries and if not verified, set error on that text box
     $CheckPCC_Button.BackColor = 'LightGray'
-    # Verify a Campus from approved list is selected
-    if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
-        $ErrorProvider.SetError($ComputerForm_Label, '')
+
+    try {
+        # Verify a Campus from approved list is selected
+        if (!($Campus_Dropdown.Items -contains $Campus_Dropdown.Text)) {
+            throw 'Select a proper campus'
+        }
 
         # Verify the building/room text
-        if ($BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$') {
-            $ErrorProvider.SetError($ComputerForm_Label, '')
+        if (!($BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$')) {
+            throw 'Enter a proper building/room'
+        }
 
-            # Verify a 6 digit number for PCC number
-            if ($pccNumber_Textbox.Text -match '^\d{6}$') {
-                $ErrorProvider.SetError($ComputerForm_Label, '')
+        # Verify a 6 digit number for PCC number
+        if (!($pccNumber_Textbox.Text -match '^\d{6}$')) {
+            throw 'Enter a proper PCC Number'
+        }
 
-                # Verify suffix
-                if (($userSuffix_Dropdown.Items -contains $userSuffix_Dropdown.Text) -and ($hardwareSuffix_Dropdown.Items -contains $hardwareSuffix_Dropdown.Text)) {
-                    $ErrorProvider.SetError($ComputerForm_Label, '')
+        # Verify suffix
+        if (!($userSuffix_Dropdown.Items -contains $userSuffix_Dropdown.Text) -or !($hardwareSuffix_Dropdown.Items -contains $hardwareSuffix_Dropdown.Text)) {
+            throw 'Enter a proper suffix'
+        }
 
-                    # Build $ComputerName which will be used to name the computer
-
-                    # Check to see if this is a DC computer, as thier naming scheme doesnt include a dash
-                    switch ($Campus_Dropdown.Text) {
-                        'DC' { 
-                            $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
-                      
-                        }
-                        Default {
-                            $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
-                        }
-                    }
-                    if ($ComputerName.Length -gt 15) {
-                        $ErrorProvider.SetError($ComputerForm_Label, 'Name too long')
-                    }
-                    else {
-                        $CheckPCC_Button.BackColor = 'Green'
-                    }
-                }
-                else {
-                    $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper suffix')
-                }
+        # Build $ComputerName which will be used to name the computer
+        switch ($Campus_Dropdown.Text) {
+            'DC' { 
+                $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
             }
-            else {
-                $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper PCC Number')
+            Default {
+                $Global:ComputerName = $Campus_Dropdown.Text + '-' + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
             }
         }
-        else {
-            $ErrorProvider.SetError($ComputerForm_Label, 'Enter a proper building/room')
+
+        # Check computer name length
+        if ($ComputerName.Length -gt 15) {
+            throw 'Name too long'
         }
+
+        $CheckPCC_Button.BackColor = 'Green'
     }
-    else {
-        $ErrorProvider.SetError($ComputerForm_Label, 'Select a proper campus')
+    catch {
+        $ErrorProvider.SetError($ComputerForm_Label, $_)
+        return
     }
 
-    
     # Search AD to see if there is a computer with the supplied PCC number and notify the technician
     # Wishlist: Currently just shows a warning, deal with those results in some way?
     $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
     if ($null -ne $PCCSearch) {
-        # Wishlist: Loop through each entry to out put results on new line
-        $duplicateComputerList = $null
-        foreach ($adComputer in $PCCSearch) {
-            $duplicateComputerList += $adComputer.Name + "`n"
-        }
+        $duplicateComputerList = ($PCCSearch.Name -join "`n")
         [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$duplicateComputerList`nYou may need to remove these entries!", 'Warning', 'Ok', 'Warning')
     }
 }
 
-Function AddNodes ($Node, $CurrentOU) {
-    # Used to populate AD tree
+Function Get-ADTreeNode ($Node, $CurrentOU) {
+    # Used to populate Active Directory tree in the UI
+    # Add the current OU to the tree as a child node
     $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
-    Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { AddNodes $NodeSub $_ $ADDomain.Forest }
+    # Get all child OUs of the CurrentOU
+    $ChildOUs = Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest
+    # Recursively add child OUs to the tree
+    $ChildOUs | ForEach-Object { 
+        Get-ADTreeNode $NodeSub $_ $ADDomain.Forest 
+    }
 }
+
 #endregion
 #region UI Actions
 
 $Username_TextBox.Add_Click( { 
-    $Username_TextBox.Clear()
-})
+        $Username_TextBox.Clear()
+    })
 
 $Password_TextBox.Add_Click( { 
-    $Password_TextBox.Clear()
-})
+        $Password_TextBox.Clear()
+    })
 
 # Populates the AD tree based on the campus and domain selected
-$Campus_Dropdown.Add_SelectedIndexChanged( {
+$Campus_Dropdown.Add_SelectedIndexChanged({
+
+        # Set the label text and hide the treeview while it's being populated
         $adTree_Label.Text = "Loading OU's..."
         $adTree.Visible = $false
         $adTree.Nodes.Clear()
-        if ($EDU_RadioButton.Checked -eq $true) {
-            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
+
+        # Determine the search base for Get-ADOrganizationalUnit based on the selected radio button
+        $searchBase = if ($EDU_RadioButton.Checked) {
+            "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu"
         }
-        elseif ($PCC_RadioButton.Checked -eq $true) {
-            # Verify submitted campus against campus list to load specific campus AD tree. If not verified, search whole domain
+        elseif ($PCC_RadioButton.Checked) {
             if ($Campus_Dropdown.Items -contains $Campus_Dropdown.Text) {
-                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
+                "OU=$($CampusList[$Campus_Dropdown.SelectedIndex][1]),OU=PCC,DC=PCC-Domain,DC=pima,DC=edu"
             }
             else {
-                Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu" -Server $ADDomain.Forest | ForEach-Object { AddNodes $adTree $_ }
+                "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu"
             }
-        }  
+        }
+
+        # Populate the treeview with the OUs found
+        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object {
+            Get-ADTreeNode $adTree $_
+        }
+
+        # Reset the label text and show the treeview
         $adTree_Label.Text = 'Select an OU'
         $adTree.Visible = $true
     })
@@ -435,7 +425,6 @@ if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Textbox.ReadOnly = $true
     $pccNumber_Label.Text = 'PCC# : Loaded from BIOS'
 }
-
 # Confirms entered computer name values are correct
 $CheckPCC_Button.Add_Click( { 
         Confirm-ComputerName
@@ -453,10 +442,11 @@ $Submit_Button.Add_Click( {
             $ErrorProvider.SetError($adTree_Label, '')
         }          
         
-        # Checks to see if there are errors on UI elements and if not, submit data to TS
+        # Submit data to Task Sequence if there are no errors on UI elements
         if (-not($ErrorProvider.GetError($ComputerForm_Label) -or $ErrorProvider.GetError($adTree_Label))) {
             [System.Windows.Forms.MessageBox]::Show("Submitted Data:`n`nComputer Name: $($ComputerName.ToUpper())`n`nOU: $("LDAP://$($adTree.SelectedNode.Name)")`n`nDomain: $($ADDomain.Forest)", 'Warning', 'Ok', 'Warning')
 
+            # Set the task sequence environment variables and close the form
             <#
             $TSEnvironment = New-Object -COMObject Microsoft.SMS.TSEnvironment 
             $TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
@@ -487,7 +477,6 @@ $CampusList = @(
     ('WC', 'West'), 
     ('PCC', 'West')
 )
-$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
 
 # Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
 $userSuffixList = @(
@@ -501,7 +490,6 @@ $userSuffixList = @(
     ('M', 'Meeting/conference'), 
     ('D', 'DPS')
 )
-$userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
 
 $hardwareSuffixList = @(
     ('C', 'Computer'), 
@@ -510,11 +498,15 @@ $hardwareSuffixList = @(
     ('T', 'Tablet'),
     ('V', 'Virtual Machine')
 )
+
+# Add items to dropdowns
+$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
+$userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
 $hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
 
 #endregion
 
 # Launches main login window function which the gets AD creds needed for the rest of the script
-Login-AD
+Show-ADLoginWindow
 # Enable to view computer info form for testing
 #[void]$ComputerInfo_Form.ShowDialog()
