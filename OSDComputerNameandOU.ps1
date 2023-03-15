@@ -2,7 +2,48 @@
 # Will Crabtree
 # 
 
-import-module activedirectory
+Import-Module ActiveDirectory
+
+#region Likely values to be updated
+
+# Used for Campus UI dropdown and useful Active Directory OU to computer name conversion
+$CampusList = @(
+    ('29', '29th St.'), 
+    ('ER', 'El Rio'), 
+    ('EP', 'El Pueblo'), 
+    ('DV', 'Desert Vista'), 
+    ('DO', 'District'), 
+    ('DC', 'Downtown'), 
+    ('DM', 'DM'), 
+    ('DP', 'Douglas Prison'), 
+    ('EC', 'East'), 
+    ('MS', 'Maintenance and Security'), 
+    ('NW', 'Northwest'), 
+    ('WC', 'West'), 
+    ('PCC', 'West')
+)
+
+# Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
+$userSuffixList = @(
+    ('A', 'Administrator'), 
+    ('S', 'Staff'), 
+    ('F', 'Faculty'), 
+    ('I', 'Instructor'), 
+    ('C', 'Class'), 
+    ('L', 'Lab'), 
+    ('P', 'Public'), 
+    ('M', 'Meeting/conference'), 
+    ('D', 'DPS')
+)
+
+$hardwareSuffixList = @(
+    ('C', 'Computer'), 
+    ('N', 'Notebook'),
+    ('K', 'Kiosk'),
+    ('T', 'Tablet'),
+    ('V', 'Virtual Machine')
+)
+#endregion
 
 #region GUI
 
@@ -42,6 +83,7 @@ $Campus_Dropdown.AutoCompleteSource = 'ListItems'
 $Campus_Dropdown.TabIndex = 1
 $Campus_Dropdown.Dock = 'Top'
 $Campus_Dropdown.MinimumSize = '50,50'
+$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
 
 $BuildingRoom_Label = New-Object system.Windows.Forms.Label
 $BuildingRoom_Label.Text = 'Bldg/Room'
@@ -69,6 +111,7 @@ $userSuffix_Dropdown.AutoCompleteSource = 'ListItems'
 $userSuffix_Dropdown.TabIndex = 4
 $userSuffix_Dropdown.Dock = 'Top'
 $userSuffix_Dropdown.MinimumSize = '50,50'
+$userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
 
 $hardwareSuffix_Label = New-Object system.Windows.Forms.Label
 $hardwareSuffix_Label.Text = 'Hardware Type Suffix'
@@ -80,6 +123,7 @@ $hardwareSuffix_Dropdown.AutoCompleteSource = 'ListItems'
 $hardwareSuffix_Dropdown.TabIndex = 5
 $hardwareSuffix_Dropdown.Dock = 'Top'
 $hardwareSuffix_Dropdown.MinimumSize = '50,50'
+$hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
 
 $CheckPCC_Button = New-Object System.Windows.Forms.Button
 $CheckPCC_Button.Text = 'Check Name'
@@ -377,7 +421,7 @@ Function Get-ADTreeNode ($Node, $CurrentOU) {
 }
 
 #endregion
-#region UI Actions
+#region GUI Actions
 
 $Username_TextBox.Add_Click( { 
         $Username_TextBox.Clear()
@@ -408,14 +452,41 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
             }
         }
 
-        # Populate the treeview with the OUs found
-        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object {
-            Get-ADTreeNode $adTree $_
-        }
+        # Start a background job to populate the treeview with the OUs found
+        $populateTreeViewJob = Start-Job -ScriptBlock {
+            param($searchBase, $ADDomain, $GetADTreeNodeFunction)
 
-        # Reset the label text and show the treeview
-        $adTree_Label.Text = 'Select an OU'
-        $adTree.Visible = $true
+            Import-Module ActiveDirectory
+
+            # Define the Get-ADTreeNode function in the job's scope
+            Invoke-Expression $GetADTreeNodeFunction
+
+            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object {
+                Get-ADTreeNode $_
+            }
+        } -ArgumentList $searchBase, $ADDomain, ${function:Get-ADTreeNode}.ToString()
+
+        # Periodically check the job status and update the UI when the job is completed
+        $timer = New-Object System.Windows.Forms.Timer
+        $timer.Interval = 500 # Check the job status every 500 milliseconds
+        $timer.Add_Tick({
+                if ($populateTreeViewJob.JobStateInfo.State -eq "Completed") {
+                    $nodes = Receive-Job -Job $populateTreeViewJob
+                    foreach ($node in $nodes) {
+                        $adTree.Nodes.Add($node)
+                    }
+
+                    # Reset the label text and show the treeview
+                    $adTree_Label.Text = 'Select an OU'
+                    $adTree.Visible = $true
+
+                    # Clean up the job and the timer
+                    $timer.Stop()
+                    $timer.Dispose()
+                    Remove-Job $populateTreeViewJob
+                }
+            })
+        $timer.Start()
     })
 
 # If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
@@ -459,52 +530,6 @@ $Submit_Button.Add_Click( {
 
 #endregion
 
-#region Likely Values to be updated
-
-# Used for Campus UI dropdown and useful Active Directory OU to computer name conversion
-$CampusList = @(
-    ('29', '29th St.'), 
-    ('ER', 'El Rio'), 
-    ('EP', 'El Pueblo'), 
-    ('DV', 'Desert Vista'), 
-    ('DO', 'District'), 
-    ('DC', 'Downtown'), 
-    ('DM', 'DM'), 
-    ('DP', 'Douglas Prison'), 
-    ('EC', 'East'), 
-    ('MS', 'Maintenance and Security'), 
-    ('NW', 'Northwest'), 
-    ('WC', 'West'), 
-    ('PCC', 'West')
-)
-
-# Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
-$userSuffixList = @(
-    ('A', 'Administrator'), 
-    ('S', 'Staff'), 
-    ('F', 'Faculty'), 
-    ('I', 'Instructor'), 
-    ('C', 'Class'), 
-    ('L', 'Lab'), 
-    ('P', 'Public'), 
-    ('M', 'Meeting/conference'), 
-    ('D', 'DPS')
-)
-
-$hardwareSuffixList = @(
-    ('C', 'Computer'), 
-    ('N', 'Notebook'),
-    ('K', 'Kiosk'),
-    ('T', 'Tablet'),
-    ('V', 'Virtual Machine')
-)
-
-# Add items to dropdowns
-$Campus_Dropdown.Items.AddRange(($CampusList | ForEach-Object { $_[0] }))
-$userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
-$hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
-
-#endregion
 
 # Launches main login window function which the gets AD creds needed for the rest of the script
 Show-ADLoginWindow
