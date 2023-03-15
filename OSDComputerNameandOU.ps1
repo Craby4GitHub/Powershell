@@ -20,6 +20,7 @@ $CampusList = @(
     ('MS', 'Maintenance and Security'), 
     ('NW', 'Northwest'), 
     ('WC', 'West'), 
+    ('AT', 'Downtown'),
     ('PCC', 'West')
 )
 
@@ -330,7 +331,7 @@ function Show-ADLoginWindow {
         }
         
         # Check if the domain name matches with either PCC or EDU to determine if login is successful
-        if ($ADDomain.Name -in $PCC_RadioButton.text, $EDU_RadioButton.text) {
+        if (($ADDomain.Name -match $PCC_RadioButton.text) -or ($ADDomain.Name -match $EDU_RadioButton.text)) {
             [void]$ComputerInfo_Form.ShowDialog()
             break
         }
@@ -339,7 +340,11 @@ function Show-ADLoginWindow {
             $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed, please relaunch.", 'Warning', 'RetryCancel', 'Warning')
             switch ($RelogChoice) {
                 'Retry' { Show-ADLoginWindow }
-                'Cancel' { exit }
+                'Cancel' {
+                    [System.Windows.Forms.MessageBox]::Show("Login was cancelled, rebooting the computer.", 'Warning', 'Ok', 'Warning')
+                    Start-Sleep -Seconds 5
+                    Restart-Computer -Force -WhatIf 
+                }
             }        
         }
     }
@@ -410,14 +415,8 @@ Function Confirm-ComputerName {
 
 Function Get-ADTreeNode ($Node, $CurrentOU) {
     # Used to populate Active Directory tree in the UI
-    # Add the current OU to the tree as a child node
     $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
-    # Get all child OUs of the CurrentOU
-    $ChildOUs = Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest
-    # Recursively add child OUs to the tree
-    $ChildOUs | ForEach-Object { 
-        Get-ADTreeNode $NodeSub $_ $ADDomain.Forest 
-    }
+    Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $NodeSub $_ $ADDomain.Forest }
 }
 
 #endregion
@@ -451,42 +450,10 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
                 "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu"
             }
         }
-
-        # Start a background job to populate the treeview with the OUs found
-        $populateTreeViewJob = Start-Job -ScriptBlock {
-            param($searchBase, $ADDomain, $GetADTreeNodeFunction)
-
-            Import-Module ActiveDirectory
-
-            # Define the Get-ADTreeNode function in the job's scope
-            Invoke-Expression $GetADTreeNodeFunction
-
-            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object {
-                Get-ADTreeNode $_
-            }
-        } -ArgumentList $searchBase, $ADDomain, ${function:Get-ADTreeNode}.ToString()
-
-        # Periodically check the job status and update the UI when the job is completed
-        $timer = New-Object System.Windows.Forms.Timer
-        $timer.Interval = 500 # Check the job status every 500 milliseconds
-        $timer.Add_Tick({
-                if ($populateTreeViewJob.JobStateInfo.State -eq "Completed") {
-                    $nodes = Receive-Job -Job $populateTreeViewJob
-                    foreach ($node in $nodes) {
-                        $adTree.Nodes.Add($node)
-                    }
-
-                    # Reset the label text and show the treeview
-                    $adTree_Label.Text = 'Select an OU'
-                    $adTree.Visible = $true
-
-                    # Clean up the job and the timer
-                    $timer.Stop()
-                    $timer.Dispose()
-                    Remove-Job $populateTreeViewJob
-                }
-            })
-        $timer.Start()
+        # populate the treeview with the OUs found
+        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_}
+        $adTree_Label.Text = 'Select an OU'
+        $adTree.Visible = $true
     })
 
 # If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
