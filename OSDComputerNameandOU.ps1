@@ -158,7 +158,7 @@ $Login_Form = New-Object System.Windows.Forms.Form
 $Login_Form.ControlBox = $false
 $Login_Form.TopMost = $true
 $Login_Form.Text = 'Sign In'
-$Login_Form.Size = New-Object System.Drawing.Size(300,200)
+$Login_Form.Size = New-Object System.Drawing.Size(300, 200)
 $Login_Form.StartPosition = 'CenterScreen'
 $Login_Form.AutoSizeMode = 'GrowAndShrink'
 $Login_Form.MinimumSize = New-Object System.Drawing.Size(200, 150)  # Minimum form size
@@ -255,11 +255,11 @@ $Login_ButtonPanel.Controls.Add($Cancel_Button_Login)
 $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $ComputerInfo_LayoutPanel.Dock = "Fill"
 $ComputerInfo_LayoutPanel.ColumnCount = 4
-$ComputerInfo_LayoutPanel.RowCount = 6
+$ComputerInfo_LayoutPanel.RowCount = 7
 $ComputerInfo_LayoutPanel.CellBorderStyle = 3
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+[void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 40)))
 [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 5)))
 [void]$ComputerInfo_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 10)))
@@ -400,21 +400,92 @@ Function Confirm-ComputerName {
         return
     }
 
-    # Search AD to see if there is a computer with the supplied PCC number and notify the technician
-    # Wishlist: Currently just shows a warning, deal with those results in some way?
-    $PCCSearch = Get-ADComputer -Filter ('Name -Like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
-    if ($null -ne $PCCSearch) {
-        $duplicateComputerList = ($PCCSearch.Name -join "`n")
-        [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$duplicateComputerList`nYou may need to remove these entries!", 'Warning', 'Ok', 'Warning')
+    # Your code for retrieving computer objects
+    $PCCSearch = Get-ADComputer -Filter ('Name -like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
+
+    $regexPattern = "$($pccNumber_Textbox.Text)..$"
+    # Filter the computers using the regex pattern
+    $filteredComputers = $PCCSearch | Where-Object { $_.Name -match $regexPattern }
+
+    if ($null -ne $filteredComputers) {
+        $duplicateComputerList = $filteredComputers.Name
+        $selectedOptions = Display-CheckboxListForm -Options $duplicateComputerList -Title "Computer Deletion" -Message "Select computers to delete:"
+    
+        if ($selectedOptions) {
+            foreach ($option in $selectedOptions) {
+                # Perform the deletion
+                Remove-ADComputer -Identity $option -Confirm:$false -WhatIf
+            }
+        }
     }
 }
+
+    # Function for creating checkbox list form
+    function Display-CheckboxListForm {
+        param (
+            [string[]]$Options,
+            [string]$Title = 'Select Items',
+            [string]$Message = 'Select items:'
+        )
+
+        # Create the form
+        $form = New-Object System.Windows.Forms.Form 
+        $form.Text = $Title
+        $form.Size = New-Object System.Drawing.Size(300, 400)
+        $form.StartPosition = 'CenterScreen'
+
+        # Create the label
+        $label = New-Object System.Windows.Forms.Label
+        $label.Location = New-Object System.Drawing.Point(10, 20) 
+        $label.Size = New-Object System.Drawing.Size(280, 20) 
+        $label.Text = $Message
+        $form.Controls.Add($label) 
+
+        # Create the checkbox list
+        $listBox = New-Object System.Windows.Forms.CheckedListBox 
+        $listBox.Location = New-Object System.Drawing.Point(10, 40) 
+        $listBox.Size = New-Object System.Drawing.Size(260, 20) 
+        $listBox.Height = 200
+
+        foreach ($option in $Options) {
+            [void]$listBox.Items.Add($option, $false)
+        }
+
+        $form.Controls.Add($listBox) 
+
+        # Add button to handle the OK functionality
+        $OKButton = New-Object System.Windows.Forms.Button
+        $OKButton.Location = New-Object System.Drawing.Point(75, 250)
+        $OKButton.Size = New-Object System.Drawing.Size(75, 23)
+        $OKButton.Text = 'OK'
+        $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
+        $form.Controls.Add($OKButton)
+
+        $form.AcceptButton = $OKButton
+
+        # Show the form and return selected options when the OK button is clicked
+        $form.Topmost = $true
+        $result = $form.ShowDialog()
+
+        if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
+            $selectedOptions = @()
+
+            for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
+                if ($listBox.GetItemChecked($i)) {
+                    $selectedOptions += $listBox.Items[$i]
+                }
+            }
+
+            return $selectedOptions
+        }
+    }
 
 Function Get-ADTreeNode ($Node, $CurrentOU) {
     # Used to populate Active Directory tree in the UI
     $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
     
     # Add a placeholder node that will be replaced when the user expands the node.
-    $placeholder = $NodeSub.Nodes.Add("Loading...")
+    $NodeSub.Nodes.Add("Loading...")
 }
 
 #endregion
@@ -447,10 +518,6 @@ $Password_TextBox.Add_Click( {
 # Populates the AD tree based on the campus and domain selected
 $Campus_Dropdown.Add_SelectedIndexChanged({
 
-        # Set the label text and hide the treeview while it's being populated
-        $adTree_Label.Text = "Loading OU's..."
-        $adTree.Nodes.Clear()
-
         # Determine the search base for Get-ADOrganizationalUnit based on the selected radio button
         $searchBase = if ($EDU_RadioButton.Checked) {
             "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu"
@@ -463,6 +530,11 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
                 "OU=PCC,DC=PCC-Domain,DC=pima,DC=edu"
             }
         }
+
+        # Set the label text and hide the treeview while it's being populated
+        $adTree_Label.Text = "Loading OU's..."
+        $adTree.Nodes.Clear()
+
         # populate the treeview with the OUs found
         Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_ }
         $adTree_Label.Text = 'Select an OU'
