@@ -27,6 +27,7 @@ $CampusList = @(
 # Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
 $userSuffixList = @(
     ('A', 'Administrator'), 
+    ('B', 'Borrowed'), 
     ('S', 'Staff'), 
     ('F', 'Faculty'), 
     ('I', 'Instructor'), 
@@ -141,10 +142,11 @@ $adTree_Label.Anchor = 'Bottom'
 $adTree_Label.AutoSize = $true
 $adTree = New-Object System.Windows.Forms.TreeView
 $adTree.Dock = 'Fill'
+$adTree.TabIndex = 7
 
 $Submit_Button = New-Object System.Windows.Forms.Button
 $Submit_Button.Text = 'Submit'
-$Submit_Button.TabIndex = 7
+$Submit_Button.TabIndex = 8
 $Submit_Button.Dock = 'Bottom'
 $Submit_Button.AutoSize = $true
 $ComputerInfo_Form.AcceptButton = $Submit_Button
@@ -412,15 +414,42 @@ Function Confirm-ComputerName {
         [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$duplicateComputerList`nYou may need to remove these entries!", 'Warning', 'Ok', 'Warning')
     }
 }
-
+<#
 Function Get-ADTreeNode ($Node, $CurrentOU) {
     # Used to populate Active Directory tree in the UI
     $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
     Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $NodeSub $_ $ADDomain.Forest }
 }
+#>
+
+Function Get-ADTreeNode ($Node, $CurrentOU) {
+    # Used to populate Active Directory tree in the UI
+    $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
+    
+    # Add a placeholder node that will be replaced when the user expands the node.
+    $placeholder = $NodeSub.Nodes.Add("Loading...")
+}
+
 
 #endregion
 #region GUI Actions
+
+$adTree.Add_BeforeExpand({
+    param($sender, $e)
+    
+    # The node that is being expanded.
+    $node = $e.Node
+
+    # Check if the node contains a placeholder.
+    if ($node.Nodes.Count -eq 1 -and $node.Nodes[0].Text -eq "Loading...") {
+        # Remove the placeholder.
+        $node.Nodes.Clear()
+
+        # Add the child nodes.
+        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $node.Name -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $node $_ }
+    }
+})
+
 
 $Username_TextBox.Add_Click( { 
         $Username_TextBox.Clear()
@@ -451,7 +480,7 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
             }
         }
         # populate the treeview with the OUs found
-        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_}
+        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_ }
         $adTree_Label.Text = 'Select an OU'
         $adTree.Visible = $true
     })
