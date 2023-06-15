@@ -154,111 +154,101 @@ $ComputerInfo_Form.AcceptButton = $Submit_Button
 
 #endregion
 #region Login Window
-$Login_Form = New-Object system.Windows.Forms.Form
-$Login_Form.FormBorderStyle = "FixedDialog"
-$Login_Form.TopMost = $true
-$Login_Form.AutoScaleDimensions = '7,15'
-$Login_Form.AutoScaleMode = 'Font'
-$Login_Form.StartPosition = 'CenterScreen'
-$Login_Form.Width = $($screen[0].bounds.Width / 5)
-$Login_Form.Height = $($screen[0].bounds.Height / 5)
+$Login_Form = New-Object System.Windows.Forms.Form
 $Login_Form.ControlBox = $false
-$Login_Form.AutoSize = $true
-$Login_Form.MinimumSize = '100,100'
+$Login_Form.TopMost = $true
+$Login_Form.Text = 'Sign In'
+$Login_Form.Size = New-Object System.Drawing.Size(300,200)
+$Login_Form.StartPosition = 'CenterScreen'
+$Login_Form.AutoSizeMode = 'GrowAndShrink'
+$Login_Form.MinimumSize = New-Object System.Drawing.Size(200, 150)  # Minimum form size
 $Login_Form.Padding = New-Object System.Windows.Forms.Padding(10)
 
-$Username_TextBox = New-Object system.Windows.Forms.TextBox
-$Username_TextBox.multiline = $false
-$Username_TextBox.Text = 'Username'
+
+$Username_Label = New-Object System.Windows.Forms.Label
+$Username_Label.Text = 'Username:'
+$Username_Label.Anchor = 'None'
+
+$Username_TextBox = New-Object System.Windows.Forms.TextBox
+$Username_TextBox.Dock = 'Fill'
+$Username_TextBox.Anchor = 'Left, Right'
+$Username_TextBox.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $Username_TextBox.TabIndex = 1
-$Username_TextBox.Dock = 'Bottom'
-$Username_TextBox.AutoSize = $true
 
-$Password_TextBox = New-Object system.Windows.Forms.TextBox
-$Password_TextBox.multiline = $false
-$Password_TextBox.Text = "PimaRocks"
+
+$Password_Label = New-Object System.Windows.Forms.Label
+$Password_Label.Text = 'Password:'
+$Password_Label.Anchor = 'None'
+
+$Password_TextBox = New-Object System.Windows.Forms.TextBox
+$Password_TextBox.Dock = 'Fill'
+$Password_TextBox.Anchor = 'Left, Right'
+$Password_TextBox.UseSystemPasswordChar = $true
+$Password_TextBox.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $Password_TextBox.TabIndex = 2
-$Password_TextBox.PasswordChar = '*'
-$Password_TextBox.Dock = 'Bottom'
-$Password_TextBox.AutoSize = $true
 
-$DomainSelection_Label = New-Object system.Windows.Forms.Label
-$DomainSelection_Label.Text = 'Domain'
-$DomainSelection_Label.Font = 'Segoe UI, 10pt,style=bold'
-$DomainSelection_Label.Dock = 'Bottom'
-$DomainSelection_Label.Anchor = 'Bottom'
-$DomainSelection_Label.AutoSize = $true
 
 $EDU_RadioButton = New-Object System.Windows.Forms.RadioButton
 $EDU_RadioButton.Text = 'EDU'
+$EDU_RadioButton.Anchor = 'None'
 $EDU_RadioButton.TabStop = $true
-$EDU_RadioButton.Dock = 'Fill'
-$EDU_RadioButton.AutoSize = $true
-$EDU_RadioButton.CheckAlign = 'MiddleRight'
-$EDU_RadioButton.TextAlign = 'MiddleRight'
 $EDU_RadioButton.Checked = $true
 
 $PCC_RadioButton = New-Object System.Windows.Forms.RadioButton
 $PCC_RadioButton.Text = 'PCC'
+$PCC_RadioButton.Anchor = 'None'
 $PCC_RadioButton.TabStop = $true
-$PCC_RadioButton.Dock = 'Fill'
-$PCC_RadioButton.AutoSize = $true
 
-$OK_Button_Login = New-Object system.Windows.Forms.Button
-$OK_Button_Login.Text = "&Login"
-$OK_Button_Login.Dock = 'Fill'
-$OK_Button_Login.TabIndex = 3
-$OK_Button_Login.FlatStyle = 1
-$OK_Button_Login.FlatAppearance.BorderSize = 0
-$Login_Form.AcceptButton = $OK_Button_Login
+
+$Login_ButtonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
+$Login_ButtonPanel.Dock = 'Fill'
+$Login_ButtonPanel.Anchor = 'None'
+$Login_ButtonPanel.AutoSize = $true
+$Login_ButtonPanel.AutoSizeMode = 'GrowAndShrink'
+$Login_ButtonPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
+
+$SignIn_Button = New-Object System.Windows.Forms.Button
+$SignIn_Button.Text = '&Sign In'
+$SignIn_Button.Anchor = 'None'
+$SignIn_Button.AutoSize = $true
+$SignIn_Button.MinimumSize = New-Object System.Drawing.Size(100, 0)
+$SignIn_Button.TabIndex = 3
+$Login_Form.AcceptButton = $SignIn_Button
 $Login_Form.AcceptButton.DialogResult = 'OK'
 
-$Cancel_Button_Login = New-Object system.Windows.Forms.Button
-$Cancel_Button_Login.Text = "&Cancel"
+$Cancel_Button_Login = New-Object System.Windows.Forms.Button
+$Cancel_Button_Login.Text = '&Cancel'
+$Cancel_Button_Login.Anchor = 'None'
+$Cancel_Button_Login.AutoSize = $true
+$Cancel_Button_Login.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $Cancel_Button_Login.TabIndex = 4
-$Cancel_Button_Login.Dock = 'Fill'
-
 $Login_Form.CancelButton = $Cancel_Button_Login
 $Login_Form.CancelButton.DialogResult = 'Cancel'
+
 
 #endregion
 #region UI Layouts
 #region Login Layout
-$Domain_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$Domain_LayoutPanel.Dock = "Fill"
-$Domain_LayoutPanel.ColumnCount = 3
-$Domain_LayoutPanel.RowCount = 2
-[void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Domain_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 33)))
-[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$Domain_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 60)))
-
-$Domain_LayoutPanel.Controls.Add($DomainSelection_Label, 1, 0)
-$Domain_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 1)
-$Domain_LayoutPanel.Controls.Add($PCC_RadioButton, 2, 1)
-
 $Login_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
-$Login_LayoutPanel.Dock = "Fill"
+$Login_LayoutPanel.RowCount = 4
 $Login_LayoutPanel.ColumnCount = 2
-$Login_LayoutPanel.RowCount = 3
-$Login_LayoutPanel.CellBorderStyle = 3
-[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
-[void]$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 10)))
+$Login_LayoutPanel.Dock = 'Fill'
+$Login_LayoutPanel.AutoSize = $true
+$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50))) | Out-Null
+$Login_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 50))) | Out-Null
 
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 40)))
-[void]$Login_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::Percent, 30)))
+$Login_Form.Controls.Add($Login_LayoutPanel)
+$Login_LayoutPanel.Controls.Add($Username_Label, 0, 0)
+$Login_LayoutPanel.Controls.Add($Username_TextBox, 1, 0)
+$Login_LayoutPanel.Controls.Add($Password_Label, 0, 1)
+$Login_LayoutPanel.Controls.Add($Password_TextBox, 1, 1)
+$Login_LayoutPanel.Controls.Add($EDU_RadioButton, 0, 2)
+$Login_LayoutPanel.Controls.Add($PCC_RadioButton, 1, 2)
+$Login_LayoutPanel.Controls.Add($Login_ButtonPanel, 0, 3)
+$Login_LayoutPanel.SetColumnSpan($Login_ButtonPanel, 2)
 
-$Login_LayoutPanel.Controls.Add($Username_TextBox, 0, 0)
-$Login_LayoutPanel.Controls.Add($Password_TextBox, 1, 0)
-$Login_LayoutPanel.Controls.Add($Domain_LayoutPanel, 0, 1)
-$Login_LayoutPanel.SetColumnSpan($Domain_LayoutPanel, 2)
-$Login_LayoutPanel.Controls.Add($OK_Button_Login, 0, 2)
-$Login_LayoutPanel.Controls.Add($Cancel_Button_Login, 1, 2)
-
-$Login_Form.controls.Add($Login_LayoutPanel)
-
+$Login_ButtonPanel.Controls.Add($SignIn_Button)
+$Login_ButtonPanel.Controls.Add($Cancel_Button_Login)
 #endregion
 
 #region ComputerInfo UI Layout
@@ -363,7 +353,7 @@ function Show-ADLoginWindow {
 Function Confirm-ComputerName {
     # Clear errors first
     $ErrorProvider.SetError($ComputerForm_Label, '')
-    
+
     # Verify each text box against regex to verify they are valid entries and if not verified, set error on that text box
     $CheckPCC_Button.BackColor = 'LightGray'
 
