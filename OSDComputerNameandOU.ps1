@@ -67,6 +67,7 @@ $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
 $ComputerInfo_Form.MinimumSize = '400,300'
+$ComputerInfo_Form.Padding = New-Object System.Windows.Forms.Padding(10)
 
 $ComputerForm_Label = New-Object system.Windows.Forms.Label
 $ComputerForm_Label.Text = 'Computer Name'
@@ -104,7 +105,7 @@ $pccNumber_Textbox.Dock = 'Top'
 $pccNumber_Textbox.MinimumSize = '50,20'
 
 $userSuffix_Label = New-Object system.Windows.Forms.Label
-$userSuffix_Label.Text = 'User Type Suffix'
+$userSuffix_Label.Text = 'User Suffix'
 $userSuffix_Label.AutoSize = $true
 $userSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
 $userSuffix_Dropdown.DropDownStyle = 'DropDown'
@@ -116,7 +117,7 @@ $userSuffix_Dropdown.MinimumSize = '50,50'
 $userSuffix_Dropdown.Items.AddRange(($userSuffixList | ForEach-Object { $_[1] }))
 
 $hardwareSuffix_Label = New-Object system.Windows.Forms.Label
-$hardwareSuffix_Label.Text = 'Hardware Type Suffix'
+$hardwareSuffix_Label.Text = 'Hardware Suffix'
 $hardwareSuffix_Label.AutoSize = $true
 $hardwareSuffix_Dropdown = New-Object System.Windows.Forms.ComboBox
 $hardwareSuffix_Dropdown.DropDownStyle = 'DropDown'
@@ -128,7 +129,7 @@ $hardwareSuffix_Dropdown.MinimumSize = '50,50'
 $hardwareSuffix_Dropdown.Items.AddRange(($hardwareSuffixList | ForEach-Object { $_[1] }))
 
 $CheckPCC_Button = New-Object System.Windows.Forms.Button
-$CheckPCC_Button.Text = 'Check Name'
+$CheckPCC_Button.Text = '&Check Name'
 $CheckPCC_Button.TabIndex = 6
 $CheckPCC_Button.Dock = 'Bottom'
 $CheckPCC_Button.AutoSize = $true
@@ -145,7 +146,7 @@ $adTree.Dock = 'Fill'
 $adTree.TabIndex = 7
 
 $Submit_Button = New-Object System.Windows.Forms.Button
-$Submit_Button.Text = 'Submit'
+$Submit_Button.Text = '&Submit'
 $Submit_Button.TabIndex = 8
 $Submit_Button.Dock = 'Bottom'
 $Submit_Button.AutoSize = $true
@@ -164,6 +165,7 @@ $Login_Form.Height = $($screen[0].bounds.Height / 5)
 $Login_Form.ControlBox = $false
 $Login_Form.AutoSize = $true
 $Login_Form.MinimumSize = '100,100'
+$Login_Form.Padding = New-Object System.Windows.Forms.Padding(10)
 
 $Username_TextBox = New-Object system.Windows.Forms.TextBox
 $Username_TextBox.multiline = $false
@@ -203,7 +205,7 @@ $PCC_RadioButton.Dock = 'Fill'
 $PCC_RadioButton.AutoSize = $true
 
 $OK_Button_Login = New-Object system.Windows.Forms.Button
-$OK_Button_Login.Text = "Login"
+$OK_Button_Login.Text = "&Login"
 $OK_Button_Login.Dock = 'Fill'
 $OK_Button_Login.TabIndex = 3
 $OK_Button_Login.FlatStyle = 1
@@ -212,7 +214,7 @@ $Login_Form.AcceptButton = $OK_Button_Login
 $Login_Form.AcceptButton.DialogResult = 'OK'
 
 $Cancel_Button_Login = New-Object system.Windows.Forms.Button
-$Cancel_Button_Login.Text = "Cancel"
+$Cancel_Button_Login.Text = "&Cancel"
 $Cancel_Button_Login.TabIndex = 4
 $Cancel_Button_Login.Dock = 'Fill'
 
@@ -359,7 +361,9 @@ function Show-ADLoginWindow {
 }
 
 Function Confirm-ComputerName {
-
+    # Clear errors first
+    $ErrorProvider.SetError($ComputerForm_Label, '')
+    
     # Verify each text box against regex to verify they are valid entries and if not verified, set error on that text box
     $CheckPCC_Button.BackColor = 'LightGray'
 
@@ -414,13 +418,6 @@ Function Confirm-ComputerName {
         [System.Windows.Forms.MessageBox]::Show("The following system(s) matches the entered PCC Number:`n$duplicateComputerList`nYou may need to remove these entries!", 'Warning', 'Ok', 'Warning')
     }
 }
-<#
-Function Get-ADTreeNode ($Node, $CurrentOU) {
-    # Used to populate Active Directory tree in the UI
-    $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
-    Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $CurrentOU -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $NodeSub $_ $ADDomain.Forest }
-}
-#>
 
 Function Get-ADTreeNode ($Node, $CurrentOU) {
     # Used to populate Active Directory tree in the UI
@@ -430,25 +427,23 @@ Function Get-ADTreeNode ($Node, $CurrentOU) {
     $placeholder = $NodeSub.Nodes.Add("Loading...")
 }
 
-
 #endregion
 #region GUI Actions
-
 $adTree.Add_BeforeExpand({
-    param($sender, $e)
+        param($sender, $e)
     
-    # The node that is being expanded.
-    $node = $e.Node
+        # The node that is being expanded.
+        $node = $e.Node
 
-    # Check if the node contains a placeholder.
-    if ($node.Nodes.Count -eq 1 -and $node.Nodes[0].Text -eq "Loading...") {
-        # Remove the placeholder.
-        $node.Nodes.Clear()
+        # Check if the node contains a placeholder.
+        if ($node.Nodes.Count -eq 1 -and $node.Nodes[0].Text -eq "Loading...") {
+            # Remove the placeholder.
+            $node.Nodes.Clear()
 
-        # Add the child nodes.
-        Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $node.Name -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $node $_ }
-    }
-})
+            # Add the child nodes.
+            Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $node.Name -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $node $_ }
+        }
+    })
 
 
 $Username_TextBox.Add_Click( { 
@@ -464,7 +459,6 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
 
         # Set the label text and hide the treeview while it's being populated
         $adTree_Label.Text = "Loading OU's..."
-        $adTree.Visible = $false
         $adTree.Nodes.Clear()
 
         # Determine the search base for Get-ADOrganizationalUnit based on the selected radio button
@@ -482,7 +476,6 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
         # populate the treeview with the OUs found
         Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_ }
         $adTree_Label.Text = 'Select an OU'
-        $adTree.Visible = $true
     })
 
 # If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
