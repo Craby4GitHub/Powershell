@@ -1,8 +1,8 @@
-# 0.7.0
+# 0.8.0
 # Will Crabtree
 # 
 
-Import-Module ActiveDirectory
+Import-Module ActiveDirectory -WarningAction SilentlyContinue
 
 #region Likely values to be updated
 
@@ -48,13 +48,11 @@ $hardwareSuffixList = @(
 #endregion
 
 #region GUI
-
 Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
 $screen = [System.Windows.Forms.Screen]::AllScreens
-$font = New-Object System.Drawing.Font("Segoe UI", 8)
 #region Computer Info Window
 $ComputerInfo_Form = New-Object System.Windows.Forms.Form    
 $ComputerInfo_Form.AutoScaleDimensions = '7,15'
@@ -62,7 +60,6 @@ $ComputerInfo_Form.AutoScaleMode = 'Font'
 $ComputerInfo_Form.StartPosition = 'CenterScreen'
 $ComputerInfo_Form.Width = $($screen[0].bounds.Width / 3)
 $ComputerInfo_Form.Height = $($screen[0].bounds.Height / 3)
-#$ComputerInfo_Form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($PSHome + '\powershell.exe')
 $ComputerInfo_Form.Text = 'Active Directory Information'
 $ComputerInfo_Form.ControlBox = $false
 $ComputerInfo_Form.TopMost = $true
@@ -224,9 +221,42 @@ $Cancel_Button_Login.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $Cancel_Button_Login.TabIndex = 4
 $Login_Form.CancelButton = $Cancel_Button_Login
 $Login_Form.CancelButton.DialogResult = 'Cancel'
-
-
 #endregion
+#region Duplicate Computer Delete
+$DuplicateComp_Form = New-Object System.Windows.Forms.Form 
+$DuplicateComp_Form.ControlBox = $false
+$DuplicateComp_Form.Text = "Duplicate PCC Number"
+$DuplicateComp_Form.AutoSize = $true
+$DuplicateComp_Form.StartPosition = 'CenterScreen'
+$DuplicateComp_Form.AutoSizeMode = 'GrowAndShrink'
+$DuplicateComp_Form.MinimumSize = New-Object System.Drawing.Size(300, 200)
+$DuplicateComp_Form.Padding = New-Object System.Windows.Forms.Padding(10)
+
+$DuplicateComp_Label = New-Object System.Windows.Forms.Label
+$DuplicateComp_Label.Text = "Select computers to delete:"
+$DuplicateComp_Label.AutoSize = $true
+$DuplicateComp_Label.Dock = 'Fill'
+$DuplicateComp_Label.Anchor = 'Left, Right'
+
+$DuplicateComp_ListBox = New-Object System.Windows.Forms.CheckedListBox 
+$DuplicateComp_ListBox.Dock = 'Fill'
+$DuplicateComp_ListBox.AutoSize = $true
+$DuplicateComp_ListBox.Anchor = 'Left, Right, Top, Bottom'
+$DuplicateComp_ListBox.MinimumSize = New-Object System.Drawing.Size(100, 0)
+
+$OKButton = New-Object System.Windows.Forms.Button
+$OKButton.Text = 'OK'
+$OKButton.Anchor = 'None'
+$OKButton.AutoSize = $true
+$OKButton.MinimumSize = New-Object System.Drawing.Size(50, 0)
+$OKButton.DialogResult = 'OK'
+$DuplicateComp_Form.AcceptButton = $OKButton
+
+$DuplicateComp_Form.Topmost = $true
+#endregion
+#endregion
+
+
 #region UI Layouts
 #region Login Layout
 $Login_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
@@ -295,6 +325,20 @@ $ComputerInfo_LayoutPanel.SetrowSpan($adTree, 5)
 $ComputerInfo_LayoutPanel.Controls.Add($Submit_Button, 3, 6)
 $ComputerInfo_Form.controls.Add($ComputerInfo_LayoutPanel)
 #endregion
+#region Duplicate Computer UI Layout
+$DuplicateComp_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
+$DuplicateComp_LayoutPanel.RowCount = 3
+$DuplicateComp_LayoutPanel.ColumnCount = 1
+$DuplicateComp_LayoutPanel.Dock = 'Fill'
+$DuplicateComp_LayoutPanel.AutoSize = $true
+[void]$DuplicateComp_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 100)))
+[void]$DuplicateComp_LayoutPanel.RowStyles.Add((New-Object System.Windows.Forms.RowStyle([System.Windows.Forms.SizeType]::AutoSize)))
+
+$DuplicateComp_Form.Controls.Add($DuplicateComp_LayoutPanel)
+$DuplicateComp_LayoutPanel.Controls.Add($DuplicateComp_Label, 0, 0)
+$DuplicateComp_LayoutPanel.Controls.Add($DuplicateComp_ListBox, 0, 1)
+$DuplicateComp_LayoutPanel.Controls.Add($OKButton, 0, 2)
+#endregion
 #endregion
 #endregion
 #region Functions
@@ -318,7 +362,7 @@ function Show-ADLoginWindow {
                 $ADDomain = Get-ADDomain -Credential $Credentials -Server $($EDU_RadioButton.text + '-domain.pima.edu')
             }
         }
-        # If login fails, recursively call the function again
+        # If an authentication error occurs, recursively call the function again
         catch [System.Security.Authentication.AuthenticationException] {
             Show-ADLoginWindow
             return
@@ -329,7 +373,7 @@ function Show-ADLoginWindow {
             [void]$ComputerInfo_Form.ShowDialog()
             break
         }
-        # If login fails, ask user if they want to retry or cancel
+        # If the login fails, prompt the user with a choice to retry or cancel
         else {
             $RelogChoice = [System.Windows.Forms.MessageBox]::Show("Login Failed, please relaunch.", 'Warning', 'RetryCancel', 'Warning')
             switch ($RelogChoice) {
@@ -342,7 +386,7 @@ function Show-ADLoginWindow {
             }        
         }
     }
-    # If user clicks 'Cancel', prompt a warning message and reboot the computer after 5 seconds
+    # If the user cancels the operation, show a warning message and reboot the computer after 5 seconds
     elseif ($Login_Form.DialogResult -eq 'Cancel') {
         [System.Windows.Forms.MessageBox]::Show("Login was cancelled, rebooting the computer.", 'Warning', 'Ok', 'Warning')
         Start-Sleep -Seconds 5
@@ -351,34 +395,60 @@ function Show-ADLoginWindow {
 }
 
 Function Confirm-ComputerName {
-    # Clear errors first
+    # Clearing any previous errors
     $ErrorProvider.SetError($ComputerForm_Label, '')
 
-    # Verify each text box against regex to verify they are valid entries and if not verified, set error on that text box
+    # Setting the button color to LightGray
     $CheckPCC_Button.BackColor = 'LightGray'
 
     try {
-        # Verify a Campus from approved list is selected
+        # Checking if a campus from the approved list is selected
         if (!($Campus_Dropdown.Items -contains $Campus_Dropdown.Text)) {
             throw 'Select a proper campus'
         }
 
-        # Verify the building/room text
+        # Checking the entered building/room text against a regular expression
         if (!($BuildingRoom_Textbox.Text -match '^[a-z]{1}\d{3}$|^[a-z]{2}\d{2}$|^[a-z]{2}\d{3}$|^[a-z]{3}$')) {
             throw 'Enter a proper building/room'
         }
 
-        # Verify a 6 digit number for PCC number
+        # Checking the entered PCC number is a 6 digit number
         if (!($pccNumber_Textbox.Text -match '^\d{6}$')) {
             throw 'Enter a proper PCC Number'
         }
+        elseif ($pccNumber_Textbox.Text -match '^\d{6}$') {
 
-        # Verify suffix
+            # Getting the Active Directory computer matching the PCC number
+            $PCCSearch = Get-ADComputer -Filter ('Name -like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
+
+            # Defining the regular expression pattern
+            $regexPattern = "$($pccNumber_Textbox.Text)..$"
+        
+            # Filtering the matching computers
+            $matchingComputers = $PCCSearch | Where-Object { $_.Name -match $regexPattern }
+
+            if ($matchingComputers) {
+
+                # Adding each matching computer to the list box
+                foreach ($computer in $matchingComputers.Name) {
+                    [void]$DuplicateComp_ListBox.Items.Add($computer, $false)
+                }
+            
+                # Removing selected computers
+                if ($DuplicateComp_Form.ShowDialog() -eq 'OK') {
+                    foreach ($selectedComputer in $listBox.CheckedItems) {
+                        Remove-ADComputer -Identity $selectedComputer -Confirm:$false -WhatIf
+                    }
+                }
+            }
+        }
+
+        # Checking if a valid suffix is selected
         if (!($userSuffix_Dropdown.Items -contains $userSuffix_Dropdown.Text) -or !($hardwareSuffix_Dropdown.Items -contains $hardwareSuffix_Dropdown.Text)) {
             throw 'Enter a proper suffix'
         }
 
-        # Build $ComputerName which will be used to name the computer
+        # Building the computer name
         switch ($Campus_Dropdown.Text) {
             'DC' { 
                 $Global:ComputerName = $Campus_Dropdown.Text + $BuildingRoom_Textbox.Text + $pccNumber_Textbox.Text + $userSuffixList[$userSuffix_Dropdown.SelectedIndex][0] + $hardwareSuffixList[$hardwareSuffix_Dropdown.SelectedIndex][0]
@@ -388,104 +458,30 @@ Function Confirm-ComputerName {
             }
         }
 
-        # Check computer name length
+        # Checking the length of the computer name
         if ($ComputerName.Length -gt 15) {
             throw 'Name too long'
         }
 
+        # Setting the button color to Green if all inputs are valid
         $CheckPCC_Button.BackColor = 'Green'
     }
     catch {
+        # Catching the error and setting it in the form
         $ErrorProvider.SetError($ComputerForm_Label, $_)
+
+        # Stopping further execution
         return
-    }
-
-    # Your code for retrieving computer objects
-    $PCCSearch = Get-ADComputer -Filter ('Name -like "*' + $pccNumber_Textbox.Text + '*"') -Server $ADDomain.Forest
-
-    $regexPattern = "$($pccNumber_Textbox.Text)..$"
-    # Filter the computers using the regex pattern
-    $filteredComputers = $PCCSearch | Where-Object { $_.Name -match $regexPattern }
-
-    if ($null -ne $filteredComputers) {
-        $duplicateComputerList = $filteredComputers.Name
-        $selectedOptions = Display-CheckboxListForm -Options $duplicateComputerList -Title "Computer Deletion" -Message "Select computers to delete:"
-    
-        if ($selectedOptions) {
-            foreach ($option in $selectedOptions) {
-                # Perform the deletion
-                Remove-ADComputer -Identity $option -Confirm:$false -WhatIf
-            }
-        }
     }
 }
 
-    # Function for creating checkbox list form
-    function Display-CheckboxListForm {
-        param (
-            [string[]]$Options,
-            [string]$Title = 'Select Items',
-            [string]$Message = 'Select items:'
-        )
-
-        # Create the form
-        $form = New-Object System.Windows.Forms.Form 
-        $form.Text = $Title
-        $form.Size = New-Object System.Drawing.Size(300, 400)
-        $form.StartPosition = 'CenterScreen'
-
-        # Create the label
-        $label = New-Object System.Windows.Forms.Label
-        $label.Location = New-Object System.Drawing.Point(10, 20) 
-        $label.Size = New-Object System.Drawing.Size(280, 20) 
-        $label.Text = $Message
-        $form.Controls.Add($label) 
-
-        # Create the checkbox list
-        $listBox = New-Object System.Windows.Forms.CheckedListBox 
-        $listBox.Location = New-Object System.Drawing.Point(10, 40) 
-        $listBox.Size = New-Object System.Drawing.Size(260, 20) 
-        $listBox.Height = 200
-
-        foreach ($option in $Options) {
-            [void]$listBox.Items.Add($option, $false)
-        }
-
-        $form.Controls.Add($listBox) 
-
-        # Add button to handle the OK functionality
-        $OKButton = New-Object System.Windows.Forms.Button
-        $OKButton.Location = New-Object System.Drawing.Point(75, 250)
-        $OKButton.Size = New-Object System.Drawing.Size(75, 23)
-        $OKButton.Text = 'OK'
-        $OKButton.DialogResult = [System.Windows.Forms.DialogResult]::OK
-        $form.Controls.Add($OKButton)
-
-        $form.AcceptButton = $OKButton
-
-        # Show the form and return selected options when the OK button is clicked
-        $form.Topmost = $true
-        $result = $form.ShowDialog()
-
-        if ($result -eq [System.Windows.Forms.DialogResult]::OK) {
-            $selectedOptions = @()
-
-            for ($i = 0; $i -lt $listBox.Items.Count; $i++) {
-                if ($listBox.GetItemChecked($i)) {
-                    $selectedOptions += $listBox.Items[$i]
-                }
-            }
-
-            return $selectedOptions
-        }
-    }
-
-Function Get-ADTreeNode ($Node, $CurrentOU) {
-    # Used to populate Active Directory tree in the UI
-    $NodeSub = $Node.Nodes.Add($CurrentOU.DistinguishedName.toString(), $CurrentOU.Name)
+Function Get-ADTreeNode ($ParentNode, $CurrentOrganizationalUnit) {
+    # Add a new child node to the parent node in the AD tree. 
+    # The 'DistinguishedName' property of the CurrentOU object is used as the key, and 'Name' property as the value.
+    $ChildNode = $ParentNode.Nodes.Add($CurrentOrganizationalUnit.DistinguishedName.toString(), $CurrentOrganizationalUnit.Name)
     
     # Add a placeholder node that will be replaced when the user expands the node.
-    $NodeSub.Nodes.Add("Loading...")
+    $ChildNode.Nodes.Add("Loading...")
 }
 
 #endregion
@@ -493,31 +489,27 @@ Function Get-ADTreeNode ($Node, $CurrentOU) {
 $adTree.Add_BeforeExpand({
         param($sender, $e)
     
-        # The node that is being expanded.
+        # Assign the node being expanded to the variable $node.
         $node = $e.Node
 
-        # Check if the node contains a placeholder.
+        # Check if the node contains a placeholder (an item with the text "Loading...").
+        # If it does, it means the real child nodes have not been loaded yet.
         if ($node.Nodes.Count -eq 1 -and $node.Nodes[0].Text -eq "Loading...") {
             # Remove the placeholder.
             $node.Nodes.Clear()
 
-            # Add the child nodes.
+            # Query Active Directory to get the organizational units (OUs) one level below the current node,
+            # and add them as child nodes of the current node.
             Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $node.Name -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $node $_ }
         }
     })
 
+# Define actions to be taken when clicking on the Username and Password textboxes - Clears the content.
+$Username_TextBox.Add_Click( { $Username_TextBox.Clear() })
+$Password_TextBox.Add_Click( { $Password_TextBox.Clear() })
 
-$Username_TextBox.Add_Click( { 
-        $Username_TextBox.Clear()
-    })
-
-$Password_TextBox.Add_Click( { 
-        $Password_TextBox.Clear()
-    })
-
-# Populates the AD tree based on the campus and domain selected
+# Define actions to be taken when changing the selection in the Campus dropdown.
 $Campus_Dropdown.Add_SelectedIndexChanged({
-
         # Determine the search base for Get-ADOrganizationalUnit based on the selected radio button
         $searchBase = if ($EDU_RadioButton.Checked) {
             "OU=EDU_Computers,DC=edu-domain,DC=pima,DC=edu"
@@ -531,27 +523,25 @@ $Campus_Dropdown.Add_SelectedIndexChanged({
             }
         }
 
-        # Set the label text and hide the treeview while it's being populated
+        # Set the label text and clear the treeview for population
         $adTree_Label.Text = "Loading OU's..."
         $adTree.Nodes.Clear()
 
-        # populate the treeview with the OUs found
+        # Populate the treeview with the OUs found
         Get-ADOrganizationalUnit -Filter * -SearchScope OneLevel -SearchBase $searchBase -Server $ADDomain.Forest | ForEach-Object { Get-ADTreeNode $adTree $_ }
         $adTree_Label.Text = 'Select an OU'
     })
 
-# If the machine has a PCC number set in the BIOS, pull that and enter it into the PCC number field
+# Retrieve the PCC number set in the BIOS, if available, and enter it into the PCC number field
 $PCCNumber = (Get-CimInstance -Query "Select * from Win32_SystemEnclosure").SMBiosAssetTag
 if ($PCCNumber -match '^\d{6}$') {
     $pccNumber_Textbox.Text = $PCCNumber
     $pccNumber_Textbox.ReadOnly = $true
     $pccNumber_Label.Text = 'PCC# : Loaded from BIOS'
 }
-# Confirms entered computer name values are correct
-$CheckPCC_Button.Add_Click( { 
-        Confirm-ComputerName
-    })
 
+# Button actions for checking the computer name and submitting form data
+$CheckPCC_Button.Add_Click( { Confirm-ComputerName })
 
 $Submit_Button.Add_Click( { 
         Confirm-ComputerName
@@ -574,15 +564,17 @@ $Submit_Button.Add_Click( {
             $TSEnvironment.Value("OSDComputerName") = "$($ComputerName.ToUpper())"
             $TSEnvironment.Value("OSDDomainOUName") = "$("LDAP://$($adTree.SelectedNode.Name)")"
             $TSEnvironment.Value("OSDDomainName") = "$($ADDomain.Forest)"     
-            #>          
+            #>     
+            # Close the form
             [void]$ComputerInfo_Form.Close()
         }
     })
-
 #endregion
-
 
 # Launches main login window function which the gets AD creds needed for the rest of the script
 Show-ADLoginWindow
-# Enable to view computer info form for testing
+
+# Enable to view forms for testing
 #[void]$ComputerInfo_Form.ShowDialog()
+#[void]$DuplicateComp_ListBox.Items.Add("test", $false)
+#[void]$DuplicateComp_Form.ShowDialog()
