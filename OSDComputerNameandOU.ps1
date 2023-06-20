@@ -9,20 +9,20 @@ Import-Module ActiveDirectory -WarningAction SilentlyContinue
 # Used for Campus UI dropdown and useful Active Directory OU to computer name conversion
 $campusOUConversionList = @(
     ('WC', 'West'), 
-    ('29', '29th St.'), 
-    ('ER', 'El Rio'), 
-    ('EP', 'El Pueblo'), 
-    ('DV', 'Desert Vista'), 
-    ('DO', 'District'), 
+    ('PCC', 'West'),
     ('DC', 'Downtown'), 
+    ('DO', 'District'), 
+    ('NW', 'Northwest'), 
+    ('EC', 'East'), 
+    ('DV', 'Desert Vista'),
+    ('29', '29th St.'), 
     ('DM', 'DM'), 
     ('DP', 'Douglas Prison'), 
-    ('EC', 'East'), 
     ('MS', 'Maintenance and Security'), 
-    ('NW', 'Northwest'), 
     ('WP', 'Wilmot Prison'), 
     ('AT', 'Downtown'),
-    ('PCC', 'West')
+    ('ER', 'El Rio'), 
+    ('EP', 'El Pueblo')
 )
 
 # Used for Suffix UI dropdowns and useful Active Directory OU to computer name conversion
