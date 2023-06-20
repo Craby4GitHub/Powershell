@@ -8,6 +8,7 @@ Import-Module ActiveDirectory -WarningAction SilentlyContinue
 
 # Used for Campus UI dropdown and useful Active Directory OU to computer name conversion
 $campusOUConversionList = @(
+    ('WC', 'West'), 
     ('29', '29th St.'), 
     ('ER', 'El Rio'), 
     ('EP', 'El Pueblo'), 
@@ -19,7 +20,7 @@ $campusOUConversionList = @(
     ('EC', 'East'), 
     ('MS', 'Maintenance and Security'), 
     ('NW', 'Northwest'), 
-    ('WC', 'West'), 
+    ('WP', 'Wilmot Prison'), 
     ('AT', 'Downtown'),
     ('PCC', 'West')
 )
@@ -52,15 +53,11 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 $Global:ErrorProvider = New-Object System.Windows.Forms.ErrorProvider
 
-$screen = [System.Windows.Forms.Screen]::AllScreens
 #region Computer Info Window
 $CompInfoWindow = New-Object System.Windows.Forms.Form    
+$CompInfoWindow.Text = 'Computer Information'
 $CompInfoWindow.AutoScaleDimensions = '7,15'
-$CompInfoWindow.AutoScaleMode = 'Font'
 $CompInfoWindow.StartPosition = 'CenterScreen'
-$CompInfoWindow.Width = $($screen[0].bounds.Width / 3)
-$CompInfoWindow.Height = $($screen[0].bounds.Height / 3)
-$CompInfoWindow.Text = 'Active Directory Information'
 $CompInfoWindow.ControlBox = $false
 $CompInfoWindow.TopMost = $true
 $CompInfoWindow.MinimumSize = '400,300'
@@ -75,62 +72,74 @@ $CompInfoLabel.AutoSize = $true
 
 $CampusLabel = New-Object system.Windows.Forms.Label
 $CampusLabel.Text = 'Campus'
+$CampusLabel.Font = 'Segoe UI, 8pt,style=bold'
 $CampusLabel.AutoSize = $true
+$CampusLabel.Anchor = 'Right'
 $CampusDropdown = New-Object System.Windows.Forms.ComboBox
-$CampusDropdown.DropDownStyle = 'DropDown'
+$CampusDropdown.Dock = 'Top'
+$CampusDropdown.Anchor = 'Left'
 $CampusDropdown.AutoCompleteMode = 'SuggestAppend'
 $CampusDropdown.AutoCompleteSource = 'ListItems'
-$CampusDropdown.TabIndex = 1
-$CampusDropdown.Dock = 'Top'
+$CampusDropdown.DropDownStyle = 'DropDown'
 $CampusDropdown.MinimumSize = '50,50'
+$CampusDropdown.TabIndex = 1
 $CampusDropdown.Items.AddRange(($campusOUConversionList | ForEach-Object { $_[0] }))
 
 $RoomNumberLabel = New-Object system.Windows.Forms.Label
 $RoomNumberLabel.Text = 'Bldg/Room'
+$RoomNumberLabel.Font = 'Segoe UI, 8pt,style=bold'
+$RoomNumberLabel.Dock = 'Top'
+$RoomNumberLabel.Anchor = 'Right'
 $RoomNumberLabel.AutoSize = $true
 $RoomNumberTextbox = New-Object System.Windows.Forms.TextBox
 $RoomNumberTextbox.Dock = 'Top'
-$RoomNumberTextbox.TabIndex = 2
+$RoomNumberTextbox.Anchor = 'Left'
 $RoomNumberTextbox.MinimumSize = '50,20'
+$RoomNumberTextbox.TabIndex = 2
 
 $PccNumberLabel = New-Object system.Windows.Forms.Label
 $PccNumberLabel.Text = 'PCC#'
+$PccNumberLabel.Font = 'Segoe UI, 8pt,style=bold'
+$PccNumberLabel.Dock = 'Top'
+$PccNumberLabel.Anchor = 'Right'
 $PccNumberLabel.AutoSize = $true
 $PccNumberTextBox = New-Object System.Windows.Forms.TextBox
-$PccNumberTextBox.TabIndex = 3
 $PccNumberTextBox.Dock = 'Top'
+$PccNumberTextBox.Anchor = 'Left'
 $PccNumberTextBox.MinimumSize = '50,20'
+$PccNumberTextBox.TabIndex = 3
 
 $UserSuffixLabel = New-Object system.Windows.Forms.Label
 $UserSuffixLabel.Text = 'User Suffix'
+$UserSuffixLabel.Font = 'Segoe UI, 8pt,style=bold'
+$UserSuffixLabel.Dock = 'Top'
+$UserSuffixLabel.Anchor = 'Right'
 $UserSuffixLabel.AutoSize = $true
 $UserSuffixDropdown = New-Object System.Windows.Forms.ComboBox
-$UserSuffixDropdown.DropDownStyle = 'DropDown'
+$UserSuffixDropdown.Dock = 'Top'
+$UserSuffixDropdown.Anchor = 'Left'
 $UserSuffixDropdown.AutoCompleteMode = 'SuggestAppend'
 $UserSuffixDropdown.AutoCompleteSource = 'ListItems'
-$UserSuffixDropdown.TabIndex = 4
-$UserSuffixDropdown.Dock = 'Top'
+$UserSuffixDropdown.DropDownStyle = 'DropDown'
 $UserSuffixDropdown.MinimumSize = '50,50'
+$UserSuffixDropdown.TabIndex = 4
 $UserSuffixDropdown.Items.AddRange(($userSuffixConversionList | ForEach-Object { $_[1] }))
 
 $HardwareSuffixLabel = New-Object system.Windows.Forms.Label
 $HardwareSuffixLabel.Text = 'Hardware Suffix'
+$HardwareSuffixLabel.Font = 'Segoe UI, 8pt,style=bold'
+$HardwareSuffixLabel.Dock = 'Top'
+$HardwareSuffixLabel.Anchor = 'Right'
 $HardwareSuffixLabel.AutoSize = $true
 $HardwareSuffixDropdown = New-Object System.Windows.Forms.ComboBox
-$HardwareSuffixDropdown.DropDownStyle = 'DropDown'
+$HardwareSuffixDropdown.Dock = 'Top'
+$HardwareSuffixDropdown.Anchor = 'Left'
 $HardwareSuffixDropdown.AutoCompleteMode = 'SuggestAppend'
 $HardwareSuffixDropdown.AutoCompleteSource = 'ListItems'
-$HardwareSuffixDropdown.TabIndex = 5
-$HardwareSuffixDropdown.Dock = 'Top'
+$HardwareSuffixDropdown.DropDownStyle = 'DropDown'
 $HardwareSuffixDropdown.MinimumSize = '50,50'
+$HardwareSuffixDropdown.TabIndex = 5
 $HardwareSuffixDropdown.Items.AddRange(($deviceTypeSuffixConversionList | ForEach-Object { $_[1] }))
-
-$PccCheckButton = New-Object System.Windows.Forms.Button
-$PccCheckButton.Text = '&Check Name'
-$PccCheckButton.TabIndex = 6
-$PccCheckButton.Dock = 'Bottom'
-$PccCheckButton.AutoSize = $true
-$PccCheckButton.BackColor = 'LightGray'
 
 $ActiveDirTreeViewLabel = New-Object system.Windows.Forms.Label
 $ActiveDirTreeViewLabel.Text = 'Select an OU'
@@ -140,50 +149,46 @@ $ActiveDirTreeViewLabel.Anchor = 'Bottom'
 $ActiveDirTreeViewLabel.AutoSize = $true
 $ActiveDirTreeView = New-Object System.Windows.Forms.TreeView
 $ActiveDirTreeView.Dock = 'Fill'
-$ActiveDirTreeView.TabIndex = 7
+$ActiveDirTreeView.TabIndex = 6
 
 $SubmitInfoButton = New-Object System.Windows.Forms.Button
 $SubmitInfoButton.Text = '&Submit'
-$SubmitInfoButton.TabIndex = 8
 $SubmitInfoButton.Dock = 'Bottom'
 $SubmitInfoButton.AutoSize = $true
+$SubmitInfoButton.BackColor = 'LightGray'
+$SubmitInfoButton.TabIndex = 7
 $CompInfoWindow.AcceptButton = $SubmitInfoButton
-
 #endregion
+
 #region Login Window
 $LoginWindow = New-Object System.Windows.Forms.Form
+$LoginWindow.Text = 'Active Directory Sign In'
 $LoginWindow.ControlBox = $false
 $LoginWindow.TopMost = $true
-$LoginWindow.Text = 'Sign In'
 $LoginWindow.Size = New-Object System.Drawing.Size(300, 200)
 $LoginWindow.StartPosition = 'CenterScreen'
 $LoginWindow.AutoSizeMode = 'GrowAndShrink'
 $LoginWindow.MinimumSize = New-Object System.Drawing.Size(200, 150)  # Minimum form size
 $LoginWindow.Padding = New-Object System.Windows.Forms.Padding(10)
 
-
 $UsernameLabel = New-Object System.Windows.Forms.Label
 $UsernameLabel.Text = 'Username:'
 $UsernameLabel.Anchor = 'None'
-
 $UsernameTextBox = New-Object System.Windows.Forms.TextBox
 $UsernameTextBox.Dock = 'Fill'
-$UsernameTextBox.Anchor = 'Left, Right'
 $UsernameTextBox.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $UsernameTextBox.TabIndex = 1
-
+$UsernameTextBox.Anchor = 'Left, Right'
 
 $PasswordLabel = New-Object System.Windows.Forms.Label
 $PasswordLabel.Text = 'Password:'
 $PasswordLabel.Anchor = 'None'
-
 $PasswordTextBox = New-Object System.Windows.Forms.TextBox
 $PasswordTextBox.Dock = 'Fill'
-$PasswordTextBox.Anchor = 'Left, Right'
 $PasswordTextBox.UseSystemPasswordChar = $true
 $PasswordTextBox.MinimumSize = New-Object System.Drawing.Size(100, 0)
 $PasswordTextBox.TabIndex = 2
-
+$PasswordTextBox.Anchor = 'Left, Right'
 
 $EduDomainOption = New-Object System.Windows.Forms.RadioButton
 $EduDomainOption.Text = 'EDU'
@@ -196,12 +201,11 @@ $PccDomainOption.Text = 'PCC'
 $PccDomainOption.Anchor = 'None'
 $PccDomainOption.TabStop = $true
 
-
 $LoginButtonPanel = New-Object System.Windows.Forms.FlowLayoutPanel
 $LoginButtonPanel.Dock = 'Fill'
-$LoginButtonPanel.Anchor = 'None'
 $LoginButtonPanel.AutoSize = $true
 $LoginButtonPanel.AutoSizeMode = 'GrowAndShrink'
+$LoginButtonPanel.Anchor = 'None'
 $LoginButtonPanel.FlowDirection = [System.Windows.Forms.FlowDirection]::LeftToRight
 
 $SignInButton = New-Object System.Windows.Forms.Button
@@ -222,27 +226,29 @@ $CancelLoginButton.TabIndex = 4
 $LoginWindow.CancelButton = $CancelLoginButton
 $LoginWindow.CancelButton.DialogResult = 'Cancel'
 #endregion
+
 #region Duplicate Computer Delete
 $DuplicateSystemWindow = New-Object System.Windows.Forms.Form 
-$DuplicateSystemWindow.ControlBox = $false
 $DuplicateSystemWindow.Text = "Duplicate PCC Number"
+$DuplicateSystemWindow.ControlBox = $false
 $DuplicateSystemWindow.AutoSize = $true
-$DuplicateSystemWindow.StartPosition = 'CenterScreen'
+$DuplicateSystemWindow.Topmost = $true
 $DuplicateSystemWindow.AutoSizeMode = 'GrowAndShrink'
+$DuplicateSystemWindow.StartPosition = 'CenterScreen'
 $DuplicateSystemWindow.MinimumSize = New-Object System.Drawing.Size(300, 200)
 $DuplicateSystemWindow.Padding = New-Object System.Windows.Forms.Padding(10)
 
 $DuplicateSystemLabel = New-Object System.Windows.Forms.Label
 $DuplicateSystemLabel.Text = "Select computers to delete:"
-$DuplicateSystemLabel.AutoSize = $true
 $DuplicateSystemLabel.Dock = 'Fill'
+$DuplicateSystemLabel.AutoSize = $true
 $DuplicateSystemLabel.Anchor = 'Left, Right'
 
 $DuplicateSystemList = New-Object System.Windows.Forms.CheckedListBox 
 $DuplicateSystemList.Dock = 'Fill'
 $DuplicateSystemList.AutoSize = $true
-$DuplicateSystemList.Anchor = 'Left, Right, Top, Bottom'
 $DuplicateSystemList.MinimumSize = New-Object System.Drawing.Size(100, 0)
+$DuplicateSystemList.Anchor = 'Left, Right, Top, Bottom'
 
 $OKButton = New-Object System.Windows.Forms.Button
 $OKButton.Text = 'OK'
@@ -251,8 +257,6 @@ $OKButton.AutoSize = $true
 $OKButton.MinimumSize = New-Object System.Drawing.Size(50, 0)
 $OKButton.DialogResult = 'OK'
 $DuplicateSystemWindow.AcceptButton = $OKButton
-
-$DuplicateSystemWindow.Topmost = $true
 #endregion
 #endregion
 
@@ -286,7 +290,7 @@ $ComputerInfo_LayoutPanel = New-Object System.Windows.Forms.TableLayoutPanel
 $ComputerInfo_LayoutPanel.Dock = "Fill"
 $ComputerInfo_LayoutPanel.ColumnCount = 4
 $ComputerInfo_LayoutPanel.RowCount = 7
-$ComputerInfo_LayoutPanel.CellBorderStyle = 3
+#$ComputerInfo_LayoutPanel.CellBorderStyle = 3
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 20)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 30)))
 [void]$ComputerInfo_LayoutPanel.ColumnStyles.Add((New-Object System.Windows.Forms.ColumnStyle([System.Windows.Forms.SizeType]::Percent, 5)))
@@ -315,14 +319,13 @@ $ComputerInfo_LayoutPanel.Controls.Add($UserSuffixDropdown, 1, 4)
 $ComputerInfo_LayoutPanel.Controls.Add($HardwareSuffixLabel, 0, 5)
 $ComputerInfo_LayoutPanel.Controls.Add($HardwareSuffixDropdown, 1, 5)
 
-$ComputerInfo_LayoutPanel.Controls.Add($PccCheckButton, 0, 6)
-$ComputerInfo_LayoutPanel.SetcolumnSpan($PccCheckButton, 2)
-
 $ComputerInfo_LayoutPanel.Controls.Add($ActiveDirTreeViewLabel, 3, 0)
 $ComputerInfo_LayoutPanel.Controls.Add($ActiveDirTreeView, 3, 1)
 $ComputerInfo_LayoutPanel.SetrowSpan($ActiveDirTreeView, 5)
 
-$ComputerInfo_LayoutPanel.Controls.Add($SubmitInfoButton, 3, 6)
+$ComputerInfo_LayoutPanel.Controls.Add($SubmitInfoButton, 0, 6)
+$ComputerInfo_LayoutPanel.SetcolumnSpan($SubmitInfoButton, 4)
+
 $CompInfoWindow.controls.Add($ComputerInfo_LayoutPanel)
 #endregion
 #region Duplicate Computer UI Layout
@@ -437,7 +440,12 @@ Function Confirm-ComputerName {
                 # Removing selected computers
                 if ($DuplicateSystemWindow.ShowDialog() -eq 'OK') {
                     foreach ($selectedComputer in $listBox.CheckedItems) {
-                        Remove-ADComputer -Identity $selectedComputer -Confirm:$false -WhatIf
+                        try {
+                            Remove-ADComputer -Identity $selectedComputer -Confirm:$false -WhatIf
+                        }
+                        catch {
+                            <#Do this if a terminating exception happens#>
+                        }
                     }
                 }
             }
@@ -540,9 +548,6 @@ if ($PCCNumber -match '^\d{6}$') {
     $PccNumberLabel.Text = 'PCC# : Loaded from BIOS'
 }
 
-# Button actions for checking the computer name and submitting form data
-$PccCheckButton.Add_Click( { Confirm-ComputerName })
-
 $SubmitInfoButton.Add_Click( { 
         Confirm-ComputerName
 
@@ -572,9 +577,9 @@ $SubmitInfoButton.Add_Click( {
 #endregion
 
 # Launches main login window function which the gets AD creds needed for the rest of the script
-#Show-ADLoginWindow
+Show-ADLoginWindow
 
 # Enable to view forms for testing
-[void]$CompInfoWindow.ShowDialog()
+#[void]$CompInfoWindow.ShowDialog()
 #[void]$DuplicateSystemList.Items.Add("test", $false)
 #[void]$DuplicateSystemWindow.ShowDialog()
