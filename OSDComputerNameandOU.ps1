@@ -258,8 +258,6 @@ $OKButton.MinimumSize = New-Object System.Drawing.Size(50, 0)
 $OKButton.DialogResult = 'OK'
 $DuplicateSystemWindow.AcceptButton = $OKButton
 #endregion
-#endregion
-
 
 #region UI Layouts
 #region Login Layout
@@ -401,9 +399,6 @@ Function Confirm-ComputerName {
     # Clearing any previous errors
     $ErrorProvider.SetError($CompInfoLabel, '')
 
-    # Setting the button color to LightGray
-    $PccCheckButton.BackColor = 'LightGray'
-
     try {
         # Checking if a campus from the approved list is selected
         if (!($CampusDropdown.Items -contains $CampusDropdown.Text)) {
@@ -433,18 +428,19 @@ Function Confirm-ComputerName {
             if ($matchingComputers) {
 
                 # Adding each matching computer to the list box
+                $DuplicateSystemList.Items.Clear()
                 foreach ($computer in $matchingComputers.Name) {
                     [void]$DuplicateSystemList.Items.Add($computer, $false)
                 }
             
                 # Removing selected computers
                 if ($DuplicateSystemWindow.ShowDialog() -eq 'OK') {
-                    foreach ($selectedComputer in $listBox.CheckedItems) {
+                    foreach ($selectedComputer in $DuplicateSystemList.CheckedItems) {
                         try {
                             Remove-ADComputer -Identity $selectedComputer -Confirm:$false -WhatIf
                         }
                         catch {
-                            <#Do this if a terminating exception happens#>
+                            <#Wishlist: What to do when it cant delete the object?#>
                         }
                     }
                 }
@@ -470,9 +466,6 @@ Function Confirm-ComputerName {
         if ($ComputerName.Length -gt 15) {
             throw 'Name too long'
         }
-
-        # Setting the button color to Green if all inputs are valid
-        $PccCheckButton.BackColor = 'Green'
     }
     catch {
         # Catching the error and setting it in the form
